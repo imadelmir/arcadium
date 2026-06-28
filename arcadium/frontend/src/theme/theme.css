@@ -65,4 +65,8 @@
 
   /* --- Shadows --- */
   --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+
+  /* --- Component tokens (added in M5 - T2) --- */
+  --transition: 150ms ease;                       /* default hover/focus speed */
+  --ring: 0 0 0 3px rgba(124, 92, 255, 0.35);     /* focus glow for inputs/controls */
 }
