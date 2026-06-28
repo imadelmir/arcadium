@@ -1,0 +1,68 @@
+/* =====================================================================
+   Arcadium - Design tokens (theme)
+   ---------------------------------------------------------------------
+   All colours, radii and spacing live here as CSS variables, so the
+   whole app shares ONE source of truth. Change a value here and it
+   updates everywhere.
+
+   The palette comes from the Arcadium mockups: a dark navy background
+   with a violet brand colour.
+
+   NOTE: we use the system font for now (nothing to download). If we
+   want the "Inter" font like in the mockups, we can add it later with
+   next/font during the design-system task (M5 - T2).
+   ===================================================================== */
+
+:root {
+  /* --- Background layers (darkest to lightest) --- */
+  --color-bg: #0a0e1a;          /* main app background */
+  --color-surface: #121829;     /* sidebar and cards */
+  --color-surface-2: #1a2138;   /* inputs and hovered rows */
+  --color-border: #232b44;      /* thin borders and dividers */
+
+  /* --- Text --- */
+  --color-text: #e7e9f2;        /* main text */
+  --color-text-muted: #8b92a8;  /* secondary text */
+  --color-text-faint: #5b6178;  /* hints and disabled text */
+
+  /* --- Brand (violet / blue) --- */
+  --color-primary: #7c5cff;        /* main brand violet */
+  --color-primary-strong: #6b46ff; /* darker violet for hover */
+  --color-accent-blue: #4f7bff;    /* blue used in the gradient */
+
+  /* --- Feedback colours --- */
+  --color-success: #34d399;  /* connected, price drops */
+  --color-danger: #f06b6b;   /* errors */
+  --color-warning: #f5b14c;  /* warnings */
+
+  /* --- Game status colours (library / backlog) --- */
+  --status-never: #6b7280;     /* "Mai giocato" */
+  --status-playing: #4f7bff;   /* "In corso" */
+  --status-finished: #8b5cf6;  /* "Finito" */
+  --status-abandoned: #f5894c; /* "Abbandonato" */
+
+  /* --- Brand gradient (logo and primary buttons) --- */
+  --gradient-brand: linear-gradient(135deg, #7c5cff 0%, #4f7bff 100%);
+
+  /* --- Corner radius --- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* --- Spacing scale (multiples of 4px) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* --- Layout sizes (used by the sidebar/header in M5 - T4) --- */
+  --sidebar-width: 240px;
+  --header-height: 64px;
+
+  /* --- Shadows --- */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+}

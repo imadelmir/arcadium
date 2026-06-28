@@ -1,0 +1,35 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-5);
+}
+
+.code {
+  font-size: 48px;
+  font-weight: 800;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.title {
+  margin-top: var(--space-2);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.text {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.link {
+  margin-top: var(--space-5);
+  color: var(--color-primary);
+  font-weight: 600;
+}

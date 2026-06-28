@@ -1,0 +1,60 @@
+/* =====================================================================
+   Arcadium - Global base styles
+   ---------------------------------------------------------------------
+   A small reset plus the default look of the page (background, text,
+   font). Styles for specific components live in CSS Modules next to
+   each component, not here.
+   ===================================================================== */
+
+/* Simple, modern reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Links look like normal text unless a component says otherwise */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Form controls should use the same font as the rest of the page */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Keyboard users must always see where they are */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,26 @@
+/* Shared look for the placeholder pages created in T1.
+   Real page UIs will replace these in later M5 tasks. */
+.page {
+  max-width: 960px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.badge {
+  display: inline-block;
+  margin-top: var(--space-5);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}

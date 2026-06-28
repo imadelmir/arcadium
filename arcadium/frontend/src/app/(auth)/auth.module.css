@@ -1,0 +1,13 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  /* soft violet glow in the centre, like the login mockup */
+  background: radial-gradient(
+    1200px 600px at 50% 30%,
+    rgba(124, 92, 255, 0.12),
+    transparent 70%
+  );
+}
