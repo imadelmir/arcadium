@@ -1,0 +1,9 @@
+# Driver PostgreSQL
+psycopg2-binary==2.9.9
+
+# Gestione delle variabili d'ambiente (file .env)
+python-dotenv==1.0.1
+
+# Parsing in streaming del JSON: il dataset e' ~500MB, va letto a pezzi
+# senza caricarlo tutto in memoria.
+ijson==3.3.0

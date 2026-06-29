@@ -1,9 +1,12 @@
-# Java
+# ============================================================
+#  Arcadium — .gitignore del repository (root: Project_ACE5)
+# ============================================================
+
+# --- Java ---
 *.class
 *.log
 *.ctxt
 .mtj.tmp/
-
 *.jar
 *.war
 *.nar
@@ -11,19 +14,44 @@
 *.zip
 *.tar.gz
 *.rar
-
 hs_err_pid*
 replay_pid*
+target/
+build/
 
-# Python cache
+# --- Python ---
 __pycache__/
 *.pyc
 venv/
+.venv/
 
-# React / Node
+# --- React / Node ---
 node_modules/
 
-# IDE
+# --- IDE ---
 .idea/
 .vscode/
+
+# --- File di sistema ---
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Variabili d'ambiente (credenziali) ---
+# Il file .env reale NON va su git; i template .example restano tracciati.
+.env
+.env.local
+!.env.example
+
+# --- Dataset Steam (pesante: ~500MB) ---
+# Condiviso via Google Drive / OneDrive, MAI su git (GitHub rifiuta > 100MB).
+**/data/*
+!**/data/.gitkeep
+steam_games.json
+steam_games.csv
+*.json.gz
+*.csv.gz
+
+# Nota: i file .txt (note per i colleghi) restano TRACCIATI: nessuna regola
+# li ignora. Unica eccezione: un .txt messo DENTRO una cartella data/ verrebbe
+# escluso dalla regola qui sopra (tieni le note fuori da data/).
