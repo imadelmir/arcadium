@@ -1,9 +1,13 @@
-# Driver PostgreSQL
-psycopg2-binary==2.9.9
+# Dipendenze della pipeline ETL Arcadium.
+#
+# Il driver PostgreSQL NON e' qui di proposito: serve solo a M3-T5
+# (inserimenti nel database). Lo aggiungeremo a quel punto, scegliendo la
+# versione che si installa senza problemi sulla vostra versione di Python.
+# Per le task M3-T2 .. M3-T4 non serve alcun database.
+
+# Parsing in streaming del JSON: il dataset e' ~500MB e va letto a pezzi,
+# senza caricarlo tutto in memoria.
+ijson>=3.3.0
 
 # Gestione delle variabili d'ambiente (file .env)
-python-dotenv==1.0.1
-
-# Parsing in streaming del JSON: il dataset e' ~500MB, va letto a pezzi
-# senza caricarlo tutto in memoria.
-ijson==3.3.0
+python-dotenv>=1.0.1
