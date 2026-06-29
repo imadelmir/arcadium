@@ -1,14 +1,15 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import styles from "../placeholder.module.css";
 
-// "Impostazioni" page.
-// This is only a placeholder for now (created in M5 - T1 to set up
-// the routing). The full UI is built in the task shown on the badge.
 export default function ImpostazioniPage() {
+  const { t } = useTranslation();
   return (
     <section className={styles.page}>
-      <h1 className={styles.title}>Impostazioni</h1>
-      <p className={styles.subtitle}>Account, lingua e collegamento con Steam.</p>
-      <p className={styles.badge}>Pagina in costruzione · M5 - T15</p>
+      <h1 className={styles.title}>{t("pages.impostazioni.title")}</h1>
+      <p className={styles.subtitle}>{t("pages.impostazioni.subtitle")}</p>
+      <p className={styles.badge}>{t("common.underConstruction")} · M5 - T15</p>
     </section>
   );
 }

@@ -4,6 +4,7 @@
 
 import "@/theme/theme.css"; // colour palette + design tokens (CSS variables)
 import "./globals.css";     // base styles (reset, background, font)
+import { LanguageProvider } from "@/context/LanguageProvider"; // IT/EN translations
 
 // Text shown in the browser tab and by search engines.
 export const metadata = {
@@ -14,7 +15,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }

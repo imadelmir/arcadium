@@ -11,3 +11,4 @@ export { Select } from "./Select/Select";
 export { Tabs } from "./Tabs/Tabs";
 export { Avatar } from "./Avatar/Avatar";
 export { Spinner } from "./Spinner/Spinner";
+export { LanguageSwitcher } from "./LanguageSwitcher/LanguageSwitcher";

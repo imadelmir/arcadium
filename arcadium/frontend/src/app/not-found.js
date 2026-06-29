@@ -1,17 +1,18 @@
-// Shown when the user opens a URL that does not exist (404).
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import styles from "./not-found.module.css";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <main className={styles.wrap}>
       <p className={styles.code}>404</p>
-      <h1 className={styles.title}>Pagina non trovata</h1>
-      <p className={styles.text}>
-        La pagina che cerchi non esiste o è stata spostata.
-      </p>
+      <h1 className={styles.title}>{t("notFound.title")}</h1>
+      <p className={styles.text}>{t("notFound.text")}</p>
       <Link className={styles.link} href="/panoramica">
-        Torna alla Panoramica
+        {t("notFound.back")}
       </Link>
     </main>
   );

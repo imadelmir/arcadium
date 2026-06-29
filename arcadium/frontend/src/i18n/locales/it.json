@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "panoramica": "Panoramica",
+    "negozio": "Negozio",
+    "libreria": "Libreria",
+    "wishlist": "Wishlist",
+    "backlog": "Backlog",
+    "statistiche": "Statistiche",
+    "community": "Community",
+    "impostazioni": "Impostazioni"
+  },
+  "common": {
+    "underConstruction": "Pagina in costruzione",
+    "search": "Cerca giochi, generi, sviluppatori…"
+  },
+  "pages": {
+    "panoramica": {
+      "title": "Panoramica",
+      "subtitle": "Uno sguardo d'insieme alla tua attività."
+    },
+    "libreria": {
+      "title": "La tua libreria",
+      "subtitle": "Tutti i giochi che possiedi, in un colpo d'occhio."
+    },
+    "negozio": {
+      "title": "Negozio",
+      "subtitle": "Esplora il catalogo Steam, filtra e acquista in un clic."
+    },
+    "wishlist": {
+      "title": "La tua wishlist",
+      "subtitle": "I giochi che desideri, con avvisi quando il prezzo scende."
+    },
+    "backlog": {
+      "title": "Backlog",
+      "subtitle": "Organizza i giochi per stato: in corso, finito, abbandonato."
+    },
+    "statistiche": {
+      "title": "Le tue statistiche",
+      "subtitle": "Ore di gioco, completamenti e achievement."
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Confronta libreria e achievement con altri giocatori."
+    },
+    "impostazioni": {
+      "title": "Impostazioni",
+      "subtitle": "Account, lingua e collegamento con Steam."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Bentornato",
+      "subtitle": "Accedi al tuo account Arcadium.",
+      "badge": "Form di accesso",
+      "noAccount": "Non hai un account?",
+      "signUp": "Registrati"
+    },
+    "register": {
+      "title": "Crea il tuo account",
+      "subtitle": "Inizia a organizzare la tua libreria.",
+      "badge": "Form di registrazione",
+      "haveAccount": "Hai già un account?",
+      "signIn": "Accedi"
+    }
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "text": "La pagina che cerchi non esiste o è stata spostata.",
+    "back": "Torna alla Panoramica"
+  },
+  "language": {
+    "label": "Lingua"
+  }
+}

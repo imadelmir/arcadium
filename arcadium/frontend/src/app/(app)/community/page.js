@@ -1,14 +1,15 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import styles from "../placeholder.module.css";
 
-// "Community" page.
-// This is only a placeholder for now (created in M5 - T1 to set up
-// the routing). The full UI is built in the task shown on the badge.
 export default function CommunityPage() {
+  const { t } = useTranslation();
   return (
     <section className={styles.page}>
-      <h1 className={styles.title}>Community</h1>
-      <p className={styles.subtitle}>Confronta libreria e achievement con altri giocatori.</p>
-      <p className={styles.badge}>Pagina in costruzione · M5</p>
+      <h1 className={styles.title}>{t("pages.community.title")}</h1>
+      <p className={styles.subtitle}>{t("pages.community.subtitle")}</p>
+      <p className={styles.badge}>{t("common.underConstruction")} · M5</p>
     </section>
   );
 }

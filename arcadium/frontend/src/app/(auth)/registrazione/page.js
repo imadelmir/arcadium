@@ -1,19 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import styles from "../auth-card.module.css";
 
-// "Registrazione" (sign up) page.
-// Placeholder card for now. The real form is built in M5 - T5.
 export default function RegistrazionePage() {
+  const { t } = useTranslation();
   return (
     <div className={styles.card}>
       <p className={styles.brand}>ARCADIUM</p>
-      <h1 className={styles.title}>Crea il tuo account</h1>
-      <p className={styles.subtitle}>Inizia a organizzare la tua libreria.</p>
-      <p className={styles.badge}>Form di registrazione · M5 - T5</p>
+      <h1 className={styles.title}>{t("auth.register.title")}</h1>
+      <p className={styles.subtitle}>{t("auth.register.subtitle")}</p>
+      <p className={styles.badge}>{t("auth.register.badge")} · M5 - T5</p>
       <p className={styles.alt}>
-        Hai già un account?{" "}
+        {t("auth.register.haveAccount")}{" "}
         <Link className={styles.link} href="/login">
-          Accedi
+          {t("auth.register.signIn")}
         </Link>
       </p>
     </div>

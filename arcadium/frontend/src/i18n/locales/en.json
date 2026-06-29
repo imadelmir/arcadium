@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "panoramica": "Overview",
+    "negozio": "Store",
+    "libreria": "Library",
+    "wishlist": "Wishlist",
+    "backlog": "Backlog",
+    "statistiche": "Statistics",
+    "community": "Community",
+    "impostazioni": "Settings"
+  },
+  "common": {
+    "underConstruction": "Page under construction",
+    "search": "Search games, genres, developers…"
+  },
+  "pages": {
+    "panoramica": {
+      "title": "Overview",
+      "subtitle": "A bird's-eye view of your activity."
+    },
+    "libreria": {
+      "title": "Your library",
+      "subtitle": "Every game you own, at a glance."
+    },
+    "negozio": {
+      "title": "Store",
+      "subtitle": "Browse the Steam catalogue, filter and buy in one click."
+    },
+    "wishlist": {
+      "title": "Your wishlist",
+      "subtitle": "The games you want, with alerts when the price drops."
+    },
+    "backlog": {
+      "title": "Backlog",
+      "subtitle": "Sort your games by status: playing, finished, abandoned."
+    },
+    "statistiche": {
+      "title": "Your statistics",
+      "subtitle": "Playtime, completions and achievements."
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Compare your library and achievements with other players."
+    },
+    "impostazioni": {
+      "title": "Settings",
+      "subtitle": "Account, language and Steam connection."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your Arcadium account.",
+      "badge": "Sign-in form",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start organising your library.",
+      "badge": "Sign-up form",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The page you're looking for doesn't exist or has been moved.",
+    "back": "Back to Overview"
+  },
+  "language": {
+    "label": "Language"
+  }
+}
