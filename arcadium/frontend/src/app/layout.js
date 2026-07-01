@@ -5,6 +5,7 @@
 import "@/theme/theme.css"; // colour palette + design tokens (CSS variables)
 import "./globals.css";     // base styles (reset, background, font)
 import { LanguageProvider } from "@/context/LanguageProvider"; // IT/EN translations
+import { StarField } from "@/components/StarField/StarField";
 
 // Text shown in the browser tab and by search engines.
 export const metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="it">
       <body>
+        <StarField />
         <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
