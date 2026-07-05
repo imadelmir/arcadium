@@ -6,116 +6,163 @@ Orchestra i tre stadi sul dataset Steam:
     TRANSFORM -> pulizia e normalizzazione dei campi  (M3-T3, src/transform/)
     LOAD      -> LookupCache e inserimenti nel DB      (M3-T4, M3-T5, src/load/)
 
-Il caricamento e' organizzato in DUE PASSATE sul file, per tenere la memoria
-costante (i ~122k giochi non stanno mai tutti in RAM insieme):
+Il caricamento e' in DUE PASSATE sul file, per tenere la memoria costante:
+  Passata 1 - LOOKUP    : censisce i record (letti/caricabili/scartati per fascia),
+                          costruisce il LookupCache, inserisce le 6 lookup e rilegge
+                          le mappe nome -> id_db.
+  Passata 2 - CATALOGO  : ri-scorre il file a blocchi (BATCH_SIZE) inserendo games,
+                          screenshot e ponti, con commit a fine blocco.
 
-  Passata 1 - LOOKUP
-    Scorre il file, costruisce il LookupCache (raccoglie i valori distinti di
-    generi, categorie, tag, lingue, developer, publisher), poi inserisce le sei
-    lookup nel database e rilegge le mappe nome -> id_db reali. Necessario prima
-    dei giochi e delle ponti (le ponti hanno FK verso le lookup).
+Logging e report (M3-T6):
+  - logging su console (sintetico) e su file logs/etl_<timestamp>.log (dettaglio);
+  - un LoadReport riepiloga input, scarti per fascia, righe per tabella e durata,
+    salvato in logs/report_<timestamp>.txt;
+  - gestione errori: un record che fallisce il transform viene loggato e saltato
+    (la pipeline prosegue); un blocco che fallisce l'insert provoca il rollback
+    del blocco e l'arresto della pipeline (fail-fast), sfruttando l'idempotenza
+    (i blocchi gia' committati restano, il rilancio riprende senza duplicare).
 
-  Passata 2 - CATALOGO
-    Ri-scorre il file a blocchi (BATCH_SIZE giochi): per ogni blocco inserisce
-    le righe games, gli screenshot e i collegamenti nelle 7 tabelle ponte, con
-    un commit a fine blocco. Cosi' la transazione resta piccola e ripartibile.
-
-Tutti gli inserimenti sono idempotenti (M3-T5): rieseguire l'ETL non crea
-duplicati; i giochi gia' presenti vengono aggiornati (games ON CONFLICT DO
-UPDATE), il resto ignorato (ON CONFLICT DO NOTHING).
-
-Uso (dalla cartella etl/):
-    python -m src.main                       # dataset da config/.env (data/)
-    python -m src.main "C:\\percorso\\steam_games.json"
+Avvio dalla cartella etl/ tramite il launcher run_etl.py (vedi quel file):
+    python run_etl.py
+    python run_etl.py "C:\\percorso\\steam_games.json"
 """
+import logging
 import sys
-import time
 from pathlib import Path
+
+from psycopg import sql
 
 from config.settings import DatabaseConfig, PathConfig
 from src.extract.json_reader import read_games
 from src.transform.filters import loadable_reason
 from src.transform.game import build_game
 from src.load.lookup_cache import LookupCache
+from src.load.report import LoadReport
 from src.db.connection import connect
 from src.load import inserter
+from src.logging_setup import setup_logging, LOGGER_NAME
 
-# Numero di giochi per blocco di commit nella passata 2. Compromesso tra
-# velocita' (poche transazioni) e granularita' (ripartenza in caso di stop).
 BATCH_SIZE = 5000
 
 
-def _iter_loadable(path: Path):
-    """Genera i giochi costruiti (build_game) saltando i record non caricabili."""
-    for record in read_games(path):
-        if loadable_reason(record) is None:
-            yield build_game(record)
+def _safe_build(record, report=None):
+    """Costruisce il game; su errore lo logga e salta (ritorna None).
+    Conta l'errore nel report solo se passato (passata 1)."""
+    try:
+        return build_game(record)
+    except Exception as exc:  # record malformato: rete di sicurezza, non blocca
+        if report is not None:
+            report.add_record_error()
+            logging.getLogger(LOGGER_NAME).warning(
+                f"record app_id={record.get('AppID')}: errore nel transform, saltato ({exc})"
+            )
+        return None
 
 
-def build_lookup_cache(path: Path):
-    """Passata 1: registra i valori multi-valore di ogni gioco nel LookupCache."""
+def build_lookup_cache(path, report):
+    """Passata 1: censisce i record nel report e popola il LookupCache."""
     cache = LookupCache()
-    n_loadable = 0
-    for game in _iter_loadable(path):
-        cache.register_game(game)
-        n_loadable += 1
-    return cache, n_loadable
+    for record in read_games(path):
+        reason = loadable_reason(record)
+        report.count_record(reason)
+        if reason is None:
+            game = _safe_build(record, report)
+            if game is not None:
+                cache.register_game(game)
+    return cache
 
 
-def _flush(conn, games, id_maps) -> None:
-    """Scrive un blocco di giochi: games, screenshot, ponti; poi commit."""
-    inserter.upsert_games(conn, games)
-    inserter.upsert_screenshots(conn, games)
-    inserter.upsert_bridges(conn, games, id_maps)
-    conn.commit()
+def _flush_block(conn, games, id_maps, block_num):
+    """Scrive un blocco (games, screenshot, ponti) e committa.
+    Su errore: rollback del blocco, log ERROR e rilancio (fail-fast)."""
+    log = logging.getLogger(LOGGER_NAME)
+    try:
+        inserter.upsert_games(conn, games)
+        inserter.upsert_screenshots(conn, games)
+        inserter.upsert_bridges(conn, games, id_maps)
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        rng = f"{games[0]['app_id']}..{games[-1]['app_id']}"
+        log.error(f"blocco {block_num} fallito (app_id {rng}): rollback del blocco. Causa: {exc}")
+        raise
 
 
-def load_catalog(conn, path: Path, id_maps: dict) -> int:
+def load_catalog(conn, path, id_maps, report):
     """Passata 2: carica games/screenshot/ponti a blocchi di BATCH_SIZE."""
-    batch = []
-    total = 0
-    for game in _iter_loadable(path):
+    log = logging.getLogger(LOGGER_NAME)
+    batch, total, block = [], 0, 0
+    for record in read_games(path):
+        if loadable_reason(record) is not None:
+            continue
+        game = _safe_build(record)  # gia' censito in passata 1: non ri-conta
+        if game is None:
+            continue
         batch.append(game)
         if len(batch) >= BATCH_SIZE:
-            _flush(conn, batch, id_maps)
+            block += 1
+            _flush_block(conn, batch, id_maps, block)
             total += len(batch)
             batch = []
-            print(f"      ... {total:,} giochi")
+            log.info(f"      ... {total:,} giochi")
     if batch:
-        _flush(conn, batch, id_maps)
+        block += 1
+        _flush_block(conn, batch, id_maps, block)
         total += len(batch)
     return total
 
 
+def _count_tables(conn):
+    """Conta le righe delle 15 tabelle di catalogo (per la sezione OUTPUT del report)."""
+    counts = {}
+    with conn.cursor() as cur:
+        for table in LoadReport.CATALOG_TABLES:
+            cur.execute(sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(table)))
+            counts[table] = cur.fetchone()[0]
+    return counts
+
+
 def run(dataset: str | None = None) -> int:
     """Esegue la pipeline ETL end-to-end. Ritorna 0 se ok, 1 in caso di errore."""
+    logger, log_path = setup_logging()
+    report = LoadReport()
+
     path = Path(dataset) if dataset else PathConfig.dataset_path()
     if not path.exists():
-        print(f"Dataset non trovato: {path}")
-        print("Metti il file in etl/data/ o passa il percorso come argomento.")
+        logger.error(f"Dataset non trovato: {path}")
+        logger.error("Metti il file in etl/data/ o passa il percorso come argomento.")
         return 1
 
-    print(f"=== ETL Arcadium -> {DatabaseConfig.NAME}@{DatabaseConfig.HOST}:{DatabaseConfig.PORT} ===")
-    print(f"Dataset: {path}\n")
-    t0 = time.time()
+    logger.info(f"=== ETL Arcadium -> {DatabaseConfig.NAME}@{DatabaseConfig.HOST}:{DatabaseConfig.PORT} ===")
+    logger.info(f"Dataset: {path}")
+    logger.info(f"Log dettagliato: {log_path}")
 
-    with connect() as conn:
-        # ---- Passata 1: lookup ----
-        print("[1/2] Costruzione lookup (deduplica dei valori ripetuti)...")
-        cache, n_loadable = build_lookup_cache(path)
-        inserter.upsert_lookups(conn, cache)
-        conn.commit()
-        id_maps = inserter.load_lookup_id_maps(conn)
-        for lk in cache.all():
-            print(f"      {lk.name:<11}: {len(lk):>7,} valori distinti")
+    code = 0
+    try:
+        with connect() as conn:
+            logger.info("[1/2] Costruzione lookup (deduplica dei valori ripetuti)...")
+            cache = build_lookup_cache(path, report)
+            inserter.upsert_lookups(conn, cache)
+            conn.commit()
+            id_maps = inserter.load_lookup_id_maps(conn)
+            for lk in cache.all():
+                logger.info(f"      {lk.name:<11}: {len(lk):>7,} valori distinti")
 
-        # ---- Passata 2: catalogo ----
-        print(f"\n[2/2] Caricamento catalogo ({n_loadable:,} giochi, blocchi da {BATCH_SIZE:,})...")
-        total = load_catalog(conn, path, id_maps)
+            logger.info(f"[2/2] Caricamento catalogo (~{report.loadable:,} giochi, blocchi da {BATCH_SIZE:,})...")
+            load_catalog(conn, path, id_maps, report)
+            report.set_table_counts(_count_tables(conn))
+        report.finish("completato senza errori")
+    except Exception as exc:
+        report.finish("INTERROTTO per errore")
+        logger.error(f"Pipeline interrotta: {exc}")
+        code = 1
 
-    dt = time.time() - t0
-    print(f"\nCompletato: {total:,} giochi caricati in {dt:.1f}s.")
-    return 0
+    # Report finale: sempre, anche in caso di interruzione.
+    report_path = log_path.with_name("report_" + log_path.stem.split("_", 1)[1] + ".txt")
+    logger.info("\n" + report.summary())
+    report.write(report_path)
+    logger.info(f"Report salvato in: {report_path}")
+    return code
 
 
 if __name__ == "__main__":
