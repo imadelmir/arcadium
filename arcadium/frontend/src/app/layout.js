@@ -15,7 +15,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="it">
+    <html lang="it" suppressHydrationWarning>
       <body>
         <StarField />
         <LanguageProvider>{children}</LanguageProvider>
