@@ -9,6 +9,13 @@
   text-align: center;
 }
 
+.logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin: 0 auto var(--space-2);
+  display: block;
+}
 .brand {
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -50,4 +57,62 @@
 .link {
   color: var(--color-primary);
   font-weight: 600;
+}
+
+/* ---- Form (M5 - T5) ---- */
+
+/* The form fields are left-aligned even though the card text is centered */
+.form {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: left;
+}
+
+/* Red error banner at the top of the card, like the mockup */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background-color: rgba(240, 107, 107, 0.12);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  font-size: 13px;
+  text-align: left;
+}
+
+/* Wrapper so we can drop the show/hide button inside the password field */
+.passwordField {
+  position: relative;
+}
+
+/* The eye button sits on the right edge of the password input */
+.eyeButton {
+  position: absolute;
+  top: 34px;
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.eyeButton:hover {
+  color: var(--color-text);
+}
+
+/* "Password dimenticata?" link, right-aligned under the password field */
+.forgot {
+  margin-top: calc(-1 * var(--space-2));
+  text-align: right;
+  font-size: 13px;
 }

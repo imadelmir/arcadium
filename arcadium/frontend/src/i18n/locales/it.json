@@ -48,10 +48,21 @@
     }
   },
   "auth": {
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Conferma password",
+      "username": "Nome utente",
+      "showPassword": "Mostra password",
+      "hidePassword": "Nascondi password"
+    },
     "login": {
       "title": "Bentornato",
       "subtitle": "Accedi al tuo account Arcadium.",
       "badge": "Form di accesso",
+      "submit": "Accedi",
+      "forgotPassword": "Password dimenticata?",
+      "error": "Email o password non corretti. Riprova.",
       "noAccount": "Non hai un account?",
       "signUp": "Registrati"
     },
@@ -59,8 +70,16 @@
       "title": "Crea il tuo account",
       "subtitle": "Inizia a organizzare la tua libreria.",
       "badge": "Form di registrazione",
+      "submit": "Crea account",
+      "error": "Controlla i campi e riprova.",
+      "passwordMismatch": "Le password non coincidono.",
       "haveAccount": "Hai già un account?",
       "signIn": "Accedi"
+    },
+    "validation": {
+      "required": "Questo campo è obbligatorio.",
+      "invalidEmail": "Inserisci un'email valida.",
+      "passwordTooShort": "La password deve avere almeno 6 caratteri."
     }
   },
   "notFound": {
