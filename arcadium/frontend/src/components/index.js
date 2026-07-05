@@ -15,3 +15,4 @@ export { LanguageSwitcher } from "./LanguageSwitcher/LanguageSwitcher";
 export { Logo } from "./Logo/Logo";
 export { NavItem } from "./NavItem/NavItem";
 export { SocialLinks } from "./SocialLinks/SocialLinks";
+export { GameImage } from "./GameImage/GameImage";
