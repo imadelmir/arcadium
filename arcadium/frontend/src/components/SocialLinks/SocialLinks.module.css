@@ -1,0 +1,70 @@
+/* Pulsanti social (Discord, Twitch) — stile "glass" coerente con la barra di
+   ricerca e il menu utente dell'header, con la tinta del colore originale del
+   brand passata via --brand-rgb dal componente. */
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  cursor: pointer;
+  color: rgb(var(--brand-rgb));
+  transition: var(--transition);
+  /* vetro: navy semitrasparente (come header) + velo del colore del brand */
+  background:
+    linear-gradient(rgba(var(--brand-rgb), 0.12), rgba(var(--brand-rgb), 0.12)),
+    rgba(18, 22, 42, 0.32);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.button:hover {
+  color: #fff;
+  transform: translateY(-1px);
+  border-color: rgba(var(--brand-rgb), 0.55);
+  background:
+    linear-gradient(rgba(var(--brand-rgb), 0.28), rgba(var(--brand-rgb), 0.28)),
+    rgba(18, 22, 42, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(var(--brand-rgb), 0.35);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: rgba(var(--brand-rgb), 0.60);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 0 0 3px rgba(var(--brand-rgb), 0.25);
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+  .button:hover {
+    transform: none;
+  }
+}

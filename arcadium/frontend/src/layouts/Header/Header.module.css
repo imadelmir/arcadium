@@ -13,7 +13,7 @@
 /* Search: stays on the left, generous width like the mockup */
 .searchBox {
   flex: 1;
-  max-width: 1000px;
+  max-width: 1185px;
   display: flex;
   align-items: center;
   gap: var(--space-2);

@@ -13,6 +13,10 @@
     "underConstruction": "Page under construction",
     "search": "Search games, genres, developers…"
   },
+  "social": {
+    "discord": "Join us on Discord",
+    "twitch": "Watch us on Twitch"
+  },
   "pages": {
     "panoramica": {
       "title": "Overview",

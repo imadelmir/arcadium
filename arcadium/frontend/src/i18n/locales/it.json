@@ -13,6 +13,10 @@
     "underConstruction": "Pagina in costruzione",
     "search": "Cerca giochi, generi, sviluppatori…"
   },
+  "social": {
+    "discord": "Unisciti a noi su Discord",
+    "twitch": "Guardaci su Twitch"
+  },
   "pages": {
     "panoramica": {
       "title": "Panoramica",

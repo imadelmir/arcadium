@@ -1,12 +1,12 @@
 "use client";
 
 // Top header: search bar on the left, language switcher + user on the right.
-// Discord/Twitch/notifications buttons will go between search and language (M5-T6).
+// Discord/Twitch social buttons sit right after the search bar (M5-T6).
 // The user name is fixed for now; it will come from auth later.
 
 import { useTranslation } from "react-i18next";
 import { Search, ChevronDown } from "lucide-react";
-import { LanguageSwitcher, Avatar } from "@/components";
+import { LanguageSwitcher, Avatar, SocialLinks } from "@/components";
 import styles from "./Header.module.css";
 
 export function Header() {
@@ -23,6 +23,8 @@ export function Header() {
           aria-label={t("common.search")}
         />
       </div>
+
+      <SocialLinks />
 
       <div className={styles.actions}>
         <LanguageSwitcher />
