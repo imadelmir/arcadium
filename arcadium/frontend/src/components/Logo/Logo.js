@@ -10,7 +10,7 @@ import styles from "./Logo.module.css";
 
 export function Logo() {
   return (
-    <Link href="/panoramica" className={styles.logo} aria-label="Arcadium">
+    <Link href="/negozio" className={styles.logo} aria-label="Arcadium">
     <Image
   src="/arcadium-icon-clean.png"
   alt=""

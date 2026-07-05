@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const navLinks = [
-  { labelKey: "nav.panoramica",   href: "/panoramica",   icon: Home },
+  
   { labelKey: "nav.negozio",      href: "/negozio",      icon: Store },
   { labelKey: "nav.libreria",     href: "/libreria",     icon: Library },
   { labelKey: "nav.wishlist",     href: "/wishlist",     icon: Heart },
