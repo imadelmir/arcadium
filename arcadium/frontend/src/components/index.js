@@ -14,3 +14,4 @@ export { Spinner } from "./Spinner/Spinner";
 export { LanguageSwitcher } from "./LanguageSwitcher/LanguageSwitcher";
 export { Logo } from "./Logo/Logo";
 export { NavItem } from "./NavItem/NavItem";
+export { SocialLinks } from "./SocialLinks/SocialLinks";
