@@ -1,0 +1,13 @@
+# --- Build Maven ---
+target/
+
+# --- Credenziali ---
+.env
+
+# --- IDE ---
+.idea/
+.vscode/
+*.iml
+
+# --- Log ---
+*.log

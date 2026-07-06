@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- =====================================================================
+         Arcadium — ACE5 · Milestone M4 · Task T1
+         Setup del progetto backend Spring Boot e connessione a PostgreSQL.
+
+         Le versioni delle dipendenze non sono fissate a mano: le governa il
+         BOM di spring-boot-starter-parent (allineate e collaudate insieme),
+         cosi' come psycopg era pinnato nell'ETL. Qui basta scegliere la
+         versione di Spring Boot; il resto segue.
+         ===================================================================== -->
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>       <!-- GA corrente (giu 2026); la linea 3.5 e' EOL dal 30 giu 2026 -->
+        <relativePath/>
+    </parent>
+
+    <groupId>com.ace5</groupId>
+    <artifactId>arcadium-backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>arcadium-backend</name>
+    <description>Backend Spring Boot della piattaforma Arcadium (M4)</description>
+
+    <properties>
+        <java.version>21</java.version>   <!-- LTS; Spring Boot 4.1 supporta Java 17-26 -->
+    </properties>
+
+    <dependencies>
+        <!-- REST: base per gli endpoint dei task successivi (M4-T5..T16). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- JPA/Hibernate + datasource HikariCP: entita' e repository in M4-T2. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Bean Validation: gia' incluso ora, usato dai DTO in M4-T3/T12. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Actuator: /actuator/health espone lo stato del datasource,
+             usato in questa task per verificare la connessione al DB. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Flyway: esegue all'avvio le STESSE migrazioni M2/M3
+             (database/migrations + database/seed), condividendo la history
+             flyway_schema_history gia' presente nel DB. Vedi database/README.md. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <!-- Driver PostgreSQL 16 (a runtime). -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Test: JUnit 5, Mockito, Spring Test. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,70 @@
+# =============================================================================
+# Arcadium — ACE5 · Milestone M4 · Task T1
+# Configurazione del backend Spring Boot: connessione a PostgreSQL, Flyway,
+# JPA e health endpoint.
+#
+# Le credenziali NON sono nel codice: arrivano da variabili d'ambiente, con le
+# stesse chiavi usate dall'ETL (DB_HOST, DB_PORT, DB_NAME, DB_USER,
+# DB_PASSWORD — vedi etl/config/.env.example). I default valgono per il DB
+# locale di docker-compose; in staging si passano via ambiente.
+# =============================================================================
+
+spring:
+  application:
+    name: arcadium-backend
+
+  # --- Connessione a PostgreSQL (stesse chiavi env dell'ETL) ---
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:arcadium}
+    username: ${DB_USER:arcadium}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  # --- JPA / Hibernate ---
+  # ddl-auto=validate: lo schema NON e' gestito da Hibernate ma da Flyway
+  # (M2/M3). Con le entita' di M4-T2 questo confrontera' entita' e tabelle;
+  # ora, senza entita', e' un no-op sicuro. Hibernate non deve mai creare o
+  # alterare tabelle: quella e' responsabilita' delle migrazioni.
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+
+  # --- Flyway ---
+  # Esegue all'avvio le STESSE migrazioni versionate di M2/M3, non una copia:
+  # le locations puntano alle cartelle condivise database/migrations (V__) e
+  # database/seed (R__). La history flyway_schema_history e' gia' popolata dai
+  # run standalone (scripts/db-migrate.sh), quindi qui Flyway trova tutto gia'
+  # applicato e si limita a validare (nessuna riesecuzione, nessun doppione —
+  # vedi database/README.md).
+  #
+  # I percorsi sono relativi alla cartella backend/ (da cui si avvia l'app) e
+  # sono override-abili via env per altri ambienti/working dir.
+  flyway:
+    enabled: true
+    locations: >-
+      filesystem:${ARCADIUM_DB_MIGRATIONS:../database/migrations},
+      filesystem:${ARCADIUM_DB_SEED:../database/seed}
+    baseline-on-migrate: false
+    validate-migration-naming: true
+
+# --- Actuator ---
+# /actuator/health include il componente "db": un ping al datasource, utile
+# come verifica esterna della connessione in questa task.
+# show-details=always va bene in locale; con la security di M4-T3 andra'
+# ristretto a when-authorized.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+# --- HTTP server ---
+server:
+  port: ${SERVER_PORT:8080}
