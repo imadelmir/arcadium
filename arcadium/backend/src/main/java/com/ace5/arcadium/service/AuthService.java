@@ -4,13 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.ace5.arcadium.dto.AuthResponse;
 import com.ace5.arcadium.dto.LoginRequest;
 import com.ace5.arcadium.dto.RegisterRequest;
 import com.ace5.arcadium.dto.UserResponse;
 import com.ace5.arcadium.entity.AppUser;
+import com.ace5.arcadium.exception.ApiException;
 import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.security.JwtService;
 
@@ -23,8 +23,10 @@ import com.ace5.arcadium.security.JwtService;
  * l'hash; in caso di fallimento restituisce 401 senza distinguere fra "utente
  * inesistente" e "password errata" (non si rivela quali username esistono).
  *
- * <p>Gli errori sono espressi con {@link ResponseStatusException}; la forma
- * uniforme e strutturata degli errori è demandata a M4-T12.
+ * <p>Aggiornamento M4-T4: gli errori non usano più testo fisso italiano ma un
+ * {@link ApiException} che trasporta una <em>chiave</em> di messaggio; è il
+ * GlobalExceptionHandler a tradurla nella lingua della richiesta. La forma
+ * uniforme e strutturata degli errori resta demandata a M4-T12.
  */
 @Service
 public class AuthService {
@@ -43,11 +45,12 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        // Unicità: la chiave sarà tradotta in IT/EN al momento della risposta.
         if (userRepository.existsByUsername(request.username())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username già in uso");
+            throw new ApiException(HttpStatus.CONFLICT, "error.username.taken");
         }
         if (userRepository.existsByEmail(request.email())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email già in uso");
+            throw new ApiException(HttpStatus.CONFLICT, "error.email.taken");
         }
 
         AppUser user = new AppUser();
@@ -65,12 +68,14 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
+        // Stessa chiave per "utente inesistente" e "password errata": non si
+        // rivela quali username esistono.
         AppUser user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "Credenziali non valide"));
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED, "error.credentials.invalid"));
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenziali non valide");
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "error.credentials.invalid");
         }
 
         return buildAuthResponse(user);
