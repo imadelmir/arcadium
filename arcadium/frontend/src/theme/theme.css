@@ -15,7 +15,10 @@
 
 :root {
   /* --- Background layers (darkest to lightest) --- */
-  --color-bg: #0a0e1a;          /* main app background */
+ --color-bg: #0e1025;          /* main app background */
+ --gradient-bg:
+  radial-gradient(900px circle at 0% 0%, rgba(124, 92, 255, 0.16), transparent 70%),
+  radial-gradient(900px circle at 100% 0%, rgba(79, 123, 255, 0.14), transparent 70%);
   --color-surface: #121829;     /* sidebar and cards */
   --color-surface-2: #1a2138;   /* inputs and hovered rows */
   --color-border: #232b44;      /* thin borders and dividers */
@@ -29,6 +32,7 @@
   --color-primary: #7c5cff;        /* main brand violet */
   --color-primary-strong: #6b46ff; /* darker violet for hover */
   --color-accent-blue: #4f7bff;    /* blue used in the gradient */
+  --color-primary-soft: rgba(124, 92, 255, 0.14); /* active sidebar item background (M5 - T4) */
 
   /* --- Feedback colours --- */
   --color-success: #34d399;  /* connected, price drops */
@@ -60,7 +64,7 @@
   --space-8: 48px;
 
   /* --- Layout sizes (used by the sidebar/header in M5 - T4) --- */
-  --sidebar-width: 240px;
+  --sidebar-width: 270px;
   --header-height: 64px;
 
   /* --- Shadows --- */

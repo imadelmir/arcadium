@@ -20,10 +20,10 @@ import jakarta.servlet.http.HttpServletResponse;
  * <p>Senza questo entry point, un accesso senza token a un endpoint protetto
  * produrrebbe una pagina di errore generica. Qui si restituisce un 401 con un
  * corpo JSON minimale. La forma definitiva e uniforme degli errori (Problem
- * Detail) e' demandata a M4-T12.
+ * Detail) è demandata a M4-T12.
  *
  * <p>Nota importante: questo entry point vive nella catena dei filtri di
- * sicurezza, che gira PRIMA del DispatcherServlet; a quel punto la lingua non e'
+ * sicurezza, che gira PRIMA del DispatcherServlet; a quel punto la lingua non è
  * ancora nel contesto. Per questo la ricaviamo direttamente dalla richiesta con
  * il {@link LocaleResolver} e traduciamo il testo con il {@link MessageSource}.
  */

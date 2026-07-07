@@ -1,0 +1,56 @@
+# =============================================================================
+# Arcadium — ACE5 · Milestone M2 · Task T10
+# PostgreSQL locale + Flyway per M2 (schema) e M3 (ETL).
+#
+#   - db:      servizio sempre attivo (Postgres 16), dati persistenti su volume.
+#   - flyway:  tool "one-shot" (profile "tools") che applica le migrazioni di
+#              database/ — le stesse di scripts/db-migrate.sh — riusando
+#              database/flyway.conf, senza installare Flyway sull'host.
+#
+# La password NON e' versionata: si passa via scripts/.env (POSTGRES_PASSWORD).
+#
+# Uso tipico (dalla cartella scripts/):
+#   docker compose up -d db                              # avvia il database
+#   docker compose --profile tools run --rm flyway migrate   # applica lo schema
+#   docker compose --profile tools run --rm flyway info      # stato migrazioni
+#   docker compose down                                 # ferma (dati conservati)
+# =============================================================================
+
+services:
+  db:
+    image: postgres:16
+    container_name: arcadium-db
+    environment:
+      POSTGRES_DB: arcadium
+      POSTGRES_USER: arcadium
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?serve POSTGRES_PASSWORD in scripts/.env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - arcadium-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arcadium -d arcadium"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  flyway:
+    image: flyway/flyway:10
+    profiles: ["tools"]          # non parte con "up"; solo on-demand con "run"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Nella rete di compose il database si raggiunge come host "db" (non
+      # localhost): override della flyway.url del file, gia' previsto in
+      # flyway.conf. user, locations, encoding restano quelli del file.
+      FLYWAY_URL: jdbc:postgresql://db:5432/arcadium
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD:?serve POSTGRES_PASSWORD in scripts/.env}
+    volumes:
+      # database/ contiene flyway.conf, migrations/ e seed/ (sola lettura).
+      - ../database:/flyway/project:ro
+    working_dir: /flyway/project
+    command: ["-configFiles=flyway.conf", "migrate"]
+
+volumes:
+  arcadium-pgdata:

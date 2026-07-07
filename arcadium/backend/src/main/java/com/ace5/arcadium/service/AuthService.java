@@ -17,14 +17,14 @@ import com.ace5.arcadium.security.JwtService;
 /**
  * Logica di autenticazione (M4-T3): registrazione e login.
  *
- * <p>Registrazione: verifica l'unicita' di username ed email, salva l'utente con
+ * <p>Registrazione: verifica l'unicità di username ed email, salva l'utente con
  * la password sotto forma di hash (mai in chiaro), e restituisce subito un token
  * (auto-login). Login: carica l'utente per username e confronta la password con
  * l'hash; in caso di fallimento restituisce 401 senza distinguere fra "utente
  * inesistente" e "password errata" (non si rivela quali username esistono).
  *
- * <p>Aggiornamento M4-T4: gli errori non usano piu' testo fisso italiano ma un
- * {@link ApiException} che trasporta una <em>chiave</em> di messaggio; e' il
+ * <p>Aggiornamento M4-T4: gli errori non usano più testo fisso italiano ma un
+ * {@link ApiException} che trasporta una <em>chiave</em> di messaggio; è il
  * GlobalExceptionHandler a tradurla nella lingua della richiesta. La forma
  * uniforme e strutturata degli errori resta demandata a M4-T12.
  */
@@ -45,7 +45,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Unicita': la chiave sara' tradotta in IT/EN al momento della risposta.
+        // Unicità: la chiave sarà tradotta in IT/EN al momento della risposta.
         if (userRepository.existsByUsername(request.username())) {
             throw new ApiException(HttpStatus.CONFLICT, "error.username.taken");
         }

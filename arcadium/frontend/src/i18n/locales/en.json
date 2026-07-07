@@ -13,6 +13,10 @@
     "underConstruction": "Page under construction",
     "search": "Search games, genres, developers…"
   },
+  "social": {
+    "discord": "Join us on Discord",
+    "twitch": "Watch us on Twitch"
+  },
   "pages": {
     "panoramica": {
       "title": "Overview",
@@ -48,10 +52,21 @@
     }
   },
   "auth": {
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "username": "Username",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
     "login": {
       "title": "Welcome back",
       "subtitle": "Sign in to your Arcadium account.",
       "badge": "Sign-in form",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot password?",
+      "error": "Incorrect email or password. Try again.",
       "noAccount": "Don't have an account?",
       "signUp": "Sign up"
     },
@@ -59,8 +74,16 @@
       "title": "Create your account",
       "subtitle": "Start organising your library.",
       "badge": "Sign-up form",
+      "submit": "Create account",
+      "error": "Check the fields and try again.",
+      "passwordMismatch": "Passwords do not match.",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
+    },
+    "validation": {
+      "required": "This field is required.",
+      "invalidEmail": "Enter a valid email.",
+      "passwordTooShort": "Password must be at least 6 characters."
     }
   },
   "notFound": {

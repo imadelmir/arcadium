@@ -1,0 +1,96 @@
+.header {
+  margin-top: var(--space-4);
+  height: var(--header-height);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+ background-color: transparent;
+}
+
+/* Search: stays on the left, generous width like the mockup */
+/* Search: stays on the left, generous width like the mockup */
+.searchBox {
+  flex: 1;
+  max-width: 1185px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  /* vetro: navy semitrasparente + sfocatura di ciò che sta dietro */
+  background: rgba(18, 22, 42, 0.616);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* si accende quando l'utente scrive dentro */
+.searchBox:focus-within {
+  border-color: rgba(124, 92, 255, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 0 0 3px rgba(124, 92, 255, 0.18);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-faint);
+}
+
+/* Right side: pushed to the far right; the gap in the middle is where
+   Discord/Twitch/notifications will go in M5-T6 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-left: auto;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: var(--transition);
+  /* vetro: navy semitrasparente + sfocatura di ciò che sta dietro */
+  background: rgba(18, 22, 42, 0.32);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.user:hover {
+  border-color: rgba(124, 92, 255, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 4px 16px rgba(124, 92, 255, 0.22);
+}
+
+.chevron {
+  color: var(--color-text-muted);
+}
+
+.userName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text);
+}
