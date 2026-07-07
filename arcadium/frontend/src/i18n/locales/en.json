@@ -17,6 +17,9 @@
     "discord": "Join us on Discord",
     "twitch": "Watch us on Twitch"
   },
+  "notifications": {
+    "label": "Notifications"
+  },
   "pages": {
     "panoramica": {
       "title": "Overview",
@@ -49,6 +52,48 @@
     "impostazioni": {
       "title": "Settings",
       "subtitle": "Account, language and Steam connection."
+    }
+  },
+  "store": {
+    "dealsTitle": "Current deals",
+    "searchPlaceholder": "Search the store…",
+    "free": "Free",
+    "buyOnSteam": "Buy on Steam",
+    "getOnSteam": "Get on Steam",
+    "results_one": "{{count}} game",
+    "results_other": "{{count}} games",
+    "noResults": "No games match the selected filters.",
+    "filters": {
+      "genre": "Genre",
+      "price": "Price",
+      "anyPrice": "Any price",
+      "free": "Free",
+      "under10": "Under €10",
+      "under20": "Under €20",
+      "under40": "Under €40",
+      "discount": "Discount",
+      "anyDiscount": "Any discount",
+      "onSale": "On sale only",
+      "d25": "25% or more",
+      "d50": "50% or more",
+      "d75": "75% or more",
+      "platform": "Platform",
+      "rating": "Rating",
+      "anyRating": "Any rating",
+      "r90": "Overwhelmingly positive (90%+)",
+      "r80": "Very positive (80%+)",
+      "r70": "Mostly positive (70%+)",
+      "language": "Language",
+      "anyLanguage": "Any language"
+    },
+    "sort": {
+      "label": "Sort",
+      "popularity": "Popularity",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low",
+      "discount": "Biggest discount",
+      "rating": "Rating",
+      "name": "Name (A-Z)"
     }
   },
   "auth": {

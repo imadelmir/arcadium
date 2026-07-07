@@ -27,6 +27,7 @@ export function GameImage({
   const [status, setStatus] = useState(src ? "loading" : "error");
 
   const classes = [styles.frame, className].filter(Boolean).join(" ");
+  
 
   return (
     <div className={classes} style={{ aspectRatio: ratio }} {...rest}>

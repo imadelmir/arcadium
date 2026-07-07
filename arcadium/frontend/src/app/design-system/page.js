@@ -14,13 +14,15 @@ import {
 } from "@/components";
 import styles from "./design-system.module.css";
 
-// Living style guide for Arcadium (M5 - T2).
-// A single page that shows every base component in its main states, so the
-// team has one reference while building the real pages. Not part of the app
-// flow; it can be deleted once the design system is stable.
+// Guida di stile dinamica per Arcadium (M5 - T2).
+// Un'unica pagina che mostra tutti i componenti di base nei loro stati
+// principali, così che il team abbia un unico punto di riferimento durante
+// lo sviluppo delle pagine reali. Non fa parte del flusso dell'applicazione;
+// può essere rimossa una volta che il design system sarà stabile.
 
-// Tiny inline icons just for this demo. In the real pages we can swap to an
-// icon library (e.g. lucide-react) if we want a full set.
+// Piccole icone inline utilizzate solo per questa demo. Nelle pagine reali
+// potremo sostituirle con una libreria di icone (ad esempio lucide-react)
+// se avremo bisogno di un set completo.
 const SearchIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="11" cy="11" r="7" />

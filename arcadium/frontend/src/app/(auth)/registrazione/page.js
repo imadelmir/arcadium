@@ -1,13 +1,14 @@
 "use client";
 
-// Registration page (M5 - T5)
+// Pagina di registrazione (M5 - T5)
 // -----------------------------------------------------------------------------
-// Same card style as the login page, with username, email, password and a
-// confirm-password field. The eye toggles both password fields together.
+// Stesso stile della scheda della pagina di accesso, con i campi nome utente,
+// email, password e conferma della password. L'icona a forma di occhio
+// mostra/nasconde contemporaneamente entrambi i campi della password.
 //
-// NOTE: the real sign-up (creating the user) is the backend's job (M4-T3) and
-// will be wired up during the frontend-backend integration (M5-T13). For now
-// onSubmit only validates the fields.
+// NOTA: la registrazione reale (creazione dell'utente) è gestita dal backend
+// (M4-T3) e verrà collegata durante l'integrazione frontend-backend (M5-T13).
+// Per ora, onSubmit si limita a validare i campi.
 
 import { useState } from "react";
 import Link from "next/link";

@@ -1,0 +1,60 @@
+/* Campanella notifiche — stesso stile "glass" dei pulsanti Discord/Twitch
+   (M5-T6), con la tinta ambra passata via --brand-rgb. */
+
+.button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: rgb(var(--brand-rgb));
+  transition: var(--transition);
+  background:
+    linear-gradient(rgba(var(--brand-rgb), 0.12), rgba(var(--brand-rgb), 0.12)),
+    rgba(18, 22, 42, 0.32);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.button:hover {
+  color: #fff;
+  transform: translateY(-1px);
+  border-color: rgba(var(--brand-rgb), 0.55);
+  background:
+    linear-gradient(rgba(var(--brand-rgb), 0.28), rgba(var(--brand-rgb), 0.28)),
+    rgba(18, 22, 42, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(var(--brand-rgb), 0.35);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: rgba(var(--brand-rgb), 0.60);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 0 0 3px rgba(var(--brand-rgb), 0.25);
+}
+
+/* campana lucide (stroke): niente fill, eredita currentColor */
+.icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+  .button:hover {
+    transform: none;
+  }
+}

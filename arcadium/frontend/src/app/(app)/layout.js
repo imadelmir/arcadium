@@ -1,5 +1,5 @@
-// Layout shared by all the logged-in pages.
-// Two columns: sidebar on the left, then header + page content on the right.
+// Layout condiviso da tutte le pagine accessibili dopo il login.
+// Due colonne: barra laterale a sinistra, quindi intestazione e contenuto della pagina a destra.
 
 import { Sidebar } from "@/layouts/Sidebar/Sidebar";
 import { Header } from "@/layouts/Header/Header";

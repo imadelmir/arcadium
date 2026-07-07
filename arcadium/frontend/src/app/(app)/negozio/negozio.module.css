@@ -1,0 +1,132 @@
+/* Contenitore pagina.
+   max-width alto = pagina larga; padding-top piccolo = contenuto più in alto.
+   Ritocca questi due valori se la vuoi ancora più larga o più su. */
+.page {
+  max-width: none;
+  margin: 0;
+  padding: var(--space-5) var(--space-6);
+}
+
+/* --- Intestazione pagina --- */
+.header {
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+/* --- Barra dei filtri (pillole glass, in fila) --- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* La ricerca occupa lo spazio disponibile a sinistra */
+.searchField {
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+
+/* Spinge il menu "Ordina" all'estrema destra della barra */
+.sort {
+  margin-left: auto;
+}
+
+/* --- Contenuto dei pannelli a tendina --- */
+/* Titoletto del pannello (es. "GENERE") */
+.panelTitle {
+  margin: 0 0 var(--space-2);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+}
+
+/* Riga opzione: checkbox/radio + etichetta, con hover morbido */
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 8px;
+  font-size: 14px;
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.option:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.optionInput {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--color-primary); /* checkbox/radio in tinta brand */
+  cursor: pointer;
+}
+
+/* --- Conteggio risultati --- */
+.count {
+  margin-bottom: var(--space-4);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* --- Griglia dei risultati (colonne automatiche) --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-5);
+}
+
+/* Stato vuoto (nessun risultato) */
+.empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+/* --- Sconti del momento (sezione in evidenza sotto ai risultati) --- */
+.deals {
+  margin-top: var(--space-8);
+}
+
+.sectionTitle {
+  margin-bottom: var(--space-4);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+}
+
+.dealsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+}
+
+/* --- Responsive --- */
+@media (max-width: 820px) {
+  .sort {
+    margin-left: 0;
+  }
+
+  .dealsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

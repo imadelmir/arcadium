@@ -1,13 +1,15 @@
 "use client";
 
-// Login page (M5 - T5)
+// Pagina di accesso (M5 - T5)
 // -----------------------------------------------------------------------------
-// The "Bentornato" card from the mockup: email + password (with a show/hide
-// eye), an error banner, the "Accedi" button and the links below.
+// La scheda "Bentornato" del mockup: email + password (con icona a forma di
+// occhio per mostrare/nascondere la password), un banner di errore, il pulsante
+// "Accedi" e i link sottostanti.
 //
-// NOTE: the real sign-in (JWT) is the backend's job (M4-T3) and will be wired
-// up during the frontend-backend integration (M5-T13). For now onSubmit only
-// validates the fields and shows the error banner, without calling the API.
+// NOTA: l'autenticazione reale (JWT) è gestita dal backend (M4-T3) e verrà
+// collegata durante l'integrazione frontend-backend (M5-T13). Per ora,
+// onSubmit si limita a validare i campi e a mostrare il banner di errore,
+// senza effettuare chiamate all'API.
 
 import { useState } from "react";
 import Link from "next/link";
