@@ -78,3 +78,51 @@ Accept-Language: it
 GET http://localhost:8080/api/games/999999999
 Authorization: Bearer {{token}}
 Accept-Language: en
+### T7-0) Registra un utente di test
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "tester_t7",
+  "email": "tester_t7@example.com",
+  "password": "Password123"
+}
+### T7-1) Login (riempie {{token}})
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "tester_t7",
+  "password": "Password123"
+}
+
+> {%
+    client.global.set("token", response.body.token);
+%}
+
+### T7-2) Aggiungi un gioco alla wishlist (metti un appId reale)
+POST http://localhost:8080/api/wishlist/2539430
+Authorization: Bearer {{token}}
+
+### T7-3) Stesso gioco di nuovo -> 409 (già in wishlist), in ITALIANO
+POST http://localhost:8080/api/wishlist/2539430
+Authorization: Bearer {{token}}
+Accept-Language: it
+
+### T7-4) Gioco inesistente -> 404, in INGLESE
+POST http://localhost:8080/api/wishlist/999999999
+Authorization: Bearer {{token}}
+Accept-Language: en
+
+### T7-5) Elenco della mia wishlist
+GET http://localhost:8080/api/wishlist
+Authorization: Bearer {{token}}
+
+### T7-6) Rimuovi il gioco -> 204
+DELETE http://localhost:8080/api/wishlist/2539430
+Authorization: Bearer {{token}}
+
+### T7-7) Rimuovi di nuovo -> 404 (non è più in wishlist), in ITALIANO
+DELETE http://localhost:8080/api/wishlist/2539430
+Authorization: Bearer {{token}}
+Accept-Language: it
