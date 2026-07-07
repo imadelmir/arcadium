@@ -1,0 +1,49 @@
+### 1) Login con credenziali errate  ->  risposta in ITALIANO
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+Accept-Language: it
+
+{
+  "username": "utente_inesistente",
+  "password": "sbagliata"
+}
+
+### 2) Login con credenziali errate  ->  risposta in INGLESE
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+Accept-Language: en
+
+{
+  "username": "utente_inesistente",
+  "password": "sbagliata"
+}
+
+### 3) Registrazione con dati non validi (password corta)  ->  INGLESE
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+Accept-Language: en
+
+{
+  "username": "a",
+  "email": "x@y.z",
+  "password": "123"
+}
+
+### 4) Registrazione con dati non validi  ->  ITALIANO
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+Accept-Language: it
+
+{
+  "username": "a",
+  "email": "non-e-una-email",
+  "password": "123"
+}
+
+### 5) Endpoint protetto SENZA token  ->  ITALIANO
+GET http://localhost:8080/api/auth/me
+Accept-Language: it
+
+### 6) Endpoint protetto SENZA token  ->  INGLESE
+GET http://localhost:8080/api/auth/me
+Accept-Language: en
