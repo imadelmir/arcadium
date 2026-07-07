@@ -1,0 +1,101 @@
+/* Contenitore: ancora relativa per posizionare il pannello sotto la pillola */
+.root {
+  position: relative;
+  display: inline-flex;
+}
+
+/* --- Pillola (trigger) in stile glass --- */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+
+  /* Vetro: superficie semitrasparente + sfocatura di ciò che sta dietro */
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  transition: background var(--transition), border-color var(--transition),
+    color var(--transition);
+}
+
+.trigger:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Pillola aperta o con filtro attivo: accento violet */
+.trigger[data-open="true"],
+.trigger[data-active="true"] {
+  color: #fff;
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.chevron {
+  transition: transform var(--transition);
+  opacity: 0.8;
+}
+
+.trigger[data-open="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Pallino con il conteggio delle scelte (filtri multi-selezione) */
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+/* --- Pannello a tendina in stile glass --- */
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  min-width: 220px;
+  padding: var(--space-3);
+
+  /* Vetro più marcato per il pannello, così stacca dallo sfondo */
+  background: rgba(18, 24, 41, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+
+  /* Piccola animazione di comparsa */
+  animation: filterPanelIn 120ms ease;
+}
+
+/* Variante ancorata a destra (per il menu "Ordina") */
+.panelRight {
+  left: auto;
+  right: 0;
+}
+
+@keyframes filterPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

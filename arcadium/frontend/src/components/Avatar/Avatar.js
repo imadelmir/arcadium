@@ -2,13 +2,14 @@ import styles from "./Avatar.module.css";
 
 // Avatar
 // -----------------------------------------------------------------------------
-// The round user picture in the top bar. If there is no image it falls back to
-// the person's initials on the brand gradient, so it never looks broken.
+// L'immagine del profilo circolare nella barra superiore. Se non è presente
+// un'immagine, viene mostrato un riquadro con le iniziali della persona sul
+// gradiente del marchio, in modo che non appaia mai come un elemento mancante.
 //
 //   <Avatar name="Luca Rossi" />
 //   <Avatar name="Luca Rossi" src="/avatars/luca.jpg" size="lg" />
 //
-// size: "sm" | "md" (default) | "lg"
+// size: "sm" | "md" (predefinito) | "lg"
 
 function initialsFrom(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);

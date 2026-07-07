@@ -17,6 +17,9 @@
     "discord": "Unisciti a noi su Discord",
     "twitch": "Guardaci su Twitch"
   },
+  "notifications": {
+    "label": "Notifiche"
+  },
   "pages": {
     "panoramica": {
       "title": "Panoramica",
@@ -49,6 +52,48 @@
     "impostazioni": {
       "title": "Impostazioni",
       "subtitle": "Account, lingua e collegamento con Steam."
+    }
+  },
+  "store": {
+    "dealsTitle": "Sconti del momento",
+    "searchPlaceholder": "Cerca nel negozio…",
+    "free": "Gratis",
+    "buyOnSteam": "Acquista su Steam",
+    "getOnSteam": "Ottieni su Steam",
+    "results_one": "{{count}} gioco",
+    "results_other": "{{count}} giochi",
+    "noResults": "Nessun gioco corrisponde ai filtri selezionati.",
+    "filters": {
+      "genre": "Genere",
+      "price": "Prezzo",
+      "anyPrice": "Qualsiasi prezzo",
+      "free": "Gratis",
+      "under10": "Meno di 10 €",
+      "under20": "Meno di 20 €",
+      "under40": "Meno di 40 €",
+      "discount": "Sconto",
+      "anyDiscount": "Qualsiasi sconto",
+      "onSale": "Solo in sconto",
+      "d25": "-25% o più",
+      "d50": "-50% o più",
+      "d75": "-75% o più",
+      "platform": "Piattaforma",
+      "rating": "Valutazione",
+      "anyRating": "Qualsiasi valutazione",
+      "r90": "Molto positive (90%+)",
+      "r80": "Positive (80%+)",
+      "r70": "Nella media (70%+)",
+      "language": "Lingua",
+      "anyLanguage": "Qualsiasi lingua"
+    },
+    "sort": {
+      "label": "Ordina",
+      "popularity": "Popolarità",
+      "priceAsc": "Prezzo crescente",
+      "priceDesc": "Prezzo decrescente",
+      "discount": "Sconto maggiore",
+      "rating": "Valutazione",
+      "name": "Nome (A-Z)"
     }
   },
   "auth": {

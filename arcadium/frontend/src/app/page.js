@@ -1,6 +1,7 @@
-// Home route ("/").
-// We do not have a dedicated home screen yet, so we send the user
-// straight to the "Panoramica" page (the first item in the sidebar).
+// Percorso principale ("/").
+// Non disponiamo ancora di una schermata iniziale dedicata, quindi
+// reindirizziamo direttamente l'utente alla pagina "Panoramica"
+// (il primo elemento della barra laterale).
 import { redirect } from "next/navigation";
 
 export default function HomePage() {

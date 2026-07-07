@@ -1,6 +1,6 @@
-// Layout for the authentication pages (login, registrazione).
-// These pages have NO sidebar: just a centred card on a dark background,
-// like the login mockup.
+// Layout per le pagine di autenticazione (login, registrazione).
+// Queste pagine NON hanno una barra laterale: solo una scheda centrata
+// su uno sfondo scuro, come nel mockup della pagina di accesso.
 import styles from "./auth.module.css";
 
 export default function AuthLayout({ children }) {

@@ -1,5 +1,5 @@
-/* Shared look for the placeholder pages created in T1.
-   Real page UIs will replace these in later M5 tasks. */
+/* Aspetto condiviso per le pagine segnaposto create nel T1.
+   Le vere interfacce delle pagine sostituiranno queste nelle attività M5 successive. */
 .page {
   max-width: 960px;
 }

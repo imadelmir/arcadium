@@ -1,9 +1,10 @@
 /* =====================================================================
-   Arcadium - Global base styles
+   Arcadium - Stili di base globali
    ---------------------------------------------------------------------
-   A small reset plus the default look of the page (background, text,
-   font). Styles for specific components live in CSS Modules next to
-   each component, not here.
+   Un piccolo reset, insieme all'aspetto predefinito della pagina
+   (sfondo, testo e carattere). Gli stili dei componenti specifici
+   si trovano nei rispettivi CSS Modules accanto a ciascun componente,
+   non in questo file.
    ===================================================================== */
 
 /* Simple, modern reset */
