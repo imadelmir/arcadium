@@ -47,3 +47,34 @@ Accept-Language: it
 ### 6) Endpoint protetto SENZA token  ->  INGLESE
 GET http://localhost:8080/api/auth/me
 Accept-Language: en
+### T6-1) Login per ottenere il token (usa il TUO utente)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "firas2",
+  "password": "Password123"
+}
+
+> {%
+    client.global.set("token", response.body.token);
+%}
+
+### T6-2) Lista catalogo: guarda un appId reale nella risposta
+GET http://localhost:8080/api/games?size=3
+Authorization: Bearer {{token}}
+
+### T6-3) Dettaglio gioco (metti un appId visto sopra, es. 730)
+GET http://localhost:8080/api/games/730
+Authorization: Bearer {{token}}
+Accept-Language: it
+
+### T6-4) Gioco inesistente -> 404 in ITALIANO
+GET http://localhost:8080/api/games/999999999
+Authorization: Bearer {{token}}
+Accept-Language: it
+
+### T6-5) Gioco inesistente -> 404 in INGLESE
+GET http://localhost:8080/api/games/999999999
+Authorization: Bearer {{token}}
+Accept-Language: en

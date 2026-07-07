@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ace5.arcadium.dto.CatalogGameStatus;
 import com.ace5.arcadium.dto.CatalogQuery;
+import com.ace5.arcadium.dto.GameDetailResponse;
 import com.ace5.arcadium.dto.GamePlatform;
 import com.ace5.arcadium.dto.GameSummaryResponse;
 import com.ace5.arcadium.dto.PageResponse;
@@ -24,13 +25,14 @@ import com.ace5.arcadium.repository.GameRepository;
 import com.ace5.arcadium.repository.spec.GameSpecifications;
 
 /**
- * Logica di consultazione del catalogo (M4-T5).
+ * Logica di consultazione del catalogo (M4-T5) e del dettaglio gioco (M4-T6).
  *
- * <p>Traduce i filtri grezzi della richiesta ({@link CatalogQuery}) in una
- * {@link Specification}, esegue la query paginata e proietta i risultati nel DTO
- * leggero {@link GameSummaryResponse}. Le conversioni non valide
- * (platform/status/sort) diventano errori 400 <em>localizzati</em> tramite
- * {@link ApiException}, riusando l'infrastruttura i18n di M4-T4.
+ * <p>La lista (search) traduce i filtri grezzi in una {@link Specification},
+ * esegue la query paginata e proietta i risultati nel DTO leggero
+ * {@link GameSummaryResponse}. Il dettaglio (getByAppId) carica un singolo gioco
+ * e lo proietta nel DTO completo {@link GameDetailResponse}. Gli errori (filtri
+ * non validi, gioco inesistente) diventano risposte HTTP <em>localizzate</em>
+ * tramite {@link ApiException}, riusando l'infrastruttura i18n di M4-T4.
  *
  * <p>Sola lettura: il catalogo è immutabile per il backend (lo popola l'ETL, M3).
  */
@@ -79,6 +81,26 @@ public class GameService {
                 .toList();
 
         return PageResponse.of(page, content);
+    }
+
+    /**
+     * Restituisce il dettaglio completo di un gioco dato il suo appId (M4-T6).
+     *
+     * <p>La proiezione nel DTO avviene DENTRO questa transazione di sola lettura:
+     * così le collezioni LAZY del gioco (generi, lingue, screenshot, ...) vengono
+     * caricate mentre la sessione JPA è aperta, evitando la
+     * LazyInitializationException che si avrebbe con open-in-view disattivato.
+     * Se il gioco non esiste, si risponde 404 con messaggio localizzato.
+     *
+     * @param appId chiave naturale del gioco
+     * @return vista completa del gioco
+     */
+    @Transactional(readOnly = true)
+    public GameDetailResponse getByAppId(Long appId) {
+        Game game = gameRepository.findById(appId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND, "error.game.notFound", appId));
+        return GameDetailResponse.from(game);
     }
 
     // ------------------------------------------------------------------ parsing
