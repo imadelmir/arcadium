@@ -4,23 +4,26 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ace5.arcadium.dto.CatalogQuery;
+import com.ace5.arcadium.dto.GameDetailResponse;
 import com.ace5.arcadium.dto.GameSummaryResponse;
 import com.ace5.arcadium.dto.PageResponse;
 import com.ace5.arcadium.service.GameService;
 
 /**
- * Endpoint del catalogo giochi (M4-T5).
+ * Endpoint del catalogo giochi (M4-T5, M4-T6).
  *
  * <ul>
- *   <li>{@code GET /api/games} — lista paginata e filtrabile del catalogo.</li>
+ *   <li>{@code GET /api/games} — lista paginata e filtrabile del catalogo (M4-T5);</li>
+ *   <li>{@code GET /api/games/{appId}} — dettaglio completo di un gioco (M4-T6).</li>
  * </ul>
  *
- * <p>Filtri (query param, tutti opzionali, in AND):
+ * <p>Filtri della lista (query param, tutti opzionali, in AND):
  * <ul>
  *   <li>{@code q} — sottostringa nel nome (case-insensitive);</li>
  *   <li>{@code genre} — nome del genere;</li>
@@ -30,7 +33,7 @@ import com.ace5.arcadium.service.GameService;
  *
  * <p>Paginazione/ordinamento standard di Spring Data: {@code page}, {@code size},
  * {@code sort} (es. {@code ?sort=price,desc}). Default: 20 elementi ordinati per
- * nome. L'endpoint richiede autenticazione (SecurityConfig, M4-T3).
+ * nome. Entrambi gli endpoint richiedono autenticazione (SecurityConfig, M4-T3).
  */
 @RestController
 @RequestMapping("/api/games")
@@ -52,5 +55,16 @@ public class GameController {
 
         CatalogQuery filter = new CatalogQuery(q, genre, platform, status);
         return gameService.search(filter, pageable);
+    }
+
+    /**
+     * Dettaglio completo di un gioco per la sua chiave naturale {@code appId}
+     * (M4-T6). Spring converte il segmento di path in Long. Restituisce 200 con
+     * la vista completa, oppure 404 localizzato se l'appId non esiste (gestito
+     * nel service tramite ApiException).
+     */
+    @GetMapping("/{appId}")
+    public GameDetailResponse detail(@PathVariable Long appId) {
+        return gameService.getByAppId(appId);
     }
 }
