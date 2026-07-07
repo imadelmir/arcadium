@@ -1,12 +1,10 @@
 # =============================================================================
-# Arcadium — ACE5 · Milestone M4 · Task T1
+# Arcadium — ACE5 · Milestone M4
 # Configurazione del backend Spring Boot: connessione a PostgreSQL, Flyway,
-# JPA e health endpoint.
+# JPA, health endpoint (M4-T1) e sicurezza JWT (M4-T3).
 #
-# Le credenziali NON sono nel codice: arrivano da variabili d'ambiente, con le
-# stesse chiavi usate dall'ETL (DB_HOST, DB_PORT, DB_NAME, DB_USER,
-# DB_PASSWORD — vedi etl/config/.env.example). I default valgono per il DB
-# locale di docker-compose; in staging si passano via ambiente.
+# Le credenziali e i segreti NON sono nel codice: arrivano da variabili
+# d'ambiente. DB_* come nell'ETL; JWT_SECRET per la firma dei token.
 # =============================================================================
 
 spring:
@@ -21,10 +19,8 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   # --- JPA / Hibernate ---
-  # ddl-auto=validate: lo schema NON e' gestito da Hibernate ma da Flyway
-  # (M2/M3). Con le entita' di M4-T2 questo confrontera' entita' e tabelle;
-  # ora, senza entita', e' un no-op sicuro. Hibernate non deve mai creare o
-  # alterare tabelle: quella e' responsabilita' delle migrazioni.
+  # ddl-auto=validate: lo schema e' gestito da Flyway (M2/M3), non da Hibernate,
+  # che all'avvio confronta le entita' (M4-T2) con lo schema reale.
   jpa:
     hibernate:
       ddl-auto: validate
@@ -32,15 +28,8 @@ spring:
     show-sql: false
 
   # --- Flyway ---
-  # Esegue all'avvio le STESSE migrazioni versionate di M2/M3, non una copia:
-  # le locations puntano alle cartelle condivise database/migrations (V__) e
-  # database/seed (R__). La history flyway_schema_history e' gia' popolata dai
-  # run standalone (scripts/db-migrate.sh), quindi qui Flyway trova tutto gia'
-  # applicato e si limita a validare (nessuna riesecuzione, nessun doppione —
-  # vedi database/README.md).
-  #
-  # I percorsi sono relativi alla cartella backend/ (da cui si avvia l'app) e
-  # sono override-abili via env per altri ambienti/working dir.
+  # Esegue all'avvio le STESSE migrazioni versionate di M2/M3 (non una copia):
+  # la history flyway_schema_history e' gia' popolata, quindi Flyway valida.
   flyway:
     enabled: true
     locations: >-
@@ -49,11 +38,23 @@ spring:
     baseline-on-migrate: false
     validate-migration-naming: true
 
+# --- Sicurezza (M4-T3) ---
+# Segreto di firma JWT: OBBLIGATORIO in staging via env JWT_SECRET, almeno 32
+# caratteri (256 bit, requisito HS256). Il default sottostante e' solo per lo
+# sviluppo locale e NON va usato altrove.
+# expiration in millisecondi (default 24h). cors.allowed-origins: lista separata
+# da virgole delle origini del frontend consentite.
+arcadium:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-only-secret-change-me-please-at-least-32-bytes-long}
+      expiration: ${JWT_EXPIRATION:86400000}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
 # --- Actuator ---
-# /actuator/health include il componente "db": un ping al datasource, utile
-# come verifica esterna della connessione in questa task.
-# show-details=always va bene in locale; con la security di M4-T3 andra'
-# ristretto a when-authorized.
+# /actuator/health resta pubblico (permitAll nella SecurityConfig) come sonda,
+# ma i dettagli si mostrano solo a un utente autorizzato (M4-T1 -> ristretto qui).
 management:
   endpoints:
     web:
@@ -61,7 +62,7 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
       probes:
         enabled: true
 

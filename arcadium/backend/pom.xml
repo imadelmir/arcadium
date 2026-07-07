@@ -5,13 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- =====================================================================
-         Arcadium — ACE5 · Milestone M4 · Task T1
-         Setup del progetto backend Spring Boot e connessione a PostgreSQL.
+         Arcadium — ACE5 · Milestone M4 · Backend Spring Boot
+         Setup in M4-T1; entità/repository in M4-T2; sicurezza JWT in M4-T3.
 
-         Le versioni delle dipendenze non sono fissate a mano: le governa il
-         BOM di spring-boot-starter-parent (allineate e collaudate insieme),
-         cosi' come psycopg era pinnato nell'ETL. Qui basta scegliere la
-         versione di Spring Boot; il resto segue.
+         Le versioni delle dipendenze Spring non sono fissate a mano: le governa
+         il BOM di spring-boot-starter-parent. jjwt non è gestito dal BOM, quindi
+         la sua versione è indicata esplicitamente.
          ===================================================================== -->
 
     <parent>
@@ -29,29 +28,55 @@
 
     <properties>
         <java.version>21</java.version>   <!-- LTS; Spring Boot 4.1 supporta Java 17-26 -->
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
 
     <dependencies>
-        <!-- REST: base per gli endpoint dei task successivi (M4-T5..T16). -->
+        <!-- REST: base per gli endpoint. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- JPA/Hibernate + datasource HikariCP: entita' e repository in M4-T2. -->
+        <!-- JPA/Hibernate + datasource HikariCP: entita' e repository (M4-T2). -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Bean Validation: gia' incluso ora, usato dai DTO in M4-T3/T12. -->
+        <!-- Bean Validation: DTO di registrazione/login (M4-T3). -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Actuator: /actuator/health espone lo stato del datasource,
-             usato in questa task per verificare la connessione al DB. -->
+        <!-- Spring Security: autenticazione JWT, filtro e password encoding (M4-T3). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- JWT (jjwt): emissione e verifica dei token. api a compile-time,
+             impl e jackson a runtime. Versione non gestita dal BOM Spring. -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Actuator: /actuator/health (pubblico), dettagli solo se autorizzati. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -80,6 +105,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Test di sicurezza (mock user, ecc.). -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
