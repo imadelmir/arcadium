@@ -9,44 +9,44 @@
 # =============================================================================
 
 spring:
-application:
-name: arcadium-backend
+  application:
+    name: arcadium-backend
 
-# --- Messaggi localizzati (M4-T4) ---
-# Carica i bundle messages*.properties dal classpath. UTF-8 per gli accenti;
-# fallback-to-system-locale=false cosi', se una chiave manca nella lingua
-# richiesta, si ricade su messages.properties (italiano) e non sul locale del SO.
-messages:
-basename: messages
-encoding: UTF-8
-fallback-to-system-locale: false
+  # --- Messaggi localizzati (M4-T4) ---
+  # Carica i bundle messages*.properties dal classpath. UTF-8 per gli accenti;
+  # fallback-to-system-locale=false cosi', se una chiave manca nella lingua
+  # richiesta, si ricade su messages.properties (italiano) e non sul locale del SO.
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
 
-# --- Connessione a PostgreSQL (stesse chiavi env dell'ETL) ---
-datasource:
-url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:arcadium}
-username: ${DB_USER:arcadium}
-password: ${DB_PASSWORD:}
-driver-class-name: org.postgresql.Driver
+  # --- Connessione a PostgreSQL (stesse chiavi env dell'ETL) ---
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:arcadium}
+    username: ${DB_USER:arcadium}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
 
-# --- JPA / Hibernate ---
-# ddl-auto=validate: lo schema e' gestito da Flyway (M2/M3), non da Hibernate,
-# che all'avvio confronta le entita' (M4-T2) con lo schema reale.
-jpa:
-hibernate:
-ddl-auto: validate
-open-in-view: false
-show-sql: false
+  # --- JPA / Hibernate ---
+  # ddl-auto=validate: lo schema e' gestito da Flyway (M2/M3), non da Hibernate,
+  # che all'avvio confronta le entita' (M4-T2) con lo schema reale.
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
 
-# --- Flyway ---
-# Esegue all'avvio le STESSE migrazioni versionate di M2/M3 (non una copia):
-# la history flyway_schema_history e' gia' popolata, quindi Flyway valida.
-flyway:
-enabled: true
-locations: >-
-filesystem:${ARCADIUM_DB_MIGRATIONS:../database/migrations},
-filesystem:${ARCADIUM_DB_SEED:../database/seed}
-baseline-on-migrate: false
-validate-migration-naming: true
+  # --- Flyway ---
+  # Esegue all'avvio le STESSE migrazioni versionate di M2/M3 (non una copia):
+  # la history flyway_schema_history e' gia' popolata, quindi Flyway valida.
+  flyway:
+    enabled: true
+    locations: >-
+      filesystem:${ARCADIUM_DB_MIGRATIONS:../database/migrations},
+      filesystem:${ARCADIUM_DB_SEED:../database/seed}
+    baseline-on-migrate: false
+    validate-migration-naming: true
 
 # --- Sicurezza (M4-T3) ---
 # Segreto di firma JWT: OBBLIGATORIO in staging via env JWT_SECRET, almeno 32
@@ -55,27 +55,27 @@ validate-migration-naming: true
 # expiration in millisecondi (default 24h). cors.allowed-origins: lista separata
 # da virgole delle origini del frontend consentite.
 arcadium:
-security:
-jwt:
-secret: ${JWT_SECRET:dev-only-secret-change-me-please-at-least-32-bytes-long}
-expiration: ${JWT_EXPIRATION:86400000}
-cors:
-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-only-secret-change-me-please-at-least-32-bytes-long}
+      expiration: ${JWT_EXPIRATION:86400000}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 # --- Actuator ---
 # /actuator/health resta pubblico (permitAll nella SecurityConfig) come sonda,
 # ma i dettagli si mostrano solo a un utente autorizzato (M4-T1 -> ristretto qui).
 management:
-endpoints:
-web:
-exposure:
-include: health,info
-endpoint:
-health:
-show-details: when_authorized
-probes:
-enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
 
 # --- HTTP server ---
 server:
-port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:8080}
