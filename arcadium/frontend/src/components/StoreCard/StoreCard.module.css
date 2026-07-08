@@ -1,6 +1,8 @@
 /* Contenitore della card: colonna, bordo e superficie del tema.
+   position:relative fa da ancora al link esteso (.cardLink).
    Al passaggio del mouse si solleva leggermente e il bordo diventa violet. */
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -14,6 +16,18 @@
 .card:hover {
   transform: translateY(-3px);
   border-color: var(--color-primary);
+}
+
+/* --- Link esteso: copre tutta la card e porta al dettaglio del gioco --- */
+.cardLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* sopra copertina e titolo -> li rende cliccabili */
+  border-radius: inherit;
+}
+.cardLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px; /* dentro il bordo, non tagliato da overflow:hidden */
 }
 
 /* --- Copertina + badge sovrapposti --- */
@@ -96,8 +110,12 @@
   border-radius: var(--radius-pill);
 }
 
-/* --- Footer: prezzo + CTA (spinto in fondo alla card) --- */
+/* --- Footer: prezzo + CTA (spinto in fondo alla card) ---
+   position:relative + z-index:2 lo tengono SOPRA il link esteso, cosi' il
+   pulsante Steam resta cliccabile senza far scattare la navigazione. */
 .footer {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

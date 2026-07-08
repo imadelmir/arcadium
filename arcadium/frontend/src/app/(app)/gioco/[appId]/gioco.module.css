@@ -1,0 +1,376 @@
+/* =============================================================================
+   Pagina dettaglio gioco  (M5 - T9)
+   Tutti i colori, i raggi e le spaziature provengono dai design token
+   centralizzati in theme/theme.css: nessun valore "magico" scritto a mano.
+   ============================================================================= */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-bottom: var(--space-8);
+}
+
+/* --- Link "Torna al negozio" ------------------------------------------------ */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: fit-content;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.back:hover {
+  color: var(--color-text);
+}
+
+/* =============================================================================
+   HERO
+   ============================================================================= */
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+/* Sfondo ambientale: la stessa cover ingrandita e sfocata dietro al contenuto. */
+.heroBackdrop {
+  position: absolute;
+  inset: -40px; /* deborda per evitare bordi netti dovuti al blur */
+  background-size: cover;
+  background-position: center;
+  filter: blur(36px) saturate(1.2);
+  transform: scale(1.1);
+  opacity: 0.55;
+}
+
+/* Velo scuro sopra lo sfondo: garantisce leggibilita' del testo bianco. */
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 16, 37, 0.55) 0%,
+    rgba(14, 16, 37, 0.85) 100%
+  );
+}
+
+.heroContent {
+  position: relative; /* sopra sfondo e velo */
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-end;
+  padding: var(--space-6);
+}
+
+/* Cover a fuoco: larghezza fissa, proporzione header Steam gestita da GameImage. */
+.heroCover {
+  flex: 0 0 320px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.heroText {
+  flex: 1;
+  min-width: 0; /* consente al testo lungo di andare a capo dentro il flex */
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.byline {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 15px;
+}
+.byline strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Riga dei dati rapidi (recensioni · data). */
+.heroMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+  font-size: 14px;
+  color: var(--color-text);
+}
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+.metaIcon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+.metaMuted {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+.metaDot {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-faint);
+}
+
+.heroGenres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* =============================================================================
+   CORPO: griglia contenuti + card acquisto
+   ============================================================================= */
+.body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.about {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* Striscia multimediale */
+.media {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+.shot {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+/* Recensioni */
+.reviewRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.reviewLabel {
+  font-weight: 700;
+  font-size: 15px;
+}
+.reviewCount {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.reviewBar {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+.reviewBar span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-brand);
+}
+
+/* Tag e categorie */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* =============================================================================
+   CARD ACQUISTO (sticky)
+   ============================================================================= */
+.aside {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-4));
+}
+
+.buyCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Blocco prezzo */
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.free {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-success);
+}
+.discount {
+  font-size: 15px;
+  font-weight: 800;
+}
+.priceOld {
+  color: var(--color-text-faint);
+  text-decoration: line-through;
+  font-size: 15px;
+}
+.priceNow {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* Azioni */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.steamLink {
+  text-decoration: none;
+}
+
+/* Scheda tecnica */
+.specs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.specRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.specLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.specIcon {
+  display: inline-flex;
+  color: var(--color-text-faint);
+}
+.specValue {
+  margin: 0;
+  text-align: right;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Badge Metacritic (colore impostato inline dal componente) */
+.metacritic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: #0e1025;
+  font-weight: 800;
+}
+
+/* =============================================================================
+   STATO "NON TROVATO"
+   ============================================================================= */
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+}
+.notFoundIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+}
+.notFoundTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.notFoundText {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+  max-width: 42ch;
+}
+
+/* =============================================================================
+   RESPONSIVE: sotto i 900px la card acquisto va a tutta larghezza sopra i
+   contenuti; l'hero passa in verticale.
+   ============================================================================= */
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+  .aside {
+    position: static;
+    order: -1; /* prezzo e azioni subito sotto l'hero */
+  }
+  .heroContent {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-5);
+  }
+  .heroCover {
+    flex-basis: auto;
+  }
+  .title {
+    font-size: 30px;
+  }
+  .media {
+    grid-template-columns: 1fr;
+  }
+}

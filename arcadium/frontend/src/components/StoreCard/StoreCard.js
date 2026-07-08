@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
+import Link from "next/link";
 
 import { GameImage } from "@/components/GameImage/GameImage";
 import { Button } from "@/components/Button/Button";
@@ -13,6 +14,12 @@ import styles from "./StoreCard.module.css";
 // badge sconto (in alto a destra), il titolo, fino a tre chip di genere, il
 // blocco prezzo (prezzo pieno barrato + prezzo finale, oppure "Gratis") e la
 // CTA principale che apre il gioco su Steam.
+//
+// Dal task T9 l'intera card e' anche un link alla pagina di dettaglio del
+// gioco (/gioco/[appId]). Per non annidare un <button> dentro un <a> (HTML
+// non valido) usiamo il pattern del "link esteso": un <Link> assoluto che
+// copre tutta la card, mentre il pulsante Steam resta un elemento separato
+// sopra di esso (z-index in CSS).
 //
 //   <StoreCard game={game} />
 //
@@ -39,7 +46,15 @@ export function StoreCard({ game, className = "", ...rest }) {
   const { t } = useTranslation();
 
   // Estraggo i campi dal gioco, con valori di default per sicurezza.
-  const { appId, name, genres = [], priceCents = 0, discount = 0, reviews = 0, steamUrl } = game;
+  const {
+    appId,
+    name,
+    genres = [],
+    priceCents = 0,
+    discount = 0,
+    reviews = 0,
+    steamUrl,
+  } = game;
 
   const isFree = priceCents === 0;                          // gioco gratuito?
   const finalCents = discountedPrice(priceCents, discount); // prezzo dopo sconto
@@ -55,6 +70,12 @@ export function StoreCard({ game, className = "", ...rest }) {
 
   return (
     <article className={classes} {...rest}>
+      {/* Link ESTESO: un vero <a> che copre l'intera card e porta al dettaglio
+          del gioco. E' fratello del pulsante Steam (non lo contiene), quindi
+          l'HTML resta valido. Sta "sotto" al footer grazie allo z-index in CSS:
+          click sulla card -> dettaglio, click sul pulsante -> Steam. */}
+      <Link href={`/gioco/${appId}`} className={styles.cardLink} aria-label={name} />
+
       {/* Copertina con badge recensioni (sx, glass) e sconto (dx) */}
       <div className={styles.cover}>
         <GameImage src={cover} alt={name} />
@@ -85,7 +106,7 @@ export function StoreCard({ game, className = "", ...rest }) {
           </ul>
         )}
 
-        {/* Prezzo + pulsante d'acquisto */}
+        {/* Prezzo + pulsante d'acquisto (sopra il link esteso) */}
         <div className={styles.footer}>
           <div className={styles.price}>
             {isFree ? (

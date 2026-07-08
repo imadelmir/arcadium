@@ -96,6 +96,40 @@
       "name": "Name (A-Z)"
     }
   },
+  "gameDetail": {
+    "back": "Back to store",
+    "by": "by",
+    "about": "About the game",
+    "media": "Screenshots",
+    "reviews": "Reviews",
+    "reviewOf": "of",
+    "reviewWord": "reviews",
+    "tags": "Tags",
+    "categories": "Categories",
+    "free": "Free",
+    "addWishlist": "Add to wishlist",
+    "inWishlist": "In wishlist",
+    "addBacklog": "Add to backlog",
+    "inBacklog": "In backlog",
+    "viewOnSteam": "View on Steam",
+    "releaseDate": "Release date",
+    "developer": "Developer",
+    "publisher": "Publisher",
+    "platforms": "Platforms",
+    "achievements": "Achievements",
+    "metacritic": "Metacritic",
+    "rating": {
+      "veryPositive": "Very positive",
+      "positive": "Positive",
+      "mixed": "Mixed",
+      "negative": "Negative"
+    },
+    "notFound": {
+      "title": "Game not found",
+      "text": "The game you are looking for does not exist or is no longer in the catalog.",
+      "cta": "Back to store"
+    }
+  },
   "auth": {
     "fields": {
       "email": "Email",

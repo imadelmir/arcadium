@@ -96,6 +96,40 @@
       "name": "Nome (A-Z)"
     }
   },
+  "gameDetail": {
+    "back": "Torna al negozio",
+    "by": "di",
+    "about": "Informazioni sul gioco",
+    "media": "Immagini",
+    "reviews": "Recensioni",
+    "reviewOf": "su",
+    "reviewWord": "recensioni",
+    "tags": "Tag",
+    "categories": "Categorie",
+    "free": "Gratis",
+    "addWishlist": "Aggiungi alla wishlist",
+    "inWishlist": "Nella wishlist",
+    "addBacklog": "Aggiungi al backlog",
+    "inBacklog": "Nel backlog",
+    "viewOnSteam": "Vedi su Steam",
+    "releaseDate": "Data di uscita",
+    "developer": "Sviluppatore",
+    "publisher": "Publisher",
+    "platforms": "Piattaforme",
+    "achievements": "Achievement",
+    "metacritic": "Metacritic",
+    "rating": {
+      "veryPositive": "Molto positive",
+      "positive": "Positive",
+      "mixed": "Nella media",
+      "negative": "Negative"
+    },
+    "notFound": {
+      "title": "Gioco non trovato",
+      "text": "Il gioco che cerchi non esiste o non è più disponibile nel catalogo.",
+      "cta": "Torna al negozio"
+    }
+  },
   "auth": {
     "fields": {
       "email": "Email",
