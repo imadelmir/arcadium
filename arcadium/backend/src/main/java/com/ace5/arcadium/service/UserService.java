@@ -1,0 +1,141 @@
+package com.ace5.arcadium.service;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ace5.arcadium.dto.BacklogItemResponse;
+import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.dto.UserSummaryResponse;
+import com.ace5.arcadium.dto.WishlistItemResponse;
+import com.ace5.arcadium.entity.AppUser;
+import com.ace5.arcadium.exception.ApiException;
+import com.ace5.arcadium.repository.AppUserRepository;
+import com.ace5.arcadium.repository.BacklogRepository;
+import com.ace5.arcadium.repository.WishlistRepository;
+
+/**
+ * Ricerca utenti e consultazione della libreria altrui (M4-T9).
+ *
+ * <p>Due funzioni della commessa: cercare utenti (per username o nome
+ * visualizzato) e vedere i giochi di un utente (backlog e wishlist). La
+ * visibilita' della libreria rispetta {@code is_profile_public}: i giochi di un
+ * profilo privato sono visibili solo al proprietario. La ricerca invece trova
+ * chiunque per nome, esponendo solo dati pubblici (mai l'email) e il flag di
+ * visibilita'. Le liste riusano i DTO e le query fetch-join di M4-T7/T8.
+ */
+@Service
+public class UserService {
+
+    /** Tetto alla dimensione di pagina della ricerca utenti. */
+    private static final int MAX_PAGE_SIZE = 50;
+
+    /** La ricerca utenti e' sempre ordinata per username (sort non pilotabile dal client). */
+    private static final Sort SEARCH_SORT = Sort.by("username").ascending();
+
+    private final AppUserRepository userRepository;
+    private final BacklogRepository backlogRepository;
+    private final WishlistRepository wishlistRepository;
+
+    public UserService(AppUserRepository userRepository,
+                       BacklogRepository backlogRepository,
+                       WishlistRepository wishlistRepository) {
+        this.userRepository = userRepository;
+        this.backlogRepository = backlogRepository;
+        this.wishlistRepository = wishlistRepository;
+    }
+
+    /**
+     * Cerca utenti per sottostringa su username o nome visualizzato. Con {@code q}
+     * vuoto elenca tutti gli utenti (paginati). Ordinamento fisso per username.
+     *
+     * @param q        sottostringa da cercare (nullable/vuoto = tutti)
+     * @param pageable pagina e dimensione richieste (l'ordinamento e' imposto)
+     * @return pagina di viste pubbliche degli utenti
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<UserSummaryResponse> search(String q, Pageable pageable) {
+        int size = Math.min(Math.max(pageable.getPageSize(), 1), MAX_PAGE_SIZE);
+        Pageable safe = PageRequest.of(pageable.getPageNumber(), size, SEARCH_SORT);
+
+        Page<AppUser> page = (q == null || q.isBlank())
+                ? userRepository.findAll(safe)
+                : userRepository.search(q.trim(), safe);
+
+        List<UserSummaryResponse> content = page.getContent().stream()
+                .map(UserSummaryResponse::from)
+                .toList();
+        return PageResponse.of(page, content);
+    }
+
+    /**
+     * Profilo pubblico di un utente per username.
+     *
+     * @param username handle dell'utente
+     * @return vista pubblica dell'utente
+     * @throws ApiException 404 se l'utente non esiste
+     */
+    @Transactional(readOnly = true)
+    public UserSummaryResponse getProfile(String username) {
+        return UserSummaryResponse.from(requireUser(username));
+    }
+
+    /**
+     * Backlog di un utente (tutti gli stati), se consultabile dal richiedente.
+     *
+     * @param requesterId id dell'utente autenticato
+     * @param username    handle dell'utente di cui vedere il backlog
+     * @return voci del backlog dell'utente
+     * @throws ApiException 404 se l'utente non esiste, 403 se il profilo e' privato e non e' il proprio
+     */
+    @Transactional(readOnly = true)
+    public List<BacklogItemResponse> backlogOf(Long requesterId, String username) {
+        AppUser target = requireVisibleUser(requesterId, username);
+        return backlogRepository.findByUserWithGame(target.getId()).stream()
+                .map(BacklogItemResponse::from)
+                .toList();
+    }
+
+    /**
+     * Wishlist di un utente, se consultabile dal richiedente.
+     *
+     * @param requesterId id dell'utente autenticato
+     * @param username    handle dell'utente di cui vedere la wishlist
+     * @return voci della wishlist dell'utente
+     * @throws ApiException 404 se l'utente non esiste, 403 se il profilo e' privato e non e' il proprio
+     */
+    @Transactional(readOnly = true)
+    public List<WishlistItemResponse> wishlistOf(Long requesterId, String username) {
+        AppUser target = requireVisibleUser(requesterId, username);
+        return wishlistRepository.findByUserWithGame(target.getId()).stream()
+                .map(WishlistItemResponse::from)
+                .toList();
+    }
+
+    // ------------------------------------------------------------- helpers
+
+    private AppUser requireUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND, "error.user.notFound", username));
+    }
+
+    /**
+     * Risolve l'utente bersaglio e verifica la visibilita' della sua libreria:
+     * consentita se il profilo e' pubblico oppure se e' il richiedente stesso.
+     */
+    private AppUser requireVisibleUser(Long requesterId, String username) {
+        AppUser target = requireUser(username);
+        boolean isSelf = target.getId().equals(requesterId);
+        if (!isSelf && !Boolean.TRUE.equals(target.getIsProfilePublic())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "error.user.profilePrivate");
+        }
+        return target;
+    }
+}
