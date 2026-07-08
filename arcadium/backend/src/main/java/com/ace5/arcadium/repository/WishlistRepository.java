@@ -29,4 +29,14 @@ public interface WishlistRepository extends JpaRepository<Wishlist, WishlistId> 
     @Query("select w from Wishlist w join fetch w.game "
             + "where w.user.id = :userId order by w.addedAt desc")
     List<Wishlist> findByUserWithGame(@Param("userId") Long userId);
+
+    /**
+     * Numero di giochi nella wishlist di un utente (metrica {@code wishlist_size}
+     * delle statistiche personali, M4-T10).
+     *
+     * @param userId id dell'utente
+     * @return dimensione della wishlist
+     */
+    @Query("select count(w) from Wishlist w where w.user.id = :userId")
+    long countByUser(@Param("userId") Long userId);
 }
