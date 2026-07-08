@@ -123,7 +123,7 @@ function NegozioContent() {
     <div className={styles.page}>
       {/* Intestazione pagina */}
       <header className={styles.header}>
-        <h1 className={styles.title}>{t("pages.negozio.title")}</h1>
+        <h1 className={styles.title} suppressHydrationWarning>{t("pages.negozio.title")}</h1>
         
       </header>
 

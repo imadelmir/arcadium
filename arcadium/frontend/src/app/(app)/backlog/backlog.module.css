@@ -1,0 +1,105 @@
+/* backlog.module.css — lista raggruppata per stato (M5-T11) */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+}
+.title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+/* Sezioni impilate */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Sezione (una per stato) = zona di rilascio */
+.group {
+  --accent: var(--color-primary);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  transition: background var(--transition), border-color var(--transition);
+}
+.group[data-status="never"] { --accent: var(--status-never); }
+.group[data-status="playing"] { --accent: var(--status-playing); }
+.group[data-status="finished"] { --accent: var(--status-finished); }
+.group[data-status="abandoned"] { --accent: var(--status-abandoned); }
+
+/* Sezione evidenziata mentre trascini una riga sopra */
+.group[data-over="true"] {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* Intestazione sezione */
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.groupTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+.count {
+  min-width: 22px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-radius: var(--radius-pill);
+}
+.groupMeta {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+/* Righe */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.empty {
+  padding: var(--space-4) var(--space-2);
+  font-size: 13px;
+  text-align: center;
+  color: var(--color-text-faint);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

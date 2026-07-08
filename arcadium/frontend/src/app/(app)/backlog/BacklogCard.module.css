@@ -1,0 +1,171 @@
+/* BacklogCard.module.css — riga backlog tinta col colore del gioco (M5-T11) */
+
+.row {
+  --game: var(--color-primary); /* fallback se manca coverColor */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  /* Colore del gioco fuso nello sfondo: intenso a sinistra, sfuma nel surface */
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--game) 26%, var(--color-surface)) 0%,
+      color-mix(in srgb, var(--game) 9%, var(--color-surface)) 45%,
+      var(--color-surface) 100%
+    );
+  border: 1px solid var(--color-border);
+  border-left: 3px solid color-mix(in srgb, var(--game) 75%, transparent);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: grab;
+  transition: background var(--transition), border-color var(--transition),
+    transform var(--transition), box-shadow var(--transition);
+}
+.row:hover {
+  /* Tinta più marcata + leggero sollevamento e glow nel colore del gioco */
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--game) 42%, var(--color-surface)) 0%,
+      color-mix(in srgb, var(--game) 15%, var(--color-surface)) 50%,
+      var(--color-surface) 100%
+    );
+  border-color: color-mix(in srgb, var(--game) 55%, var(--color-border));
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--game) 22%, transparent);
+}
+.row:active { cursor: grabbing; }
+.row[data-dragging="true"] { opacity: 0.45; }
+
+.grip {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-text-faint);
+  transition: color var(--transition);
+}
+.row:hover .grip { color: var(--color-text-muted); }
+
+/* Copertina più grande, con anello nel colore del gioco e zoom all'hover */
+.cover {
+  width: 120px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--game) 45%, transparent);
+}
+.cover :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.row:hover .cover :global(img) { transform: scale(1.07); }
+
+/* Nome + barra */
+.main {
+  flex: 1;
+  min-width: 0;
+}
+.name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar {
+  height: 7px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #000 25%, var(--color-surface-2));
+  overflow: hidden;
+}
+.fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--game);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--game) 65%, transparent);
+  animation: grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes grow {
+  to { width: var(--w); }
+}
+
+/* Ore (larghezza fissa, con spazio dalla percentuale) */
+.hours {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 108px;
+  padding-right: var(--space-3); /* stacca il numero dalla percentuale */
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  justify-content: flex-end;
+}
+
+/* Percentuale in tinta col gioco */
+.pct {
+  width: 56px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--game) 65%, #ffffff);
+}
+.pct[data-empty] { color: var(--color-text-faint); }
+
+/* Selettore stato compatto */
+.moveLabel { flex-shrink: 0; }
+.move {
+  max-width: 128px;
+  padding: 6px 26px 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: rgba(6, 8, 20, 0.55);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b92a8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  backdrop-filter: blur(6px);
+  transition: border-color var(--transition);
+}
+.move:hover { border-color: color-mix(in srgb, var(--game) 60%, var(--color-border)); }
+.move:focus-visible { outline: none; box-shadow: var(--ring); }
+.move option { color: var(--color-text); background: var(--color-surface-2); }
+
+/* Solo screen reader */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .hours, .pct { width: auto; }
+  .cover { width: 96px; height: 46px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fill { animation-duration: 1ms; }
+  .row:hover { transform: none; }
+  .row:hover .cover :global(img) { transform: none; }
+}
