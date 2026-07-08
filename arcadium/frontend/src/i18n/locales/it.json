@@ -158,6 +158,12 @@
       "text": "Aggiungi giochi dal negozio per tenerli d'occhio e ricevere avvisi sui cali di prezzo."
     }
   },
+  "backlog": {
+    "hoursUnit": "ore",
+    "moveAria": "Sposta gioco",
+    "emptyColumn": "Nessun gioco",
+    "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga."
+  },
   "auth": {
     "fields": {
       "email": "Email",

@@ -158,6 +158,12 @@
       "text": "Add games from the store to track them and get price-drop alerts."
     }
   },
+  "backlog": {
+    "hoursUnit": "hours",
+    "moveAria": "Move game",
+    "emptyColumn": "No games",
+    "hint": "Drag a game to another section to change its status, or use the menu on the row."
+  },
   "auth": {
     "fields": {
       "email": "Email",

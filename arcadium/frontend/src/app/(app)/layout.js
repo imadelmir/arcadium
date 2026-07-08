@@ -1,17 +1,15 @@
-// Layout condiviso da tutte le pagine accessibili dopo il login.
-// Due colonne: barra laterale a sinistra, quindi intestazione e contenuto della pagina a destra.
-
+// Layout del gruppo autenticato (app): sidebar a sinistra, header in alto,
+// contenuto della pagina a destra.
 import { Sidebar } from "@/layouts/Sidebar/Sidebar";
 import { Header } from "@/layouts/Header/Header";
-import styles from "./app-shell.module.css";
 
 export default function AppLayout({ children }) {
   return (
-    <div className={styles.shell}>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar />
-      <div className={styles.main}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Header />
-        <main className={styles.content}>{children}</main>
+        <main style={{ flex: 1, padding: "24px 32px" }}>{children}</main>
       </div>
     </div>
   );
