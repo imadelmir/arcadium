@@ -130,6 +130,34 @@
       "cta": "Back to store"
     }
   },
+  "library": {
+    "allTab": "All",
+    "hoursUnit": "hours",
+    "noAchievements": "—",
+    "changeStatusAria": "Change status",
+    "empty": {
+      "title": "Nothing here yet",
+      "text": "No games in this state. Switch filter or add some from the store."
+    }
+  },
+  "wishlist": {
+    "sortLabel": "Sort",
+    "sort": {
+      "priceAsc": "Price: low to high",
+      "discount": "Biggest discount",
+      "name": "Name (A-Z)"
+    },
+    "priceDrop": "{{name}} from your wishlist has dropped in price!",
+    "alertOn": "Price alert on",
+    "alertOff": "Turn on price alert",
+    "free": "Free",
+    "remove": "Remove from wishlist",
+    "footer": "Get an automatic alert when a wishlisted game drops in price.",
+    "empty": {
+      "title": "Your wishlist is empty",
+      "text": "Add games from the store to track them and get price-drop alerts."
+    }
+  },
   "auth": {
     "fields": {
       "email": "Email",

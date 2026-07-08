@@ -1,0 +1,177 @@
+/* LibraryCard.module.css — card gioco della libreria (M5-T10) */
+
+.card[data-status="never"] { --accent: var(--status-never); }
+.card[data-status="playing"] { --accent: var(--status-playing); }
+.card[data-status="finished"] { --accent: var(--status-finished); }
+.card[data-status="abandoned"] { --accent: var(--status-abandoned); }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform var(--transition), border-color var(--transition),
+    box-shadow var(--transition);
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--color-border));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45),
+    0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.cover {
+  position: relative;
+  overflow: hidden;
+}
+.cover :global(img) {
+  transition: transform 450ms ease;
+}
+.card:hover .cover :global(img) {
+  transform: scale(1.06);
+}
+
+.shade {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 70px;
+  background: linear-gradient(to bottom, rgba(6, 8, 20, 0.7), transparent);
+  pointer-events: none;
+}
+
+.status {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, rgba(6, 8, 20, 0.6));
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(6px);
+}
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.picker {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 2;
+  min-width: 116px;
+  padding: 5px 26px 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: rgba(6, 8, 20, 0.7);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b92a8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  opacity: 0.85;
+  transition: border-color var(--transition), opacity var(--transition);
+}
+.card:hover .picker { opacity: 1; }
+.picker:hover { border-color: var(--accent); }
+.picker:focus-visible { outline: none; box-shadow: var(--ring); opacity: 1; }
+.picker option { color: var(--color-text); background: var(--color-surface-2); }
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.hours {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.hours strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.completion {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+.ring { display: block; }
+.ringTrack {
+  fill: none;
+  stroke: var(--color-surface-2);
+  stroke-width: 4;
+}
+.ringFill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 24px 24px;
+  stroke-dasharray: var(--circ);
+  stroke-dashoffset: var(--circ);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 70%, transparent));
+  animation: ringFill 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes ringFill {
+  to { stroke-dashoffset: var(--target); }
+}
+.pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.noAch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringFill { animation-duration: 1ms; }
+  .card:hover .cover :global(img) { transform: none; }
+}

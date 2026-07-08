@@ -4,16 +4,17 @@
 .page {
   max-width: none;
   margin: 0;
-  padding: var(--space-5) var(--space-6);
+  /* padding verticale in alto = 0 così il titolo parte in alto come la Libreria;
+     manteniamo il padding laterale */
+  padding: 0 var(--space-6) var(--space-6);
 }
-
 /* --- Intestazione pagina --- */
 .header {
   margin-bottom: var(--space-5);
 }
 
 .title {
-  font-size: 40px;
+  font-size: 30px;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
