@@ -130,6 +130,34 @@
       "cta": "Torna al negozio"
     }
   },
+  "library": {
+    "allTab": "Tutti",
+    "hoursUnit": "ore",
+    "noAchievements": "—",
+    "changeStatusAria": "Cambia stato",
+    "empty": {
+      "title": "Nessun gioco qui",
+      "text": "Non hai giochi in questo stato. Cambia filtro o aggiungine dal negozio."
+    }
+  },
+  "wishlist": {
+    "sortLabel": "Ordina",
+    "sort": {
+      "priceAsc": "Prezzo crescente",
+      "discount": "Sconto maggiore",
+      "name": "Nome (A-Z)"
+    },
+    "priceDrop": "{{name}} dalla tua wishlist è sceso di prezzo!",
+    "alertOn": "Notifica prezzo attiva",
+    "alertOff": "Attiva notifica prezzo",
+    "free": "Gratis",
+    "remove": "Rimuovi dalla wishlist",
+    "footer": "Ricevi un avviso automatico quando un gioco in wishlist scende di prezzo.",
+    "empty": {
+      "title": "La tua wishlist è vuota",
+      "text": "Aggiungi giochi dal negozio per tenerli d'occhio e ricevere avvisi sui cali di prezzo."
+    }
+  },
   "auth": {
     "fields": {
       "email": "Email",
