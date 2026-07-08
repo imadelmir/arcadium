@@ -1,18 +1,23 @@
 "use client";
 
-// Pagina Negozio / catalogo (M5 - T8).
+// Pagina Negozio / catalogo (M5 - T8, ricerca via header dal T9).
 // -----------------------------------------------------------------------------
 // Fedele al mockup "Negozio": barra dei filtri a pillole in stile glass
 // (Genere multi-selezione, Prezzo, Sconto, Piattaforma, Valutazione, Lingua) con
 // "Ordina" ancorato a destra, griglia responsive di StoreCard e sezione in
 // evidenza "Sconti del momento". Filtro e ordinamento avvengono lato client sul
 // catalogo finto; la sorgente dati sarà sostituita dall'API in una task futura.
+//
+// La RICERCA non e' piu' un campo locale: il termine arriva dalla barra grande
+// dell'header tramite l'URL (?q=...). Qui viene letto con useSearchParams e
+// usato come filtro sul titolo. La pagina e' avvolta in <Suspense> perche'
+// useSearchParams lo richiede in Next.js.
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Search } from "lucide-react";
 
-import { Input, StoreCard, FilterDropdown } from "@/components";
+import { StoreCard, FilterDropdown } from "@/components";
 import { discountedPrice } from "@/utils/price";
 import { STORE_GAMES } from "./mockGames";
 import styles from "./negozio.module.css";
@@ -47,11 +52,14 @@ const ALL_LANGUAGES = [...new Set(STORE_GAMES.flatMap((g) => g.languages))].sort
 const toggle = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
-export default function NegozioPage() {
+function NegozioContent() {
   const { t } = useTranslation();
 
+  // Testo di ricerca: arriva dalla barra dell'header tramite l'URL (?q=...).
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q") ?? "";
+
   // Stato dei filtri: uno per ogni controllo della barra.
-  const [query, setQuery] = useState("");                 // testo di ricerca
   const [genres, setGenres] = useState([]);               // generi (multi)
   const [priceRange, setPriceRange] = useState("all");    // fascia di prezzo
   const [discountFilter, setDiscountFilter] = useState("all"); // sconto minimo
@@ -116,23 +124,11 @@ export default function NegozioPage() {
       {/* Intestazione pagina */}
       <header className={styles.header}>
         <h1 className={styles.title}>{t("pages.negozio.title")}</h1>
-        <p className={styles.subtitle}>{t("pages.negozio.subtitle")}</p>
+        
       </header>
 
       {/* --- Barra dei filtri (pillole glass) --- */}
       <div className={styles.filters} role="search">
-        {/* Ricerca */}
-        <Input
-          className={styles.searchField}
-          name="store-search"
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("store.searchPlaceholder")}
-          aria-label={t("store.searchPlaceholder")}
-          iconLeft={<Search size={18} />}
-        />
-
         {/* Genere: multi-selezione con checkbox */}
         <FilterDropdown label={t("store.filters.genre")} count={genres.length}>
           <p className={styles.panelTitle}>{t("store.filters.genre")}</p>
@@ -284,7 +280,7 @@ export default function NegozioPage() {
       </div>
 
       {/* --- Risultati --- */}
-      <p className={styles.count}>{t("store.results", { count: results.length })}</p>
+      
 
       {results.length > 0 ? (
         <div className={styles.grid}>
@@ -311,5 +307,14 @@ export default function NegozioPage() {
         </section>
       )}
     </div>
+  );
+}
+
+// useSearchParams richiede un confine <Suspense>: avvolgo il contenuto qui.
+export default function NegozioPage() {
+  return (
+    <Suspense fallback={null}>
+      <NegozioContent />
+    </Suspense>
   );
 }
