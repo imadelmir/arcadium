@@ -5,7 +5,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Test di fumo (smoke test) del contesto applicativo.
- *
  * Verifica che il contesto Spring Boot si carichi correttamente con la
  * configurazione di M4-T1. Richiede un PostgreSQL raggiungibile (docker-compose)
  * perche' l'auto-configurazione del datasource e Flyway partono all'avvio del
