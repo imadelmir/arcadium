@@ -1,6 +1,7 @@
 package com.ace5.arcadium.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -36,6 +37,23 @@ public class PriceHistory {
 
     public PriceHistory() {
         // Costruttore richiesto da JPA.
+    }
+
+    /**
+     * Crea una rilevazione di prezzo per un gioco a un dato istante (usato dal
+     * job di M4-T13). {@code recorded_at} fa parte della chiave e va valorizzato
+     * qui, non dal DEFAULT del DB.
+     *
+     * @param game       gioco rilevato
+     * @param recordedAt istante della rilevazione (componente della PK)
+     * @param price      prezzo rilevato
+     * @param discount   sconto percentuale al momento, o null
+     */
+    public PriceHistory(Game game, LocalDateTime recordedAt, BigDecimal price, Short discount) {
+        this.game = game;
+        this.price = price;
+        this.discount = discount;
+        this.id = new PriceHistoryId(game.getAppId(), recordedAt);
     }
 
     public PriceHistoryId getId() { return id; }

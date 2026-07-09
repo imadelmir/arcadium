@@ -39,4 +39,24 @@ public interface WishlistRepository extends JpaRepository<Wishlist, WishlistId> 
      */
     @Query("select count(w) from Wishlist w where w.user.id = :userId")
     long countByUser(@Param("userId") Long userId);
+
+    /**
+     * app_id distinti presenti in almeno una wishlist: l'insieme dei giochi che
+     * interessa monitorare per le notifiche di calo prezzo (M4-T13). Evita di
+     * scandire l'intero catalogo.
+     *
+     * @return app_id dei giochi presenti in qualche wishlist
+     */
+    @Query("select distinct w.game.appId from Wishlist w")
+    List<Long> findDistinctWishlistedAppIds();
+
+    /**
+     * Id degli utenti che hanno un dato gioco in wishlist: i destinatari di una
+     * eventuale notifica di calo prezzo per quel gioco (M4-T13).
+     *
+     * @param appId gioco
+     * @return id degli utenti che lo desiderano
+     */
+    @Query("select w.user.id from Wishlist w where w.game.appId = :appId")
+    List<Long> findUserIdsByAppId(@Param("appId") Long appId);
 }
