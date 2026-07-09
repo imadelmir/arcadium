@@ -42,7 +42,7 @@
       "subtitle": "Organizza i giochi per stato: in corso, finito, abbandonato."
     },
     "statistiche": {
-      "title": "Le tue statistiche",
+      "title": "Statistiche",
       "subtitle": "Ore di gioco, completamenti e achievement."
     },
     "community": {
@@ -163,6 +163,47 @@
     "moveAria": "Sposta gioco",
     "emptyColumn": "Nessun gioco",
     "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga."
+  },
+  "stats": {
+    "months": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
+    "kpi": {
+      "totalGames": "Giochi totali",
+      "hoursPlayed": "Ore giocate",
+      "achievements": "Achievement",
+      "avgCompletion": "Completamento medio",
+      "deltaGames": "+{{count}} questo mese",
+      "deltaHours": "+{{count}}h questo mese",
+      "deltaAch": "+{{count}} questo mese",
+      "avgHint": "su {{count}} giochi"
+    },
+    "charts": {
+      "hoursTitle": "Ore giocate per mese",
+      "hoursSubtitle": "Ultimi 12 mesi",
+      "genreTitle": "Giochi per genere",
+      "statusTitle": "Stato dei giochi"
+    },
+    "status": {
+      "completed": "Completati",
+      "playing": "In corso",
+      "notStarted": "Non iniziati",
+      "backlog": "Backlog"
+    },
+    "table": {
+      "title": "Giochi più giocati",
+      "game": "Gioco",
+      "hours": "Ore",
+      "progress": "Achievement",
+      "status": "Stato",
+      "empty": "Nessun gioco da mostrare."
+    },
+    "tooltip": {
+      "hours": "ore",
+      "games": "giochi"
+    },
+    "unit": {
+      "hours": "h",
+      "games": "giochi"
+    }
   },
   "auth": {
     "fields": {

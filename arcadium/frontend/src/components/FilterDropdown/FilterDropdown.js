@@ -75,7 +75,7 @@ export function FilterDropdown({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className={styles.label}>{label}</span>
+        <span className={styles.label} suppressHydrationWarning>{label}</span>
         {count > 0 && <span className={styles.count}>{count}</span>}
         <ChevronDown size={16} className={styles.chevron} aria-hidden="true" />
       </button>

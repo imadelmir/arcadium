@@ -1,0 +1,90 @@
+/* KpiCard.module.css
+   Stile della card KPI. I colori vengono dai token del tema (theme.css).
+   Card più grande, con bagliore e sollevamento al passaggio del mouse.
+   Il colore d'accento cambia in base all'attributo data-tone (in fondo). */
+
+.kpi {
+  position: relative;
+  padding: var(--space-6);
+  overflow: hidden;
+  /* --kpi-accent è impostato per-tono più sotto e tinge icona e alone */
+  --kpi-accent: var(--color-primary);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Alone morbido dietro la card, del colore dell'accento */
+.kpi::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--kpi-accent) 0%, transparent 70%);
+  opacity: 0.18;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Sollevamento + bordo e ombra colorati al passaggio del mouse */
+.kpi:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--kpi-accent) 55%, var(--color-border));
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--kpi-accent) 30%, transparent);
+}
+.kpi:hover::before {
+  opacity: 0.32; /* l'alone si accende un po' */
+}
+
+/* Contenitore dell'icona, in alto a destra */
+.iconWrap {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--kpi-accent);
+  background-color: color-mix(in srgb, var(--kpi-accent) 16%, transparent);
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  /* lasciamo spazio a destra per non finire sotto l'icona */
+  padding-right: 52px;
+}
+
+.value {
+  margin-top: var(--space-2);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hint {
+  margin-top: var(--space-3);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-success); /* le variazioni positive sono in verde */
+}
+
+/* --- Colori per tono --------------------------------------------------------
+   Cambiano solo l'accento (icona + alone + bagliore), il resto resta uguale. */
+.kpi[data-tone="violet"] { --kpi-accent: var(--color-primary); }
+.kpi[data-tone="blue"] { --kpi-accent: var(--color-accent-blue); }
+.kpi[data-tone="green"] { --kpi-accent: var(--color-success); }
+.kpi[data-tone="amber"] { --kpi-accent: var(--color-warning); }
+
+/* Rispetta chi preferisce ridurre le animazioni. */
+@media (prefers-reduced-motion: reduce) {
+  .kpi { transition: none; }
+  .kpi:hover { transform: none; }
+}
