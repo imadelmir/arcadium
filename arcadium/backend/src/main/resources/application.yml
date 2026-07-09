@@ -76,6 +76,19 @@ management:
       probes:
         enabled: true
 
+# --- Documentazione API: OpenAPI / Swagger (M4-T12) ---
+# springdoc espone la descrizione OpenAPI e la Swagger UI; qui si fissano i path
+# e un ordinamento leggibile. In produzione si possono disattivare (enabled=false).
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
 # --- HTTP server ---
 server:
   port: ${SERVER_PORT:8080}
