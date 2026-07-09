@@ -1,6 +1,7 @@
 package com.ace5.arcadium.security;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 import org.springframework.context.MessageSource;
@@ -15,17 +16,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Risposta agli accessi non autenticati (M4-T3), ora localizzata (M4-T4).
+ * Risposta agli accessi non autenticati (M4-T3), localizzata (M4-T4) e uniforme
+ * (M4-T12): un 401 con la stessa forma {@code ApiError} degli altri errori.
  *
- * <p>Senza questo entry point, un accesso senza token a un endpoint protetto
- * produrrebbe una pagina di errore generica. Qui si restituisce un 401 con un
- * corpo JSON minimale. La forma definitiva e uniforme degli errori (Problem
- * Detail) è demandata a M4-T12.
- *
- * <p>Nota importante: questo entry point vive nella catena dei filtri di
- * sicurezza, che gira PRIMA del DispatcherServlet; a quel punto la lingua non è
- * ancora nel contesto. Per questo la ricaviamo direttamente dalla richiesta con
- * il {@link LocaleResolver} e traduciamo il testo con il {@link MessageSource}.
+ * <p>Questo entry point vive nella catena dei filtri, prima del DispatcherServlet:
+ * la lingua non e' ancora nel contesto, quindi si ricava dalla richiesta col
+ * {@link LocaleResolver}. Il JSON e' scritto a mano (senza dipendere da Jackson):
+ * il corpo e' semplice e i valori sono controllati.
  */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -43,14 +40,13 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        // Lingua dedotta dall'header Accept-Language della richiesta.
         Locale locale = localeResolver.resolveLocale(request);
         String message = messageSource.getMessage("error.auth.required", null, locale);
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8"); // per accenti nel messaggio italiano
-        response.getWriter().write(
-                "{\"error\":\"unauthorized\",\"message\":\"" + message + "\"}");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(ErrorJson.build(
+                HttpStatus.UNAUTHORIZED, message, request.getRequestURI()));
     }
 }
