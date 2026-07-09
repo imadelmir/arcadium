@@ -1,0 +1,141 @@
+/* statistiche.module.css
+   Layout della pagina Statistiche a TUTTA LARGHEZZA, con animazioni d'ingresso
+   a cascata e micro-interazioni (sollevamento al passaggio del mouse).
+   Tutti i valori vengono dai token del tema (theme.css). */
+
+/* La pagina occupa tutta la larghezza disponibile: niente colonna stretta
+   centrata. Il padding si adatta allo schermo con clamp(). */
+.page {
+  width: 100%;
+  /* meno spazio in alto: il contenuto sale un po'; lati e fondo restano ampi */
+  padding: clamp(16px, 2vw, 24px) clamp(24px, 3vw, 48px) clamp(32px, 3vw, 48px);
+  animation: fadeIn 0.5s ease both;
+}
+
+/* --- Intestazione ---------------------------------------------------------- */
+.header {
+  margin-bottom: var(--space-6);
+  animation: riseIn 0.5s ease both;
+}
+
+.title {
+  font-size: 32px; /* misura standard, come le altre pagine (es. Wishlist) */
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* --- 1. Griglia KPI -------------------------------------------------------- */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+/* Ogni card entra con un ritardo progressivo (effetto a cascata) */
+.kpiGrid > * {
+  animation: riseIn 0.5s ease both;
+}
+.kpiGrid > *:nth-child(1) { animation-delay: 0.05s; }
+.kpiGrid > *:nth-child(2) { animation-delay: 0.10s; }
+.kpiGrid > *:nth-child(3) { animation-delay: 0.15s; }
+.kpiGrid > *:nth-child(4) { animation-delay: 0.20s; }
+
+/* --- 2. Griglia grafici ---------------------------------------------------- */
+/* Due colonne: il grafico delle ore occupa entrambe (riga in alto),
+   torta e barre stanno una accanto all'altra (riga sotto). */
+.charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.chartWide {
+  grid-column: 1 / -1; /* occupa tutta la larghezza */
+}
+
+/* Ingresso a cascata + sollevamento e bagliore al passaggio del mouse */
+.charts > * {
+  animation: riseIn 0.5s ease both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.charts > *:nth-child(1) { animation-delay: 0.22s; }
+.charts > *:nth-child(2) { animation-delay: 0.28s; }
+.charts > *:nth-child(3) { animation-delay: 0.34s; }
+
+.charts > *:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Intestazione interna di ogni card grafico/tabella */
+.chartHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.chartTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.chartHint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* --- 3. Sezione tabella ---------------------------------------------------- */
+.tableSection {
+  margin-bottom: var(--space-6);
+  animation: riseIn 0.5s ease both;
+  animation-delay: 0.38s;
+}
+
+.tableSection > * {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.tableSection > *:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Animazioni ------------------------------------------------------------ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsive ------------------------------------------------------------ */
+/* Tablet: KPI su 2 colonne, grafici impilati. */
+@media (max-width: 1100px) {
+  .kpiGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .charts { grid-template-columns: 1fr; }
+  .chartWide { grid-column: auto; }
+}
+
+/* Mobile: tutto su una colonna. */
+@media (max-width: 560px) {
+  .kpiGrid { grid-template-columns: 1fr; }
+}
+
+/* Rispetta chi preferisce ridurre le animazioni. */
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .header,
+  .kpiGrid > *,
+  .charts > *,
+  .tableSection { animation: none; }
+  .charts > *:hover,
+  .tableSection > *:hover { transform: none; }
+}

@@ -42,7 +42,7 @@
       "subtitle": "Sort your games by status: playing, finished, abandoned."
     },
     "statistiche": {
-      "title": "Your statistics",
+      "title": "Statistics",
       "subtitle": "Playtime, completions and achievements."
     },
     "community": {
@@ -163,6 +163,47 @@
     "moveAria": "Move game",
     "emptyColumn": "No games",
     "hint": "Drag a game to another section to change its status, or use the menu on the row."
+  },
+  "stats": {
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "kpi": {
+      "totalGames": "Total games",
+      "hoursPlayed": "Hours played",
+      "achievements": "Achievements",
+      "avgCompletion": "Average completion",
+      "deltaGames": "+{{count}} this month",
+      "deltaHours": "+{{count}}h this month",
+      "deltaAch": "+{{count}} this month",
+      "avgHint": "across {{count}} games"
+    },
+    "charts": {
+      "hoursTitle": "Hours played per month",
+      "hoursSubtitle": "Last 12 months",
+      "genreTitle": "Games by genre",
+      "statusTitle": "Games by status"
+    },
+    "status": {
+      "completed": "Completed",
+      "playing": "In progress",
+      "notStarted": "Not started",
+      "backlog": "Backlog"
+    },
+    "table": {
+      "title": "Most played games",
+      "game": "Game",
+      "hours": "Hours",
+      "progress": "Achievements",
+      "status": "Status",
+      "empty": "No games to show."
+    },
+    "tooltip": {
+      "hours": "hours",
+      "games": "games"
+    },
+    "unit": {
+      "hours": "h",
+      "games": "games"
+    }
   },
   "auth": {
     "fields": {
