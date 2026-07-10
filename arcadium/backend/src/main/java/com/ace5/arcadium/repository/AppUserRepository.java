@@ -23,6 +23,15 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByUsername(String username);
 
+    /**
+     * Utente per SteamID: serve al connect Steam (M4-T16) per garantire che uno
+     * stesso account Steam non sia collegato a due utenti diversi.
+     *
+     * @param steamId SteamID64
+     * @return l'utente collegato a quello SteamID, se esiste
+     */
+    Optional<AppUser> findBySteamId(String steamId);
+
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);

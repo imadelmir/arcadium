@@ -66,6 +66,12 @@ arcadium:
 # Notifiche di calo prezzo: SPENTE di default. A false non si abilita lo
 # scheduling e i bean del motore non vengono creati (scaffolding inerte).
 # L'attivazione avra' senso con i prezzi aggiornati dalla sync Steam (M4-T16).
+  # --- Integrazione Steam (M4-T16) ---
+  # api-key da ambiente (STEAM_API_KEY); assente = sync non disponibile.
+  steam:
+    api-key: ${STEAM_API_KEY:}
+    realm: ${STEAM_REALM:http://localhost:8080}
+    return-url: ${STEAM_RETURN_URL:http://localhost:3000/steam/callback}
   notifications:
     price-drop:
       enabled: ${PRICE_DROP_NOTIFICATIONS_ENABLED:false}
