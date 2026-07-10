@@ -58,6 +58,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         // Documentazione API (M4-T12): Swagger UI e descrizione OpenAPI pubbliche.
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // Share-card achievement (M4-T14): pubbliche per i crawler social.
+                        .requestMatchers("/share/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint)
