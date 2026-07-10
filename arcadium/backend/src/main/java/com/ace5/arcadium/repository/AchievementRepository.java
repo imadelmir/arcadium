@@ -1,6 +1,7 @@
 package com.ace5.arcadium.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -22,4 +23,13 @@ public interface AchievementRepository extends JpaRepository<Achievement, Long> 
      * @return badge attivi ordinati per id
      */
     List<Achievement> findByIsActiveTrueOrderByIdAsc();
+
+    /**
+     * Achievement per codice stabile ('first_game', ...): serve alla share-card
+     * (M4-T14) per risolvere il badge da condividere.
+     *
+     * @param code codice del badge
+     * @return il badge, se esiste
+     */
+    Optional<Achievement> findByCode(String code);
 }
