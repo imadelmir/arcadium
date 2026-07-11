@@ -1,25 +1,26 @@
 "use client";
 
-// Pagina di registrazione (M5 - T5)
+// Pagina di registrazione (M5 - T5) — COLLEGATA al backend (M5-T13)
 // -----------------------------------------------------------------------------
-// Stesso stile della scheda della pagina di accesso, con i campi nome utente,
-// email, password e conferma della password. L'icona a forma di occhio
-// mostra/nasconde contemporaneamente entrambi i campi della password.
-//
-// NOTA: la registrazione reale (creazione dell'utente) è gestita dal backend
-// (M4-T3) e verrà collegata durante l'integrazione frontend-backend (M5-T13).
-// Per ora, onSubmit si limita a validare i campi.
+// Stesso pattern della pagina di login: useAuth().register() chiama
+// /api/auth/register tramite il client centralizzato (lib/api/client.js),
+// salva token + utente, e al successo porta l'utente al negozio.
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Input } from "@/components/Input/Input";
 import { Button } from "@/components/Button/Button";
+import { useAuth } from "@/context/AuthProvider";
+import { ApiError } from "@/lib/api/client";
 import styles from "../auth-card.module.css";
 
 export default function RegisterPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const { register } = useAuth();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -28,6 +29,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function validate() {
     const next = {};
@@ -48,18 +50,36 @@ export default function RegisterPage() {
     return next;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const next = validate();
     setErrors(next);
+    setFormError("");
+    if (Object.keys(next).length > 0) return;
 
-    if (Object.keys(next).length > 0) {
-      setFormError("");
-      return;
+    setSubmitting(true);
+    try {
+      await register({
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        displayName: username.trim(), // fallback: usa lo username come nome visualizzato
+        preferredLanguage: "it",
+      });
+      router.push("/negozio"); // registrazione riuscita -> catalogo (come il login)
+    } catch (err) {
+      // 409 = username/email già in uso; 400 = validazione backend fallita;
+      // status 0 = backend non raggiungibile; altrimenti generico.
+      if (err instanceof ApiError && (err.status === 409 || err.status === 400)) {
+        setFormError(err.message || t("auth.register.error"));
+      } else if (err instanceof ApiError && err.status === 0) {
+        setFormError(t("errors.network"));
+      } else {
+        setFormError(t("errors.generic"));
+      }
+    } finally {
+      setSubmitting(false);
     }
-
-    // No backend yet (M4-T3 / M5-T13).
-    setFormError(t("auth.register.error"));
   }
 
   return (
@@ -134,8 +154,8 @@ export default function RegisterPage() {
           autoComplete="new-password"
         />
 
-        <Button type="submit" fullWidth>
-          {t("auth.register.submit")}
+        <Button type="submit" fullWidth disabled={submitting}>
+          {submitting ? t("common.loading") : t("auth.register.submit")}
         </Button>
       </form>
 
