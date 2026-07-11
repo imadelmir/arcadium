@@ -1,54 +1,75 @@
 "use client";
 
-// Pagina "Backlog" (M5-T11) — stile lista raggruppata.
-// I giochi sono divisi in sezioni per stato (mai giocato / in corso / finito /
-// abbandonato). Ogni sezione è una zona di rilascio: trascinando una riga al suo
-// interno il gioco assume quello stato. In attesa del backend lavora sul dataset
-// finto: l'aggancio all'endpoint backlog (M4-T8) sarà la sola sostituzione dati.
+// Pagina "Backlog" (M5-T11) — COLLEGATA al backend (M5-T13).
+// Legge i giochi da GET /api/backlog, li raggruppa nei 4 stati del DB e permette
+// di cambiare stato davvero (PATCH /api/backlog/{appId}) via drag&drop o selettore.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { GAME_STATUSES } from "@/components";
-import { getBacklog, BACKLOG_COLUMNS } from "./mockBacklog";
+import { Spinner } from "@/components";
+import { BACKLOG_STATUSES } from "@/lib/constants";
+import { listBacklog, updateBacklog } from "@/lib/api/backlog";
 import { BacklogCard } from "./BacklogCard";
 import styles from "./backlog.module.css";
 
-// Minuti totali di una lista -> ore intere (per l'intestazione di sezione).
-function totalHours(games) {
-  const minutes = games.reduce((sum, game) => sum + game.playtimeMinutes, 0);
+// Somma minuti (ignora i null) -> ore intere per l'intestazione di sezione.
+function totalHours(items) {
+  const minutes = items.reduce((sum, it) => sum + (it.playtimeMinutes ?? 0), 0);
   return Math.round(minutes / 60).toLocaleString("it-IT");
 }
 
 export default function BacklogPage() {
   const { t } = useTranslation();
 
-  // Copia locale dei giochi: la spostiamo tra le sezioni senza toccare il dato.
-  const [games, setGames] = useState(() => getBacklog());
-  const [draggingId, setDraggingId] = useState(null); // riga trascinata
-  const [overStatus, setOverStatus] = useState(null);  // sezione evidenziata
+  // Voci del backlog dal backend: { game, status:{code,...}, playtimeMinutes, ... }.
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // Raggruppa i giochi per stato, così ogni sezione pesca la sua lista.
+  const [draggingId, setDraggingId] = useState(null);
+  const [overStatus, setOverStatus] = useState(null);
+
+  // Carica il backlog all'apertura.
+  useEffect(() => {
+    let attivo = true;
+    setLoading(true);
+    setError(false);
+    listBacklog()
+      .then((list) => attivo && setItems(list))
+      .catch(() => attivo && setError(true))
+      .finally(() => attivo && setLoading(false));
+    return () => { attivo = false; };
+  }, []);
+
+  // Raggruppa per codice stato del DB.
   const byStatus = useMemo(() => {
-    const groups = { never: [], playing: [], finished: [], abandoned: [] };
-    for (const game of games) (groups[game.status] ??= []).push(game);
+    const groups = { mai_giocato: [], in_corso: [], finito: [], abbandonato: [] };
+    for (const it of items) (groups[it.status.code] ??= []).push(it);
     return groups;
-  }, [games]);
+  }, [items]);
 
-  // Cambia lo stato di un gioco (usato dal drop e dal selettore).
-  function moveGame(appId, nextStatus) {
-    setGames((prev) =>
-      prev.map((game) =>
-        game.appId === appId ? { ...game, status: nextStatus } : game
+  // Cambio stato reale: aggiorna la UI e chiama PATCH; se fallisce, ripristina.
+  async function moveGame(appId, nextCode) {
+    const backup = items;
+    setItems((prev) =>
+      prev.map((it) =>
+        it.game.appId === appId
+          ? { ...it, status: { ...it.status, code: nextCode } }
+          : it
       )
     );
+    try {
+      await updateBacklog(appId, { status: nextCode });
+    } catch {
+      setItems(backup); // rollback in caso di errore
+    }
   }
 
-  // Rilascio su una sezione: il gioco trascinato prende lo stato della sezione.
-  function handleDrop(event, status) {
+  function handleDrop(event, statusCode) {
     event.preventDefault();
     const appId = Number(event.dataTransfer.getData("text/plain"));
-    if (appId) moveGame(appId, status);
+    if (appId) moveGame(appId, statusCode);
     setOverStatus(null);
     setDraggingId(null);
   }
@@ -59,60 +80,69 @@ export default function BacklogPage() {
         <h1 className={styles.title}>{t("nav.backlog")}</h1>
       </header>
 
-      <div className={styles.groups}>
-        {BACKLOG_COLUMNS.map((status) => {
-          const list = byStatus[status] ?? [];
-          const config = GAME_STATUSES[status];
+      {loading ? (
+        <div style={{ display: "grid", placeItems: "center", minHeight: 200 }}>
+          <Spinner size="lg" />
+        </div>
+      ) : error ? (
+        <p className={styles.hint}>{t("errors.network")}</p>
+      ) : (
+        <div className={styles.groups}>
+          {BACKLOG_STATUSES.map(({ code, labelKey }) => {
+            const list = byStatus[code] ?? [];
 
-          return (
-            <section
-              key={status}
-              className={styles.group}
-              data-status={status}
-              data-over={overStatus === status || undefined}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setOverStatus(status);
-              }}
-              onDragLeave={() =>
-                setOverStatus((current) => (current === status ? null : current))
-              }
-              onDrop={(event) => handleDrop(event, status)}
-            >
-              <div className={styles.groupHead}>
-                <span className={styles.groupTitle}>
-                  <span className={styles.dot} aria-hidden="true" />
-                  {config.label}
-                  <span className={styles.count}>{list.length}</span>
-                </span>
-                <span className={styles.groupMeta}>
-                  {totalHours(list)} {t("backlog.hoursUnit")}
-                </span>
-              </div>
-
-              {list.length === 0 ? (
-                <p className={styles.empty}>{t("backlog.emptyColumn")}</p>
-              ) : (
-                <div className={styles.rows}>
-                  {list.map((game) => (
-                    <BacklogCard
-                      key={game.appId}
-                      game={game}
-                      onStatusChange={moveGame}
-                      onDragStart={setDraggingId}
-                      onDragEnd={() => {
-                        setDraggingId(null);
-                        setOverStatus(null);
-                      }}
-                      dragging={draggingId === game.appId}
-                    />
-                  ))}
+            return (
+              <section
+                key={code}
+                className={styles.group}
+                data-status={code}
+                data-over={overStatus === code || undefined}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setOverStatus(code);
+                }}
+                onDragLeave={() =>
+                  setOverStatus((current) => (current === code ? null : current))
+                }
+                onDrop={(event) => handleDrop(event, code)}
+              >
+                <div className={styles.groupHead}>
+                  <span className={styles.groupTitle}>
+                    <span className={styles.dot} aria-hidden="true" />
+                    {t(labelKey)}
+                    <span className={styles.count}>{list.length}</span>
+                  </span>
+                  <span className={styles.groupMeta}>
+                    {totalHours(list)} {t("backlog.hoursUnit")}
+                  </span>
                 </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
+
+                {list.length === 0 ? (
+                  <p className={styles.empty}>{t("backlog.emptyColumn")}</p>
+                ) : (
+                  <div className={styles.rows}>
+                    {list.map((it) => (
+                      <BacklogCard
+                        key={it.game.appId}
+                        game={it.game}
+                        statusCode={it.status.code}
+                        playtimeMinutes={it.playtimeMinutes}
+                        onStatusChange={moveGame}
+                        onDragStart={setDraggingId}
+                        onDragEnd={() => {
+                          setDraggingId(null);
+                          setOverStatus(null);
+                        }}
+                        dragging={draggingId === it.game.appId}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      )}
 
       <p className={styles.hint}>{t("backlog.hint")}</p>
     </section>

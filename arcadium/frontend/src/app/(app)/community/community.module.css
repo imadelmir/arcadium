@@ -1,0 +1,83 @@
+/* =============================================================================
+   Pagina Community — ricerca utenti + griglia di card che portano al profilo.
+   ========================================================================== */
+
+.page {
+  padding: var(--space-6) 0;
+  max-width: 1100px;
+}
+
+/* Intestazione */
+.head {
+  margin-bottom: var(--space-4);
+}
+.title {
+  font-size: 28px;
+  font-weight: 700;
+}
+.subtitle {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 15px;
+}
+
+/* Barra di ricerca: larghezza contenuta + spazio sotto per staccare la griglia */
+.searchRow {
+  max-width: 460px;
+  margin: var(--space-4) 0 var(--space-6);
+}
+
+/* Griglia utenti: colonne TUTTE della stessa larghezza (card uniformi) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* Card utente cliccabile */
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition), border-color var(--transition);
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+}
+
+/* Testi dentro la card */
+.info {
+  min-width: 0;
+}
+.name {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.private {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-faint);
+}
+
+/* Stati: caricamento / vuoto / errore */
+.state {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  color: var(--color-text-muted);
+  text-align: center;
+}

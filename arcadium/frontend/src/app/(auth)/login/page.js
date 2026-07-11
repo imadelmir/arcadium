@@ -1,54 +1,67 @@
 "use client";
 
-// Pagina di accesso (M5 - T5)
+// Pagina di accesso (M5 - T5) — COLLEGATA al backend (M5-T13)
 // -----------------------------------------------------------------------------
-// La scheda "Bentornato" del mockup: email + password (con icona a forma di
-// occhio per mostrare/nascondere la password), un banner di errore, il pulsante
-// "Accedi" e i link sottostanti.
-//
-// NOTA: l'autenticazione reale (JWT) è gestita dal backend (M4-T3) e verrà
-// collegata durante l'integrazione frontend-backend (M5-T13). Per ora,
-// onSubmit si limita a validare i campi e a mostrare il banner di errore,
-// senza effettuare chiamate all'API.
+// Stessa scheda "Bentornato" del mockup, ma ora l'accesso è reale:
+// - il backend autentica per USERNAME + password (DTO LoginRequest);
+// - useAuth().login() chiama /api/auth/login, salva il token e l'utente;
+// - al successo si va al negozio; in caso di errore si mostra il banner.
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Input } from "@/components/Input/Input";
 import { Button } from "@/components/Button/Button";
+import { useAuth } from "@/context/AuthProvider";
+import { ApiError } from "@/lib/api/client";
 import styles from "../auth-card.module.css";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const { login } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});   // per-field messages
-  const [formError, setFormError] = useState(""); // top banner
+  const [errors, setErrors] = useState({});       // messaggi per singolo campo
+  const [formError, setFormError] = useState("");  // banner in cima
+  const [submitting, setSubmitting] = useState(false); // blocca il pulsante mentre invia
 
+  // Validazione minima lato client: i due campi non devono essere vuoti.
   function validate() {
     const next = {};
-    if (!email.trim()) next.email = t("auth.validation.required");
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      next.email = t("auth.validation.invalidEmail");
+    if (!username.trim()) next.username = t("auth.validation.required");
     if (!password) next.password = t("auth.validation.required");
     return next;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const next = validate();
     setErrors(next);
+    setFormError("");
+    if (Object.keys(next).length > 0) return;
 
-    if (Object.keys(next).length > 0) {
-      setFormError("");
-      return;
+    setSubmitting(true);
+    try {
+      // Chiamata reale al backend: se va a buon fine, token e utente sono salvati.
+      await login(username.trim(), password);
+      router.push("/negozio"); // accesso riuscito -> catalogo
+    } catch (err) {
+      // 401 = credenziali errate; status 0 = backend non raggiungibile; altrimenti generico.
+      if (err instanceof ApiError && err.status === 401) {
+        setFormError(t("auth.login.error"));
+      } else if (err instanceof ApiError && err.status === 0) {
+        setFormError(t("errors.network"));
+      } else {
+        setFormError(t("errors.generic"));
+      }
+    } finally {
+      setSubmitting(false);
     }
-
-    // No backend yet (M4-T3 / M5-T13): we just show the mockup error state.
-    setFormError(t("auth.login.error"));
   }
 
   return (
@@ -66,14 +79,14 @@ export default function LoginPage() {
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <Input
-          name="email"
-          type="email"
-          label={t("auth.fields.email")}
-          placeholder="luca.rossi@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={errors.email}
-          autoComplete="email"
+          name="username"
+          type="text"
+          label={t("auth.fields.username")}
+          placeholder="luca"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          error={errors.username}
+          autoComplete="username"
         />
 
         <div className={styles.passwordField}>
@@ -107,8 +120,8 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        <Button type="submit" fullWidth>
-          {t("auth.login.submit")}
+        <Button type="submit" fullWidth disabled={submitting}>
+          {submitting ? t("common.loading") : t("auth.login.submit")}
         </Button>
       </form>
 
