@@ -13,7 +13,7 @@
 import { useTranslation } from "react-i18next";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 
-import { GENRE_PALETTE } from "./mockStats";
+import { GENRE_PALETTE } from "./chartColors";
 import styles from "./charts.module.css";
 
 export function GenreDonut({ data }) {

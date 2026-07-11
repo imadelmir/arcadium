@@ -1,144 +1,122 @@
 "use client";
 
-// Pagina Negozio / catalogo (M5 - T8, ricerca via header dal T9).
+// Pagina Negozio / catalogo (M5 - T8) — COLLEGATA al backend (M5-T13).
 // -----------------------------------------------------------------------------
-// Fedele al mockup "Negozio": barra dei filtri a pillole in stile glass
-// (Genere multi-selezione, Prezzo, Sconto, Piattaforma, Valutazione, Lingua) con
-// "Ordina" ancorato a destra, griglia responsive di StoreCard e sezione in
-// evidenza "Sconti del momento". Filtro e ordinamento avvengono lato client sul
-// catalogo finto; la sorgente dati sarà sostituita dall'API in una task futura.
-//
-// La RICERCA non e' piu' un campo locale: il termine arriva dalla barra grande
-// dell'header tramite l'URL (?q=...). Qui viene letto con useSearchParams e
-// usato come filtro sul titolo. La pagina e' avvolta in <Suspense> perche'
-// useSearchParams lo richiede in Next.js.
+// Carica i giochi VERI da GET /api/games (nessun dato mock). I filtri supportati
+// dal backend (ricerca, genere, piattaforma, prezzo, ordinamento) vengono
+// passati al server, che restituisce la lista già filtrata e paginata
+// (PageResponse). La ricerca arriva dalla barra dell'header tramite ?q=.
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
 import { StoreCard, FilterDropdown } from "@/components";
-import { discountedPrice } from "@/utils/price";
-import { STORE_GAMES } from "./mockGames";
+import { listGames } from "@/lib/api/games";
 import styles from "./negozio.module.css";
 
-// --- Opzioni dei filtri -------------------------------------------------------
+// Generi principali del catalogo (il backend filtra per NOME del genere).
+// I nomi rispecchiano quelli del dataset Steam nel DB (in inglese).
+const GENRES = ["Action", "Adventure", "RPG", "Strategy", "Indie", "Simulation", "Casual", "Sports", "Racing"];
 
-// Fasce di prezzo (valori in centesimi; Infinity = nessun limite superiore).
-const PRICE_RANGES = {
-  all: [0, Infinity],
-  free: [0, 0],
-  under10: [1, 999],
-  under20: [1, 1999],
-  under40: [1, 3999],
-};
+// Piattaforme accettate dal filtro `platform` del backend.
+const PLATFORMS = ["windows", "mac", "linux"];
 
-// Sconto minimo richiesto per ogni voce del filtro "Sconto" (-1 = qualsiasi).
-const DISCOUNT_MIN = { all: -1, onSale: 1, d25: 25, d50: 50, d75: 75 };
+// Voci del filtro "Prezzo" mappate all'enum del backend (status).
+const PRICE_OPTIONS = [
+  ["", "anyPrice"],
+  ["free", "free"],
+  ["paid", "paid"],
+  ["discounted", "onSale"],
+];
 
-// Valutazione minima (% recensioni positive) per il filtro "Valutazione".
-const RATING_MIN = { all: 0, r70: 70, r80: 80, r90: 90 };
-
-// Liste ricavate dal catalogo, in ordine alfabetico, per i menu a tendina.
-const ALL_GENRES = [...new Set(STORE_GAMES.flatMap((g) => g.genres))].sort((a, b) =>
-  a.localeCompare(b, "it"),
-);
-const ALL_PLATFORMS = [...new Set(STORE_GAMES.flatMap((g) => g.platforms))].sort();
-const ALL_LANGUAGES = [...new Set(STORE_GAMES.flatMap((g) => g.languages))].sort((a, b) =>
-  a.localeCompare(b, "it"),
-);
-
-// Aggiunge/rimuove un valore da un array (per i filtri multi-selezione).
-const toggle = (arr, value) =>
-  arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
+// Voci di ordinamento mappate al parametro `sort` di Spring Data.
+const SORT_OPTIONS = [
+  ["name,asc", "name"],
+  ["price,asc", "priceAsc"],
+  ["price,desc", "priceDesc"],
+  ["releaseDate,desc", "newest"],
+];
 
 function NegozioContent() {
   const { t } = useTranslation();
 
-  // Testo di ricerca: arriva dalla barra dell'header tramite l'URL (?q=...).
+  // Ricerca dalla barra dell'header (?q=...).
   const searchParams = useSearchParams();
   const query = searchParams.get("q") ?? "";
 
-  // Stato dei filtri: uno per ogni controllo della barra.
-  const [genres, setGenres] = useState([]);               // generi (multi)
-  const [priceRange, setPriceRange] = useState("all");    // fascia di prezzo
-  const [discountFilter, setDiscountFilter] = useState("all"); // sconto minimo
-  const [platforms, setPlatforms] = useState([]);         // piattaforme (multi)
-  const [rating, setRating] = useState("all");            // valutazione minima
-  const [language, setLanguage] = useState("all");        // lingua supportata
-  const [sort, setSort] = useState("popularity");         // ordinamento
+  // Stato dei filtri supportati dal backend.
+  const [genre, setGenre] = useState("");       // un genere per volta ("" = tutti)
+  const [platform, setPlatform] = useState("");  // "" = tutte
+  const [price, setPrice] = useState("");        // "" | free | paid | discounted
+  const [sort, setSort] = useState("releaseDate,desc");
 
-  // Applica ricerca + filtri, poi ordina. useMemo: ricalcola solo al cambiare
-  // di uno degli ingressi.
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const [min, max] = PRICE_RANGES[priceRange];
-    const minDiscount = DISCOUNT_MIN[discountFilter];
-    const minRating = RATING_MIN[rating];
+  // Stato dei dati.
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-    const filtered = STORE_GAMES.filter((game) => {
-      // Ricerca sul titolo
-      if (q && !game.name.toLowerCase().includes(q)) return false;
-      // Genere: passa se il gioco ha almeno uno dei generi selezionati
-      if (genres.length && !genres.some((g) => game.genres.includes(g))) return false;
-      // Piattaforma: almeno una tra quelle selezionate
-      if (platforms.length && !platforms.some((p) => game.platforms.includes(p))) return false;
-      // Sconto minimo
-      if (game.discount < minDiscount) return false;
-      // Valutazione minima
-      if (game.rating < minRating) return false;
-      // Lingua supportata
-      if (language !== "all" && !game.languages.includes(language)) return false;
-      // Fascia di prezzo (sul prezzo finale, sconto incluso)
-      const finalPrice = discountedPrice(game.priceCents, game.discount);
-      if (finalPrice < min || finalPrice > max) return false;
-      return true;
-    });
+  // Ricarica dal backend ogni volta che cambiano ricerca o filtri.
+  useEffect(() => {
+    let attivo = true;
+    setLoading(true);
+    setError(false);
 
-    const byFinalPrice = (g) => discountedPrice(g.priceCents, g.discount);
+    listGames({
+      q: query.trim() || undefined,
+      genre: genre || undefined,
+      platform: platform || undefined,
+      status: price || undefined,
+      sort,
+      page: 0,
+      size: 40,
+    })
+      .then((res) => {
+        if (attivo) setGames(res.content); // PageResponse.content = lista giochi
+      })
+      .catch(() => {
+        if (attivo) setError(true);
+      })
+      .finally(() => {
+        if (attivo) setLoading(false);
+      });
 
-    // Comparatori: uno per ogni voce del menu "Ordina".
-    const sorters = {
-      popularity: (a, b) => b.reviews - a.reviews, // più recensioni = più popolare
-      priceAsc: (a, b) => byFinalPrice(a) - byFinalPrice(b),
-      priceDesc: (a, b) => byFinalPrice(b) - byFinalPrice(a),
-      discount: (a, b) => b.discount - a.discount,
-      rating: (a, b) => b.rating - a.rating,
-      name: (a, b) => a.name.localeCompare(b.name, "it"),
+    return () => {
+      attivo = false;
     };
-
-    return [...filtered].sort(sorters[sort] ?? sorters.popularity);
-  }, [query, genres, priceRange, discountFilter, platforms, rating, language, sort]);
-
-  // I 4 giochi più scontati per la strip "Sconti del momento" (ignora i filtri).
-  const deals = useMemo(
-    () =>
-      STORE_GAMES.filter((g) => g.discount > 0)
-        .sort((a, b) => b.discount - a.discount)
-        .slice(0, 4),
-    [],
-  );
+  }, [query, genre, platform, price, sort]);
 
   return (
     <div className={styles.page}>
-      {/* Intestazione pagina */}
       <header className={styles.header}>
-        <h1 className={styles.title} suppressHydrationWarning>{t("pages.negozio.title")}</h1>
-        
+        <h1 className={styles.title} suppressHydrationWarning>
+          {t("pages.negozio.title")}
+        </h1>
       </header>
 
-      {/* --- Barra dei filtri (pillole glass) --- */}
+      {/* --- Barra dei filtri (solo quelli che il backend supporta) --- */}
       <div className={styles.filters} role="search">
-        {/* Genere: multi-selezione con checkbox */}
-        <FilterDropdown label={t("store.filters.genre")} count={genres.length}>
+        {/* Genere: scelta singola */}
+        <FilterDropdown label={t("store.filters.genre")} active={genre !== ""}>
           <p className={styles.panelTitle}>{t("store.filters.genre")}</p>
-          {ALL_GENRES.map((g) => (
+          <label className={styles.option}>
+            <input
+              type="radio"
+              name="genre"
+              className={styles.optionInput}
+              checked={genre === ""}
+              onChange={() => setGenre("")}
+            />
+            <span>{t("common.all")}</span>
+          </label>
+          {GENRES.map((g) => (
             <label key={g} className={styles.option}>
               <input
-                type="checkbox"
+                type="radio"
+                name="genre"
                 className={styles.optionInput}
-                checked={genres.includes(g)}
-                onChange={() => setGenres((prev) => toggle(prev, g))}
+                checked={genre === g}
+                onChange={() => setGenre(g)}
               />
               <span>{g}</span>
             </label>
@@ -146,112 +124,45 @@ function NegozioContent() {
         </FilterDropdown>
 
         {/* Prezzo: scelta singola */}
-        <FilterDropdown label={t("store.filters.price")} active={priceRange !== "all"}>
+        <FilterDropdown label={t("store.filters.price")} active={price !== ""}>
           <p className={styles.panelTitle}>{t("store.filters.price")}</p>
-          {[
-            ["all", t("store.filters.anyPrice")],
-            ["free", t("store.filters.free")],
-            ["under10", t("store.filters.under10")],
-            ["under20", t("store.filters.under20")],
-            ["under40", t("store.filters.under40")],
-          ].map(([value, label]) => (
-            <label key={value} className={styles.option}>
+          {PRICE_OPTIONS.map(([value, labelKey]) => (
+            <label key={value || "all"} className={styles.option}>
               <input
                 type="radio"
                 name="price"
                 className={styles.optionInput}
-                checked={priceRange === value}
-                onChange={() => setPriceRange(value)}
+                checked={price === value}
+                onChange={() => setPrice(value)}
               />
-              <span>{label}</span>
+              <span>{t(`store.filters.${labelKey}`)}</span>
             </label>
           ))}
         </FilterDropdown>
 
-        {/* Sconto: scelta singola */}
-        <FilterDropdown label={t("store.filters.discount")} active={discountFilter !== "all"}>
-          <p className={styles.panelTitle}>{t("store.filters.discount")}</p>
-          {[
-            ["all", t("store.filters.anyDiscount")],
-            ["onSale", t("store.filters.onSale")],
-            ["d25", t("store.filters.d25")],
-            ["d50", t("store.filters.d50")],
-            ["d75", t("store.filters.d75")],
-          ].map(([value, label]) => (
-            <label key={value} className={styles.option}>
-              <input
-                type="radio"
-                name="discount"
-                className={styles.optionInput}
-                checked={discountFilter === value}
-                onChange={() => setDiscountFilter(value)}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-        </FilterDropdown>
-
-        {/* Piattaforma: multi-selezione */}
-        <FilterDropdown label={t("store.filters.platform")} count={platforms.length}>
+        {/* Piattaforma: scelta singola */}
+        <FilterDropdown label={t("store.filters.platform")} active={platform !== ""}>
           <p className={styles.panelTitle}>{t("store.filters.platform")}</p>
-          {ALL_PLATFORMS.map((p) => (
-            <label key={p} className={styles.option}>
-              <input
-                type="checkbox"
-                className={styles.optionInput}
-                checked={platforms.includes(p)}
-                onChange={() => setPlatforms((prev) => toggle(prev, p))}
-              />
-              <span>{p}</span>
-            </label>
-          ))}
-        </FilterDropdown>
-
-        {/* Valutazione: scelta singola (soglia minima) */}
-        <FilterDropdown label={t("store.filters.rating")} active={rating !== "all"}>
-          <p className={styles.panelTitle}>{t("store.filters.rating")}</p>
-          {[
-            ["all", t("store.filters.anyRating")],
-            ["r90", t("store.filters.r90")],
-            ["r80", t("store.filters.r80")],
-            ["r70", t("store.filters.r70")],
-          ].map(([value, label]) => (
-            <label key={value} className={styles.option}>
-              <input
-                type="radio"
-                name="rating"
-                className={styles.optionInput}
-                checked={rating === value}
-                onChange={() => setRating(value)}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-        </FilterDropdown>
-
-        {/* Lingua: scelta singola */}
-        <FilterDropdown label={t("store.filters.language")} active={language !== "all"}>
-          <p className={styles.panelTitle}>{t("store.filters.language")}</p>
           <label className={styles.option}>
             <input
               type="radio"
-              name="language"
+              name="platform"
               className={styles.optionInput}
-              checked={language === "all"}
-              onChange={() => setLanguage("all")}
+              checked={platform === ""}
+              onChange={() => setPlatform("")}
             />
-            <span>{t("store.filters.anyLanguage")}</span>
+            <span>{t("common.all")}</span>
           </label>
-          {ALL_LANGUAGES.map((l) => (
-            <label key={l} className={styles.option}>
+          {PLATFORMS.map((p) => (
+            <label key={p} className={styles.option}>
               <input
                 type="radio"
-                name="language"
+                name="platform"
                 className={styles.optionInput}
-                checked={language === l}
-                onChange={() => setLanguage(l)}
+                checked={platform === p}
+                onChange={() => setPlatform(p)}
               />
-              <span>{l}</span>
+              <span>{p}</span>
             </label>
           ))}
         </FilterDropdown>
@@ -260,11 +171,11 @@ function NegozioContent() {
         <FilterDropdown
           className={styles.sort}
           align="right"
-          active={sort !== "popularity"}
-          label={`${t("store.sort.label")}: ${t(`store.sort.${sort}`)}`}
+          active={sort !== "name,asc"}
+          label={`${t("store.sort.label")}`}
         >
           <p className={styles.panelTitle}>{t("store.sort.label")}</p>
-          {["popularity", "priceAsc", "priceDesc", "discount", "rating", "name"].map((value) => (
+          {SORT_OPTIONS.map(([value, labelKey]) => (
             <label key={value} className={styles.option}>
               <input
                 type="radio"
@@ -273,44 +184,31 @@ function NegozioContent() {
                 checked={sort === value}
                 onChange={() => setSort(value)}
               />
-              <span>{t(`store.sort.${value}`)}</span>
+              <span>{t(`store.sort.${labelKey}`)}</span>
             </label>
           ))}
         </FilterDropdown>
       </div>
 
       {/* --- Risultati --- */}
-      
-
-      {results.length > 0 ? (
+      {loading ? (
+        <div className={styles.empty}>{t("common.loading")}</div>
+      ) : error ? (
+        <div className={styles.empty}>{t("errors.network")}</div>
+      ) : games.length > 0 ? (
         <div className={styles.grid}>
-          {results.map((game) => (
+          {games.map((game) => (
             <StoreCard key={game.appId} game={game} />
           ))}
         </div>
       ) : (
-        // Stato vuoto: nessun gioco corrisponde ai filtri
         <div className={styles.empty}>{t("store.noResults")}</div>
-      )}
-
-      {/* --- Sconti del momento (in evidenza, sotto ai risultati) --- */}
-      {deals.length > 0 && (
-        <section className={styles.deals} aria-labelledby="deals-title">
-          <h2 id="deals-title" className={styles.sectionTitle}>
-            {t("store.dealsTitle")}
-          </h2>
-          <div className={styles.dealsGrid}>
-            {deals.map((game) => (
-              <StoreCard key={game.appId} game={game} />
-            ))}
-          </div>
-        </section>
       )}
     </div>
   );
 }
 
-// useSearchParams richiede un confine <Suspense>: avvolgo il contenuto qui.
+// useSearchParams richiede un confine <Suspense>.
 export default function NegozioPage() {
   return (
     <Suspense fallback={null}>

@@ -171,6 +171,7 @@
       "hoursPlayed": "Ore giocate",
       "achievements": "Achievement",
       "avgCompletion": "Completamento medio",
+      "genres": "Generi",
       "deltaGames": "+{{count}} questo mese",
       "deltaHours": "+{{count}}h questo mese",
       "deltaAch": "+{{count}} questo mese",
@@ -205,6 +206,18 @@
       "games": "giochi"
     }
   },
+  "community": {
+    "subtitle": "Scopri altri giocatori e le loro librerie.",
+    "searchPlaceholder": "Cerca un utente…",
+    "noResults": "Nessun utente trovato.",
+    "privateProfile": "Profilo privato",
+    "backToList": "Torna alla community",
+    "wishlistTitle": "Wishlist",
+    "backlogTitle": "Libreria",
+    "emptyWishlist": "Nessun gioco nella wishlist.",
+    "emptyBacklog": "Nessun gioco nella libreria.",
+    "privateNotice": "Questo profilo è privato."
+  },
   "auth": {
     "fields": {
       "email": "Email",
@@ -220,7 +233,7 @@
       "badge": "Form di accesso",
       "submit": "Accedi",
       "forgotPassword": "Password dimenticata?",
-      "error": "Email o password non corretti. Riprova.",
+      "error": "Nome utente o password non corretti. Riprova.",
       "noAccount": "Non hai un account?",
       "signUp": "Registrati"
     },
@@ -237,13 +250,18 @@
     "validation": {
       "required": "Questo campo è obbligatorio.",
       "invalidEmail": "Inserisci un'email valida.",
-      "passwordTooShort": "La password deve avere almeno 6 caratteri."
+      "passwordTooShort": "La password deve avere almeno 8 caratteri."
     }
+  },
+  "errors": {
+    "network": "Impossibile contattare il server. Controlla che il backend sia attivo e riprova.",
+    "generic": "Qualcosa è andato storto. Riprova.",
+    "forbidden": "Non hai i permessi per questa operazione."
   },
   "notFound": {
     "title": "Pagina non trovata",
     "text": "La pagina che cerchi non esiste o è stata spostata.",
-    "back": "Torna alla Panoramica"
+    "back": "Torna al Negozio"
   },
   "language": {
     "label": "Lingua"

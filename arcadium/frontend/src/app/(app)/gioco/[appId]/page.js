@@ -1,71 +1,93 @@
 "use client";
 
 // =============================================================================
-// Pagina dettaglio gioco  ·  Rotta:  /gioco/[appId]        (M5 - T9)
+// Pagina dettaglio gioco · Rotta: /gioco/[appId] · (M5 - T9) COLLEGATA (M5-T13)
 // -----------------------------------------------------------------------------
-// Mostra una singola scheda gioco fedele al mockup:
-//   - HERO immersivo: cover a fuoco su sfondo sfocato ricavato dalla stessa
-//     immagine, con titolo, sviluppatore e dati rapidi (uscita, recensioni).
-//   - Colonna SINISTRA: descrizione, generi, tag, categorie, recensioni Steam.
-//   - Colonna DESTRA (card acquisto "appiccicata"): prezzo con eventuale
-//     sconto, azioni Wishlist / Backlog, CTA "Vedi su Steam", scheda tecnica
-//     (data, sviluppatore, publisher, piattaforme, Metacritic, achievement).
+// Carica il gioco VERO da GET /api/games/{appId} (GameDetailResponse) e collega
+// le azioni reali: Wishlist (POST/DELETE /api/wishlist/{appId}) e Backlog
+// (POST/DELETE /api/backlog/{appId}). Nessun dato mock.
 //
-// In attesa del backend i dati arrivano da mockGameDetail.js: ha la stessa
-// forma dell'endpoint futuro (M4 - T6), quindi l'aggancio all'API sara' la
-// sostituzione della sola sorgente dati, senza toccare la UI.
-//
-// Tecnologia: JavaScript + CSS Modules. Riusa il design system (M5 - T2),
-// il componente GameImage (M5 - T7), l'i18n IT/EN (M5 - T3) e l'utility
-// prezzi utils/price.js (M5 - T8).
+// Adattamenti rispetto ai dati del backend:
+//   - genres/tags/categories/developers/publishers sono array di { id, name }:
+//     qui estraggo solo i nomi;
+//   - le piattaforme arrivano come booleani windows/mac/linux;
+//   - il prezzo è in centesimi: lo formatta formatPrice (lib/format).
 // =============================================================================
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import {
-  ArrowLeft,
-  Heart,
-  ListPlus,
-  Check,
-  ExternalLink,
-  Calendar,
-  Code2,
-  Building2,
-  Trophy,
-  Star,
-  ThumbsUp,
-  Gamepad2,
+  ArrowLeft, Heart, ListPlus, Check, ExternalLink, Calendar, Code2,
+  Building2, Trophy, Star, ThumbsUp, Gamepad2,
 } from "lucide-react";
 
-import { Button, Card, Badge, GameImage } from "@/components";
-import { formatPrice, discountedPrice } from "@/utils/price";
-import { getGameById } from "./mockGameDetail";
+import { Button, Card, Badge, GameImage, Spinner } from "@/components";
+import { formatPrice } from "@/lib/format";
+import { getGame } from "@/lib/api/games";
+import { addToWishlist, removeFromWishlist, listWishlist } from "@/lib/api/wishlist";
+import { addToBacklog, removeFromBacklog, listBacklog } from "@/lib/api/backlog";
+import { ApiError } from "@/lib/api/client";
 import styles from "./gioco.module.css";
 
 export default function GameDetailPage() {
   const { t } = useTranslation();
+  const { appId } = useParams(); // stringa dall'URL
 
-  // L'appId arriva dall'URL (cartella [appId]) ed e' sempre una stringa.
-  const { appId } = useParams();
+  // Dati del gioco + stati di caricamento.
+  const [game, setGame] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // Cerca il gioco nel dataset finto (in futuro: fetch all'endpoint).
-  const game = getGameById(appId);
-
-  // Stato locale delle azioni utente. Senza backend teniamo tutto in memoria:
-  // wishlist e' un semplice on/off, il backlog e' uno dei quattro stati noti.
+  // Stato delle azioni utente (riflettono il DB dopo il controllo iniziale).
   const [inWishlist, setInWishlist] = useState(false);
-  const [backlogStatus, setBacklogStatus] = useState(null);
+  const [inBacklog, setInBacklog] = useState(false);
+  const [busyWishlist, setBusyWishlist] = useState(false);
+  const [busyBacklog, setBusyBacklog] = useState(false);
 
-  // Riepilogo recensioni Steam calcolato una sola volta (o al cambio gioco):
-  // percentuale di positive + etichetta testuale ("Molto positive", ...).
+  // Carica il gioco dal backend quando cambia l'appId.
+  useEffect(() => {
+    let attivo = true;
+    setLoading(true);
+    setError(false);
+    getGame(appId)
+      .then((data) => attivo && setGame(data))
+      .catch(() => attivo && setError(true))
+      .finally(() => attivo && setLoading(false));
+    return () => { attivo = false; };
+  }, [appId]);
+
+  // All'apertura controlla se il gioco è già in wishlist e/o nel backlog,
+  // così i due pulsanti partono con lo stato corretto.
+  useEffect(() => {
+    let attivo = true;
+    const id = Number(appId);
+    listWishlist()
+      .then((list) => attivo && setInWishlist(list.some((w) => w.game.appId === id)))
+      .catch(() => {});
+    listBacklog()
+      .then((list) => attivo && setInBacklog(list.some((b) => b.game.appId === id)))
+      .catch(() => {});
+    return () => { attivo = false; };
+  }, [appId]);
+
+  // Riepilogo recensioni (da positive/negative reali del backend).
   const review = useMemo(() => summarizeReviews(game, t), [game, t]);
 
-  // ---------------------------------------------------------------------------
-  // Stato "non trovato": appId inesistente nel catalogo finto.
-  // ---------------------------------------------------------------------------
-  if (!game) {
+  // --- Stati di pagina: caricamento / errore / non trovato -------------------
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <BackToStore t={t} />
+        <div style={{ display: "grid", placeItems: "center", minHeight: 240 }}>
+          <Spinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !game) {
     return (
       <div className={styles.page}>
         <BackToStore t={t} />
@@ -81,25 +103,60 @@ export default function GameDetailPage() {
     );
   }
 
-  // Prezzo finale (in centesimi) applicando lo sconto, e flag di comodo.
-  const isFree = game.priceCents === 0;
-  const hasDiscount = game.discount > 0 && !isFree;
-  const finalCents = hasDiscount
-    ? discountedPrice(game.priceCents, game.discount)
-    : game.priceCents;
+  // --- Adattamento dati backend ---------------------------------------------
+  // Array di { id, name } -> array di nomi (con default sicuri se mancano).
+  const names = (arr) => (arr ?? []).map((x) => x.name);
+  const genres = names(game.genres);
+  const tags = names(game.tags);
+  const categories = names(game.categories);
+  const developers = names(game.developers);
+  const publishers = names(game.publishers);
 
-  // Link ufficiale alla scheda Steam del gioco (aperto in nuova scheda).
+  // Prezzo (centesimi -> euro) e sconto.
+  const price = formatPrice(game.price, game.discount);
+
+  // Link ufficiale a Steam.
   const steamUrl = `https://store.steampowered.com/app/${game.appId}`;
+
+  // --- Handler Wishlist (reale) ----------------------------------------------
+  async function toggleWishlist() {
+    if (busyWishlist) return;
+    setBusyWishlist(true);
+    const prossimo = !inWishlist;
+    setInWishlist(prossimo); // ottimistico
+    try {
+      if (prossimo) await addToWishlist(game.appId);
+      else await removeFromWishlist(game.appId);
+    } catch (err) {
+      // 409 = già presente: lo teniamo "aggiunto"; altrimenti annulliamo.
+      if (!(err instanceof ApiError && err.status === 409)) setInWishlist(!prossimo);
+    } finally {
+      setBusyWishlist(false);
+    }
+  }
+
+  // --- Handler Backlog (reale) -----------------------------------------------
+  async function toggleBacklog() {
+    if (busyBacklog) return;
+    setBusyBacklog(true);
+    const prossimo = !inBacklog;
+    setInBacklog(prossimo); // ottimistico
+    try {
+      if (prossimo) await addToBacklog(game.appId); // stato iniziale "mai_giocato"
+      else await removeFromBacklog(game.appId);
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 409)) setInBacklog(!prossimo);
+    } finally {
+      setBusyBacklog(false);
+    }
+  }
 
   return (
     <div className={styles.page}>
       <BackToStore t={t} />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* HERO: sfondo sfocato + cover a fuoco + titolo e meta principali.    */}
-      {/* ------------------------------------------------------------------ */}
+      {/* HERO: sfondo sfocato + cover + titolo e meta */}
       <section className={styles.hero}>
-        {/* Sfondo ambientale: la stessa cover, ingrandita e sfocata, dietro. */}
         <div
           className={styles.heroBackdrop}
           style={{ backgroundImage: `url(${game.headerImage})` }}
@@ -115,18 +172,23 @@ export default function GameDetailPage() {
           <div className={styles.heroText}>
             <h1 className={styles.title}>{game.name}</h1>
 
-            <p className={styles.byline}>
-              {t("gameDetail.by")} <strong>{game.developers.join(", ")}</strong>
-            </p>
+            {developers.length > 0 && (
+              <p className={styles.byline}>
+                {t("gameDetail.by")} <strong>{developers.join(", ")}</strong>
+              </p>
+            )}
 
-            {/* Dati rapidi: recensioni, anno di uscita, generi principali. */}
             <div className={styles.heroMeta}>
-              <span className={styles.metaItem}>
-                <ThumbsUp className={styles.metaIcon} aria-hidden="true" />
-                <span style={{ color: review.color }}>{review.label}</span>
-                <span className={styles.metaMuted}>({review.percent}%)</span>
-              </span>
-              <span className={styles.metaDot} aria-hidden="true" />
+              {review.total > 0 && (
+                <>
+                  <span className={styles.metaItem}>
+                    <ThumbsUp className={styles.metaIcon} aria-hidden="true" />
+                    <span style={{ color: review.color }}>{review.label}</span>
+                    <span className={styles.metaMuted}>({review.percent}%)</span>
+                  </span>
+                  <span className={styles.metaDot} aria-hidden="true" />
+                </>
+              )}
               <span className={styles.metaItem}>
                 <Calendar className={styles.metaIcon} aria-hidden="true" />
                 {formatDate(game.releaseDate)}
@@ -134,28 +196,24 @@ export default function GameDetailPage() {
             </div>
 
             <div className={styles.heroGenres}>
-              {game.genres.map((g) => (
-                <Badge key={g} tone="primary">
-                  {g}
-                </Badge>
+              {genres.map((g) => (
+                <Badge key={g} tone="primary">{g}</Badge>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* CORPO: contenuti a sinistra, card acquisto (sticky) a destra.       */}
-      {/* ------------------------------------------------------------------ */}
+      {/* CORPO */}
       <div className={styles.body}>
         <main className={styles.main}>
-          {/* Descrizione ---------------------------------------------------- */}
+          {/* Descrizione */}
           <section className={styles.block}>
             <h2 className={styles.blockTitle}>{t("gameDetail.about")}</h2>
             <p className={styles.about}>{game.aboutTheGame}</p>
           </section>
 
-          {/* Striscia multimediale (se presente) ---------------------------- */}
+          {/* Screenshot (dal backend) */}
           {game.screenshots?.length > 0 && (
             <section className={styles.block}>
               <h2 className={styles.blockTitle}>{t("gameDetail.media")}</h2>
@@ -169,154 +227,119 @@ export default function GameDetailPage() {
             </section>
           )}
 
-          {/* Recensioni Steam (barra positive/negative) --------------------- */}
-          <section className={styles.block}>
-            <h2 className={styles.blockTitle}>{t("gameDetail.reviews")}</h2>
-            <div className={styles.reviewRow}>
-              <span className={styles.reviewLabel} style={{ color: review.color }}>
-                {review.label}
-              </span>
-              <span className={styles.reviewCount}>
-                {review.percent}% {t("gameDetail.reviewOf")}{" "}
-                {formatNumber(review.total)} {t("gameDetail.reviewWord")}
-              </span>
-            </div>
-            <div
-              className={styles.reviewBar}
-              role="img"
-              aria-label={`${review.percent}% positive`}
-            >
-              <span style={{ width: `${review.percent}%` }} />
-            </div>
-          </section>
+          {/* Recensioni (da positive/negative) */}
+          {review.total > 0 && (
+            <section className={styles.block}>
+              <h2 className={styles.blockTitle}>{t("gameDetail.reviews")}</h2>
+              <div className={styles.reviewRow}>
+                <span className={styles.reviewLabel} style={{ color: review.color }}>
+                  {review.label}
+                </span>
+                <span className={styles.reviewCount}>
+                  {review.percent}% {t("gameDetail.reviewOf")}{" "}
+                  {formatNumber(review.total)} {t("gameDetail.reviewWord")}
+                </span>
+              </div>
+              <div className={styles.reviewBar} role="img" aria-label={`${review.percent}%`}>
+                <span style={{ width: `${review.percent}%` }} />
+              </div>
+            </section>
+          )}
 
-          {/* Tag e categorie ------------------------------------------------ */}
-          <section className={styles.block}>
-            <h2 className={styles.blockTitle}>{t("gameDetail.tags")}</h2>
-            <div className={styles.chips}>
-              {game.tags.map((tag) => (
-                <Badge key={tag}>{tag}</Badge>
-              ))}
-            </div>
-          </section>
+          {/* Tag */}
+          {tags.length > 0 && (
+            <section className={styles.block}>
+              <h2 className={styles.blockTitle}>{t("gameDetail.tags")}</h2>
+              <div className={styles.chips}>
+                {tags.map((tag) => (
+                  <Badge key={tag}>{tag}</Badge>
+                ))}
+              </div>
+            </section>
+          )}
 
-          <section className={styles.block}>
-            <h2 className={styles.blockTitle}>{t("gameDetail.categories")}</h2>
-            <div className={styles.chips}>
-              {game.categories.map((c) => (
-                <Badge key={c} tone="neutral">
-                  {c}
-                </Badge>
-              ))}
-            </div>
-          </section>
+          {/* Categorie */}
+          {categories.length > 0 && (
+            <section className={styles.block}>
+              <h2 className={styles.blockTitle}>{t("gameDetail.categories")}</h2>
+              <div className={styles.chips}>
+                {categories.map((c) => (
+                  <Badge key={c} tone="neutral">{c}</Badge>
+                ))}
+              </div>
+            </section>
+          )}
         </main>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* CARD ACQUISTO: resta visibile durante lo scorrimento (sticky).   */}
-        {/* ---------------------------------------------------------------- */}
+        {/* CARD ACQUISTO (sticky) */}
         <aside className={styles.aside}>
           <Card className={styles.buyCard}>
-            {/* Prezzo: Gratis / scontato (barrato + finale) / prezzo pieno. */}
             <div className={styles.priceRow}>
-              {isFree ? (
+              {price.isFree ? (
                 <span className={styles.free}>{t("gameDetail.free")}</span>
-              ) : hasDiscount ? (
+              ) : price.hasDiscount ? (
                 <>
-                  <Badge tone="success" className={styles.discount}>
-                    -{game.discount}%
-                  </Badge>
-                  <span className={styles.priceOld}>{formatPrice(game.priceCents)}</span>
-                  <span className={styles.priceNow}>{formatPrice(finalCents)}</span>
+                  <Badge tone="success" className={styles.discount}>-{price.discount}%</Badge>
+                  <span className={styles.priceOld}>{price.original}</span>
+                  <span className={styles.priceNow}>{price.final}</span>
                 </>
               ) : (
-                <span className={styles.priceNow}>{formatPrice(game.priceCents)}</span>
+                <span className={styles.priceNow}>{price.original}</span>
               )}
             </div>
 
-            {/* Azioni utente (per ora solo stato locale, senza backend). */}
             <div className={styles.actions}>
+              {/* Wishlist reale */}
               <Button
                 variant={inWishlist ? "primary" : "secondary"}
                 fullWidth
-                iconLeft={
-                  inWishlist ? <Check size={18} /> : <Heart size={18} />
-                }
+                disabled={busyWishlist}
+                iconLeft={inWishlist ? <Check size={18} /> : <Heart size={18} />}
                 aria-pressed={inWishlist}
-                onClick={() => setInWishlist((v) => !v)}
+                onClick={toggleWishlist}
               >
-                {inWishlist
-                  ? t("gameDetail.inWishlist")
-                  : t("gameDetail.addWishlist")}
+                {inWishlist ? t("gameDetail.inWishlist") : t("gameDetail.addWishlist")}
               </Button>
 
+              {/* Backlog reale */}
               <Button
-                variant={backlogStatus ? "primary" : "secondary"}
+                variant={inBacklog ? "primary" : "secondary"}
                 fullWidth
-                iconLeft={
-                  backlogStatus ? <Check size={18} /> : <ListPlus size={18} />
-                }
-                aria-pressed={Boolean(backlogStatus)}
-                onClick={() =>
-                  setBacklogStatus((s) => (s ? null : "never"))
-                }
+                disabled={busyBacklog}
+                iconLeft={inBacklog ? <Check size={18} /> : <ListPlus size={18} />}
+                aria-pressed={inBacklog}
+                onClick={toggleBacklog}
               >
-                {backlogStatus
-                  ? t("gameDetail.inBacklog")
-                  : t("gameDetail.addBacklog")}
+                {inBacklog ? t("gameDetail.inBacklog") : t("gameDetail.addBacklog")}
               </Button>
 
-              {/* CTA principale: apre la scheda ufficiale su Steam. */}
-              <a
-                href={steamUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.steamLink}
-              >
+              {/* CTA Steam */}
+              <a href={steamUrl} target="_blank" rel="noopener noreferrer" className={styles.steamLink}>
                 <Button fullWidth iconRight={<ExternalLink size={18} />}>
                   {t("gameDetail.viewOnSteam")}
                 </Button>
               </a>
             </div>
 
-            {/* Scheda tecnica: righe etichetta / valore. */}
+            {/* Scheda tecnica */}
             <dl className={styles.specs}>
-              <SpecRow
-                icon={<Calendar size={16} />}
-                label={t("gameDetail.releaseDate")}
-                value={formatDate(game.releaseDate)}
-              />
-              <SpecRow
-                icon={<Code2 size={16} />}
-                label={t("gameDetail.developer")}
-                value={game.developers.join(", ")}
-              />
-              <SpecRow
-                icon={<Building2 size={16} />}
-                label={t("gameDetail.publisher")}
-                value={game.publishers.join(", ")}
-              />
-              <SpecRow
-                icon={<Gamepad2 size={16} />}
-                label={t("gameDetail.platforms")}
-                value={platformList(game.platforms)}
-              />
+              <SpecRow icon={<Calendar size={16} />} label={t("gameDetail.releaseDate")} value={formatDate(game.releaseDate)} />
+              {developers.length > 0 && (
+                <SpecRow icon={<Code2 size={16} />} label={t("gameDetail.developer")} value={developers.join(", ")} />
+              )}
+              {publishers.length > 0 && (
+                <SpecRow icon={<Building2 size={16} />} label={t("gameDetail.publisher")} value={publishers.join(", ")} />
+              )}
+              <SpecRow icon={<Gamepad2 size={16} />} label={t("gameDetail.platforms")} value={platformList(game)} />
               {game.achievementsCount > 0 && (
-                <SpecRow
-                  icon={<Trophy size={16} />}
-                  label={t("gameDetail.achievements")}
-                  value={String(game.achievementsCount)}
-                />
+                <SpecRow icon={<Trophy size={16} />} label={t("gameDetail.achievements")} value={String(game.achievementsCount)} />
               )}
               {game.metacriticScore > 0 && (
                 <SpecRow
                   icon={<Star size={16} />}
                   label={t("gameDetail.metacritic")}
                   value={
-                    <span
-                      className={styles.metacritic}
-                      style={{ background: metacriticColor(game.metacriticScore) }}
-                    >
+                    <span className={styles.metacritic} style={{ background: metacriticColor(game.metacriticScore) }}>
                       {game.metacriticScore}
                     </span>
                   }
@@ -330,11 +353,8 @@ export default function GameDetailPage() {
   );
 }
 
-// =============================================================================
-// Sotto-componenti e funzioni di supporto (piccoli, quindi qui co-locati).
-// =============================================================================
+// ============================ Supporto =======================================
 
-// Link "Torna al negozio" mostrato in cima alla pagina.
 function BackToStore({ t }) {
   return (
     <Link href="/negozio" className={styles.back}>
@@ -344,7 +364,6 @@ function BackToStore({ t }) {
   );
 }
 
-// Riga della scheda tecnica: icona + etichetta a sinistra, valore a destra.
 function SpecRow({ icon, label, value }) {
   return (
     <div className={styles.specRow}>
@@ -357,38 +376,26 @@ function SpecRow({ icon, label, value }) {
   );
 }
 
-// Ricava percentuale, etichetta tradotta e colore dalle recensioni Steam.
+// Percentuale, etichetta e colore dalle recensioni (positive/negative).
 function summarizeReviews(game, t) {
   if (!game) return { percent: 0, total: 0, label: "", color: "var(--color-text-muted)" };
-
-  const total = game.positive + game.negative;
+  const total = (game.positive ?? 0) + (game.negative ?? 0);
   const percent = total > 0 ? Math.round((game.positive / total) * 100) : 0;
-
-  // Fasce ispirate a Steam: molto positive / positive / nella media / negative.
   let key = "mixed";
   let color = "var(--color-warning)";
-  if (percent >= 85) {
-    key = "veryPositive";
-    color = "var(--color-success)";
-  } else if (percent >= 70) {
-    key = "positive";
-    color = "var(--color-success)";
-  } else if (percent < 40) {
-    key = "negative";
-    color = "var(--color-danger)";
-  }
-
+  if (percent >= 85) { key = "veryPositive"; color = "var(--color-success)"; }
+  else if (percent >= 70) { key = "positive"; color = "var(--color-success)"; }
+  else if (percent < 40) { key = "negative"; color = "var(--color-danger)"; }
   return { percent, total, label: t(`gameDetail.rating.${key}`), color };
 }
 
-// Colore del badge Metacritic secondo la loro convenzione (verde/giallo/rosso).
 function metacriticColor(score) {
   if (score >= 75) return "var(--color-success)";
   if (score >= 50) return "var(--color-warning)";
   return "var(--color-danger)";
 }
 
-// Trasforma le piattaforme booleane in una stringa leggibile.
+// Piattaforme dai booleani del backend.
 function platformList({ windows, mac, linux }) {
   const list = [];
   if (windows) list.push("Windows");
@@ -397,17 +404,11 @@ function platformList({ windows, mac, linux }) {
   return list.join(" · ") || "—";
 }
 
-// Formatta una data ISO ("2022-02-25") nel formato locale italiano.
 function formatDate(iso) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("it-IT", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
 }
 
-// Formatta grandi numeri con i separatori italiani (12.480, 1.640.500).
 function formatNumber(n) {
   return new Intl.NumberFormat("it-IT").format(n);
 }

@@ -1,116 +1,131 @@
 "use client";
 
-// page.js  ->  rotta /statistiche
+// page.js -> rotta /statistiche (M5-T12) — COLLEGATA al backend (M5-T13).
 // -----------------------------------------------------------------------------
-// Pagina Statistiche (M5-T12). Mostra, dall'alto verso il basso:
-//   1. una riga di 4 card KPI (giochi, ore, achievement, completamento medio);
-//   2. una sezione con tre grafici (ore per mese, giochi per genere, stati);
-//   3. una tabella dei giochi più giocati.
-//
-// È un client component perché usa hook (i18n) e i grafici Recharts.
-// In attesa del backend legge da mockStats; l'aggancio all'endpoint statistiche
-// personali (M4-T10) sarà solo la sostituzione di quella sorgente dati.
+// Legge le statistiche reali da GET /api/stats/me e mostra:
+//   1. 4 card KPI (giochi posseduti, ore, completamento, generi distinti);
+//   2. due grafici: giochi per genere (donut) e per stato (barre).
+// I dati che il backend NON fornisce (storico ore mensile, classifica giochi,
+// achievement, delta rispetto al mese) sono stati rimossi per restare onesti.
 
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Gamepad2, Clock, Trophy, Target } from "lucide-react";
+import { Gamepad2, Clock, Target, Layers } from "lucide-react";
 
-import { Card } from "@/components";
+import { Card, Spinner } from "@/components";
+import { getMyStats } from "@/lib/api/stats";
 import { KpiCard } from "./KpiCard";
 import { Reveal } from "./Reveal";
-import { HoursAreaChart } from "./HoursAreaChart";
 import { GenreDonut } from "./GenreDonut";
 import { StatusBars } from "./StatusBars";
-import { TopGamesTable } from "./TopGamesTable";
-import { mockStats } from "./mockStats";
 import styles from "./statistiche.module.css";
 
 export default function StatistichePage() {
   const { t, i18n } = useTranslation();
-  const { totals, monthlyHours, byGenre, byStatus, topGames } = mockStats;
 
-  // Formatta i numeri col separatore delle migliaia della lingua attiva.
-  const nf = (n) => new Intl.NumberFormat(i18n.language).format(n);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Carica le statistiche personali all'apertura.
+  useEffect(() => {
+    let attivo = true;
+    setLoading(true);
+    setError(false);
+    getMyStats()
+      .then((data) => attivo && setStats(data))
+      .catch(() => attivo && setError(true))
+      .finally(() => attivo && setLoading(false));
+    return () => { attivo = false; };
+  }, []);
+
+  // Formatta i numeri col separatore della lingua attiva.
+  const nf = (n) => new Intl.NumberFormat(i18n.language).format(n ?? 0);
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ display: "grid", placeItems: "center", minHeight: 260 }}>
+          <Spinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>{t("pages.statistiche.title")}</h1>
+        </header>
+        <p>{t("errors.network")}</p>
+      </div>
+    );
+  }
+
+  // Dati per il grafico generi: il backend dà già { name, count }.
+  const genreData = stats.topGenres ?? [];
+
+  // Dati per il grafico stati: StatusBars usa `key` (per il colore) e `label`.
+  // Passiamo il code come key e l'etichetta pronta dal backend (IT o EN).
+  const statusData = (stats.byStatus ?? []).map((s) => ({
+    key: s.code,
+    count: s.count,
+    label: i18n.language === "en" ? s.labelEn : s.labelIt,
+  }));
 
   return (
     <div className={styles.page}>
-      {/* --- Intestazione della pagina ------------------------------------- */}
       <header className={styles.header}>
         <h1 className={styles.title}>{t("pages.statistiche.title")}</h1>
       </header>
 
-      {/* --- 1. Riga di card KPI ------------------------------------------- */}
+      {/* --- 1. Card KPI (solo dati reali) --- */}
       <section className={styles.kpiGrid}>
         <KpiCard
           icon={Gamepad2}
           tone="violet"
           label={t("stats.kpi.totalGames")}
-          value={nf(totals.games)}
-          hint={t("stats.kpi.deltaGames", { count: totals.gamesDelta })}
+          value={nf(stats.gamesOwned)}
         />
         <KpiCard
           icon={Clock}
           tone="blue"
           label={t("stats.kpi.hoursPlayed")}
-          value={`${nf(totals.hours)}${t("stats.unit.hours")}`}
-          hint={t("stats.kpi.deltaHours", { count: totals.hoursDelta })}
-        />
-        <KpiCard
-          icon={Trophy}
-          tone="amber"
-          label={t("stats.kpi.achievements")}
-          value={nf(totals.achievements)}
-          hint={t("stats.kpi.deltaAch", { count: totals.achievementsDelta })}
+          value={`${nf(stats.playtimeHours)}${t("stats.unit.hours")}`}
         />
         <KpiCard
           icon={Target}
           tone="green"
           label={t("stats.kpi.avgCompletion")}
-          value={`${totals.avgCompletion}%`}
-          hint={t("stats.kpi.avgHint", { count: totals.games })}
+          value={`${stats.completionRate ?? 0}%`}
+        />
+        <KpiCard
+          icon={Layers}
+          tone="amber"
+          label={t("stats.kpi.genres")}
+          value={nf(stats.distinctGenres)}
         />
       </section>
 
-      {/* --- 2. Sezione grafici -------------------------------------------- */}
+      {/* --- 2. Grafici (generi + stati) --- */}
       <section className={styles.charts}>
-        {/* Grafico ore/mese: occupa tutta la larghezza */}
-        <Card padding="lg" className={styles.chartWide}>
-          <div className={styles.chartHead}>
-            <h2 className={styles.chartTitle}>{t("stats.charts.hoursTitle")}</h2>
-            <span className={styles.chartHint}>{t("stats.charts.hoursSubtitle")}</span>
-          </div>
-          <Reveal minHeight={340}>
-            <HoursAreaChart data={monthlyHours} />
-          </Reveal>
-        </Card>
-
-        {/* Torta dei generi */}
         <Card padding="lg">
           <div className={styles.chartHead}>
             <h2 className={styles.chartTitle}>{t("stats.charts.genreTitle")}</h2>
           </div>
           <Reveal minHeight={240}>
-            <GenreDonut data={byGenre} />
+            <GenreDonut data={genreData} />
           </Reveal>
         </Card>
 
-        {/* Barre orizzontali per stato */}
         <Card padding="lg">
           <div className={styles.chartHead}>
             <h2 className={styles.chartTitle}>{t("stats.charts.statusTitle")}</h2>
           </div>
           <Reveal minHeight={240}>
-            <StatusBars data={byStatus} />
+            <StatusBars data={statusData} />
           </Reveal>
-        </Card>
-      </section>
-
-      {/* --- 3. Tabella dei giochi più giocati ----------------------------- */}
-      <section className={styles.tableSection}>
-        <Card padding="lg">
-          <div className={styles.chartHead}>
-            <h2 className={styles.chartTitle}>{t("stats.table.title")}</h2>
-          </div>
-          <TopGamesTable games={topGames} />
         </Card>
       </section>
     </div>

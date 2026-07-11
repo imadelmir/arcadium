@@ -22,7 +22,7 @@ import {
   Tooltip,
 } from "recharts";
 
-import { STATUS_COLORS, CHART } from "./mockStats";
+import { STATUS_COLORS, CHART } from "./chartColors";
 import styles from "./charts.module.css";
 
 export function StatusBars({ data }) {
@@ -31,7 +31,7 @@ export function StatusBars({ data }) {
   // Aggiungiamo l'etichetta tradotta a ogni voce (per l'asse Y).
   const chartData = data.map((d) => ({
     ...d,
-    label: t(`stats.status.${d.key}`),
+    label: d.label ?? t(`stats.status.${d.key}`),
   }));
 
   return (

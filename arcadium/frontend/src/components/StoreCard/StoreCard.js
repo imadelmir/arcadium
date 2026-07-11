@@ -1,37 +1,18 @@
 import { useTranslation } from "react-i18next";
-import { Star } from "lucide-react";
 import Link from "next/link";
 
 import { GameImage } from "@/components/GameImage/GameImage";
 import { Button } from "@/components/Button/Button";
-import { formatPrice, discountedPrice } from "@/utils/price";
+import { formatPrice } from "@/lib/format";
 import styles from "./StoreCard.module.css";
 
-// StoreCard
+// StoreCard — card di un gioco nel negozio (M5 - T8), COLLEGATA al backend (M5-T13).
 // -----------------------------------------------------------------------------
-// Singola card di un gioco nel catalogo del negozio (M5 - T8). Mostra la
-// copertina con il numero di recensioni (in alto a sinistra) e l'eventuale
-// badge sconto (in alto a destra), il titolo, fino a tre chip di genere, il
-// blocco prezzo (prezzo pieno barrato + prezzo finale, oppure "Gratis") e la
-// CTA principale che apre il gioco su Steam.
-//
-// Dal task T9 l'intera card e' anche un link alla pagina di dettaglio del
-// gioco (/gioco/[appId]). Per non annidare un <button> dentro un <a> (HTML
-// non valido) usiamo il pattern del "link esteso": un <Link> assoluto che
-// copre tutta la card, mentre il pulsante Steam resta un elemento separato
-// sopra di esso (z-index in CSS).
-//
-//   <StoreCard game={game} />
-//
-// Forma di `game` (vedi negozio/mockGames.js, sostituito poi dall'API):
-//   { appId, name, genres, priceCents, discount, reviews, ... }
-
-// Abbrevia i numeri grandi: 720000 -> "720K", 1500000 -> "1.5M".
-function formatCount(n = 0) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".0", "")}M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
-  return String(n);
-}
+// Ora riceve i campi reali di GameSummaryResponse:
+//   { appId, name, headerImage, price, discount, windows, mac, linux }
+// Il prezzo dal backend è in EURO (es. 19.99), 0 = gratis. La copertina è
+// headerImage (URL del DB). Recensioni/valutazione/generi non esistono nel
+// backend, quindi non sono più mostrati.
 
 // Logo di Steam per la CTA (lucide non ha l'icona di Steam).
 function SteamIcon({ size = 16 }) {
@@ -45,49 +26,28 @@ function SteamIcon({ size = 16 }) {
 export function StoreCard({ game, className = "", ...rest }) {
   const { t } = useTranslation();
 
-  // Estraggo i campi dal gioco, con valori di default per sicurezza.
-  const {
-    appId,
-    name,
-    genres = [],
-    priceCents = 0,
-    discount = 0,
-    reviews = 0,
-    steamUrl,
-  } = game;
+  // Campi reali dal backend, con default di sicurezza.
+  const { appId, name, headerImage, price = 0, discount = 0 } = game;
 
-  const isFree = priceCents === 0;                          // gioco gratuito?
-  const finalCents = discountedPrice(priceCents, discount); // prezzo dopo sconto
+  // formatPrice (da lib/format) calcola gratis/sconto e formatta in euro.
+  const p = formatPrice(price, discount);
 
-  // Copertina presa dalla CDN di Steam a partire dall'appId; link al gioco.
-  const cover = `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`;
-  const href = steamUrl ?? `https://store.steampowered.com/app/${appId}`;
+  // Link alla pagina Steam del gioco (la card intera porta al dettaglio interno).
+  const steamHref = `https://store.steampowered.com/app/${appId}`;
 
   const classes = [styles.card, className].filter(Boolean).join(" ");
 
-  // Apre la pagina del gioco su Steam in una nuova scheda (in sicurezza).
-  const openOnSteam = () => window.open(href, "_blank", "noopener,noreferrer");
+  const openOnSteam = () => window.open(steamHref, "_blank", "noopener,noreferrer");
 
   return (
     <article className={classes} {...rest}>
-      {/* Link ESTESO: un vero <a> che copre l'intera card e porta al dettaglio
-          del gioco. E' fratello del pulsante Steam (non lo contiene), quindi
-          l'HTML resta valido. Sta "sotto" al footer grazie allo z-index in CSS:
-          click sulla card -> dettaglio, click sul pulsante -> Steam. */}
+      {/* Link esteso: la card intera porta al dettaglio interno /gioco/[appId]. */}
       <Link href={`/gioco/${appId}`} className={styles.cardLink} aria-label={name} />
 
-      {/* Copertina con badge recensioni (sx, glass) e sconto (dx) */}
+      {/* Copertina (dal DB) + badge sconto se presente */}
       <div className={styles.cover}>
-        <GameImage src={cover} alt={name} />
-
-        {reviews > 0 && (
-          <span className={styles.reviews}>
-            <Star size={12} className={styles.reviewsIcon} aria-hidden="true" />
-            {formatCount(reviews)}
-          </span>
-        )}
-
-        {discount > 0 && <span className={styles.discount}>-{discount}%</span>}
+        <GameImage src={headerImage} alt={name} />
+        {p.hasDiscount && <span className={styles.discount}>-{p.discount}%</span>}
       </div>
 
       <div className={styles.body}>
@@ -95,29 +55,15 @@ export function StoreCard({ game, className = "", ...rest }) {
           {name}
         </h3>
 
-        {/* Chip dei generi: ne mostro al massimo tre */}
-        {genres.length > 0 && (
-          <ul className={styles.genres}>
-            {genres.slice(0, 3).map((genre) => (
-              <li key={genre} className={styles.genre}>
-                {genre}
-              </li>
-            ))}
-          </ul>
-        )}
-
         {/* Prezzo + pulsante d'acquisto (sopra il link esteso) */}
         <div className={styles.footer}>
           <div className={styles.price}>
-            {isFree ? (
+            {p.isFree ? (
               <span className={styles.free}>{t("store.free")}</span>
             ) : (
               <>
-                {/* Prezzo pieno barrato solo se c'è uno sconto */}
-                {discount > 0 && (
-                  <span className={styles.priceOld}>{formatPrice(priceCents)}</span>
-                )}
-                <span className={styles.priceNow}>{formatPrice(finalCents)}</span>
+                {p.hasDiscount && <span className={styles.priceOld}>{p.original}</span>}
+                <span className={styles.priceNow}>{p.final}</span>
               </>
             )}
           </div>
@@ -127,9 +73,9 @@ export function StoreCard({ game, className = "", ...rest }) {
             fullWidth
             iconLeft={<SteamIcon size={16} />}
             onClick={openOnSteam}
-            aria-label={`${isFree ? t("store.getOnSteam") : t("store.buyOnSteam")} — ${name}`}
+            aria-label={`${p.isFree ? t("store.getOnSteam") : t("store.buyOnSteam")} — ${name}`}
           >
-            {isFree ? t("store.getOnSteam") : t("store.buyOnSteam")}
+            {p.isFree ? t("store.getOnSteam") : t("store.buyOnSteam")}
           </Button>
         </div>
       </div>

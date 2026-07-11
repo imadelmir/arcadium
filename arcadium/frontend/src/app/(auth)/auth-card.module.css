@@ -116,3 +116,14 @@
   text-align: right;
   font-size: 13px;
 }
+
+/* Toglie lo sfondo bianco dell'autofill del browser sui campi */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface-2) inset;
+  box-shadow: 0 0 0 1000px var(--color-surface-2) inset;
+  caret-color: var(--color-text);
+  transition: background-color 9999s ease-in-out 0s;
+}

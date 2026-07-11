@@ -1,49 +1,73 @@
 "use client";
 
-// Pagina "La tua libreria" (M5-T10).
-// Griglia dei giochi posseduti con filtro per stato; ogni gioco è una LibraryCard.
+// Pagina "La tua libreria" (M5-T10) — COLLEGATA al backend (M5-T13).
+// La libreria = i giochi posseduti = GET /api/backlog. Griglia con filtro per
+// stato (tab) e cambio stato reale (PATCH /api/backlog/{appId}).
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Tabs, GAME_STATUSES } from "@/components";
-import { getLibrary } from "./mockLibrary";
+import { Tabs, Spinner } from "@/components";
+import { BACKLOG_STATUSES } from "@/lib/constants";
+import { listBacklog, updateBacklog } from "@/lib/api/backlog";
 import { LibraryCard } from "./LibraryCard";
 import styles from "./libreria.module.css";
 
 export default function LibraryPage() {
   const { t } = useTranslation();
 
-  // Copia locale: possiamo cambiare lo stato dei giochi senza toccare il dato.
-  const [games, setGames] = useState(() => getLibrary());
+  // Voci dal backend: { game, status:{code,...}, playtimeMinutes, ... }.
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [filter, setFilter] = useState("all");
 
-  // Conteggio giochi per stato (mostrato nelle tab).
+  // Carica i giochi posseduti all'apertura.
+  useEffect(() => {
+    let attivo = true;
+    setLoading(true);
+    setError(false);
+    listBacklog()
+      .then((list) => attivo && setItems(list))
+      .catch(() => attivo && setError(true))
+      .finally(() => attivo && setLoading(false));
+    return () => { attivo = false; };
+  }, []);
+
+  // Conteggio per stato (per le tab).
   const counts = useMemo(() => {
-    const acc = { never: 0, playing: 0, finished: 0, abandoned: 0 };
-    for (const game of games) acc[game.status] = (acc[game.status] ?? 0) + 1;
+    const acc = { mai_giocato: 0, in_corso: 0, finito: 0, abbandonato: 0 };
+    for (const it of items) acc[it.status.code] = (acc[it.status.code] ?? 0) + 1;
     return acc;
-  }, [games]);
+  }, [items]);
 
   // Giochi visibili in base alla tab attiva.
   const visible =
-    filter === "all" ? games : games.filter((game) => game.status === filter);
+    filter === "all" ? items : items.filter((it) => it.status.code === filter);
 
-  // Aggiorna lo stato di un gioco (in memoria; domani sarà una PATCH all'API).
-  function changeStatus(appId, nextStatus) {
-    setGames((prev) =>
-      prev.map((game) =>
-        game.appId === appId ? { ...game, status: nextStatus } : game
+  // Cambio stato reale (aggiorna la UI, chiama PATCH, rollback se fallisce).
+  async function changeStatus(appId, nextCode) {
+    const backup = items;
+    setItems((prev) =>
+      prev.map((it) =>
+        it.game.appId === appId
+          ? { ...it, status: { ...it.status, code: nextCode } }
+          : it
       )
     );
+    try {
+      await updateBacklog(appId, { status: nextCode });
+    } catch {
+      setItems(backup);
+    }
   }
 
-  // Tab: "Tutti" + una per ogni stato, con il relativo conteggio.
+  // Tab: "Tutti" + una per ogni stato del DB, con conteggio.
   const tabs = [
-    { value: "all", label: `${t("library.allTab")} · ${games.length}` },
-    ...Object.entries(GAME_STATUSES).map(([value, config]) => ({
-      value,
-      label: `${config.label} · ${counts[value] ?? 0}`,
+    { value: "all", label: `${t("library.allTab")} · ${items.length}` },
+    ...BACKLOG_STATUSES.map((s) => ({
+      value: s.code,
+      label: `${t(s.labelKey)} · ${counts[s.code] ?? 0}`,
     })),
   ];
 
@@ -53,28 +77,37 @@ export default function LibraryPage() {
         <h1 className={styles.title}>{t("nav.libreria")}</h1>
       </header>
 
-      <Tabs
-        items={tabs}
-        value={filter}
-        onChange={setFilter}
-        className={styles.tabs}
-      />
-
-      {visible.length === 0 ? (
+      {loading ? (
+        <div style={{ display: "grid", placeItems: "center", minHeight: 200 }}>
+          <Spinner size="lg" />
+        </div>
+      ) : error ? (
         <div className={styles.empty}>
-          <p className={styles.emptyTitle}>{t("library.empty.title")}</p>
-          <p className={styles.emptyText}>{t("library.empty.text")}</p>
+          <p className={styles.emptyText}>{t("errors.network")}</p>
         </div>
       ) : (
-        <div className={styles.grid}>
-          {visible.map((game) => (
-            <LibraryCard
-              key={game.appId}
-              game={game}
-              onStatusChange={changeStatus}
-            />
-          ))}
-        </div>
+        <>
+          <Tabs items={tabs} value={filter} onChange={setFilter} className={styles.tabs} />
+
+          {visible.length === 0 ? (
+            <div className={styles.empty}>
+              <p className={styles.emptyTitle}>{t("library.empty.title")}</p>
+              <p className={styles.emptyText}>{t("library.empty.text")}</p>
+            </div>
+          ) : (
+            <div className={styles.grid}>
+              {visible.map((it) => (
+                <LibraryCard
+                  key={it.game.appId}
+                  game={it.game}
+                  statusCode={it.status.code}
+                  playtimeMinutes={it.playtimeMinutes}
+                  onStatusChange={changeStatus}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </section>
   );

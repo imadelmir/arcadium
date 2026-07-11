@@ -171,6 +171,7 @@
       "hoursPlayed": "Hours played",
       "achievements": "Achievements",
       "avgCompletion": "Average completion",
+      "genres": "Genres",
       "deltaGames": "+{{count}} this month",
       "deltaHours": "+{{count}}h this month",
       "deltaAch": "+{{count}} this month",
@@ -205,6 +206,18 @@
       "games": "games"
     }
   },
+  "community": {
+    "subtitle": "Discover other players and their libraries.",
+    "searchPlaceholder": "Search a user…",
+    "noResults": "No users found.",
+    "privateProfile": "Private profile",
+    "backToList": "Back to community",
+    "wishlistTitle": "Wishlist",
+    "backlogTitle": "Library",
+    "emptyWishlist": "No games in the wishlist.",
+    "emptyBacklog": "No games in the library.",
+    "privateNotice": "This profile is private."
+  },
   "auth": {
     "fields": {
       "email": "Email",
@@ -220,7 +233,7 @@
       "badge": "Sign-in form",
       "submit": "Sign in",
       "forgotPassword": "Forgot password?",
-      "error": "Incorrect email or password. Try again.",
+      "error": "Incorrect username or password. Try again.",
       "noAccount": "Don't have an account?",
       "signUp": "Sign up"
     },
@@ -237,13 +250,18 @@
     "validation": {
       "required": "This field is required.",
       "invalidEmail": "Enter a valid email.",
-      "passwordTooShort": "Password must be at least 6 characters."
+      "passwordTooShort": "Password must be at least 8 characters."
     }
+  },
+  "errors": {
+    "network": "Can't reach the server. Make sure the backend is running and try again.",
+    "generic": "Something went wrong. Please try again.",
+    "forbidden": "You don't have permission for this action."
   },
   "notFound": {
     "title": "Page not found",
     "text": "The page you're looking for doesn't exist or has been moved.",
-    "back": "Back to Overview"
+    "back": "Back to the Store"
   },
   "language": {
     "label": "Language"
