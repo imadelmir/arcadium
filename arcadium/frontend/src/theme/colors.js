@@ -1,6 +1,6 @@
-// The same colours as in theme.css, but as a JavaScript object.
-// Useful when a library needs colours in JS instead of CSS, for example
-// the charts on the statistics page (M5 - T12).
+// Gli stessi colori di theme.css, ma come oggetto JavaScript.
+// Utili quando una libreria vuole i colori in JS invece che in CSS, per esempio
+// i grafici della pagina statistiche (M5-T12).
 export const colors = {
   bg: "#0a0e1a",
   surface: "#121829",
@@ -19,11 +19,12 @@ export const colors = {
   danger: "#f06b6b",
   warning: "#f5b14c",
 
-  // Game states (library / backlog)
+  // Stati del backlog: chiavi = CODICI DEL DB (allineate a lib/constants.js e a
+  // StatusBadge), così i grafici possono cercare il colore per codice stato.
   status: {
-    never: "#6b7280",
-    playing: "#4f7bff",
-    finished: "#8b5cf6",
-    abandoned: "#f5894c",
+    mai_giocato: "#6b7280",
+    in_corso: "#4f7bff",
+    finito: "#8b5cf6",
+    abbandonato: "#f5894c",
   },
 };
