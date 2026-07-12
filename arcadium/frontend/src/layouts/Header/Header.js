@@ -140,23 +140,7 @@ export function Header() {
       {/* Pulsanti social (Discord / Twitch) */}
       <SocialLinks />
 
-      {/* Campanello notifiche: oro glass, apre "Presto disponibile" (M4-T13) */}
-      <div style={{ position: "relative" }}>
-        <button
-          type="button"
-          className={styles.bell}
-          onClick={() => setNotifOpen((v) => !v)}
-          aria-label={t("notifications.label")}
-        >
-          <Bell size={18} />
-        </button>
-
-        {notifOpen && (
-          <div className={styles.notifPopup}>
-            {i18n.language === "en" ? "Coming soon" : "Presto disponibile"}
-          </div>
-        )}
-      </div>
+      
 
       {/* Azioni a destra: switch lingua + menu utente */}
       <div className={styles.actions}>

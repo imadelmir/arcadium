@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { Bell } from "lucide-react";
 import styles from "./SocialLinks.module.css";
 
 const LINKS = [
@@ -21,35 +23,41 @@ const LINKS = [
 ];
 
 export function SocialLinks() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const bellRef = useRef(null);
+
+  useEffect(() => {
+    function onClickFuori(e) {
+      if (bellRef.current && !bellRef.current.contains(e.target)) setNotifOpen(false);
+    }
+    document.addEventListener("mousedown", onClickFuori);
+    return () => document.removeEventListener("mousedown", onClickFuori);
+  }, []);
+
+  const comingSoon = i18n.language === "en" ? "Coming soon" : "Presto disponibile";
 
   return (
     <div className={styles.group}>
       {LINKS.map((item) => {
         const label = t(item.labelKey);
-
         return (
-          <a
-            key={item.key}
-            href={item.href}
-            className={styles.button}
-            style={{ "--brand-rgb": item.rgb }}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={label}
-            title={label}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className={styles.icon}
-              aria-hidden="true"
-              focusable="false"
-            >
+          <a key={item.key} href={item.href} className={styles.button} style={{ "--brand-rgb": item.rgb }} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+            <svg viewBox="0 0 24 24" className={styles.icon} aria-hidden="true" focusable="false">
               <path d={item.path} />
             </svg>
           </a>
         );
       })}
+
+      {/* Campanello notifiche: stesso stile dei social (oro), tooltip + popup */}
+      <div className={styles.bellWrap} ref={bellRef}>
+        <button type="button" className={styles.button} style={{ "--brand-rgb": "245, 196, 81" }} onClick={() => setNotifOpen((v) => !v)} aria-label={t("notifications.label")} title={comingSoon}>
+          <Bell className={styles.icon} size={18} />
+        </button>
+        {notifOpen && <div className={styles.notifPopup}>{comingSoon}</div>}
+      </div>
     </div>
   );
 }
