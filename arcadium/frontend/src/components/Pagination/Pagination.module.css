@@ -1,0 +1,67 @@
+/* Pagination — stile della barra di paginazione (change request Negozio).
+   Pillole "glass" coerenti con la barra dei filtri del Negozio. */
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+/* Elenco dei numeri di pagina */
+.pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+/* Pulsante "Pagina N" e pulsanti Precedente/Successiva: base comune */
+.page,
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+
+  /* Vetro semitrasparente, come le pillole dei filtri */
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  transition: background var(--transition), border-color var(--transition),
+    color var(--transition);
+}
+
+.page:hover,
+.nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Pagina corrente: accento violet pieno */
+.page[data-current="true"] {
+  color: #ffffff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Precedente/Successiva disattivati agli estremi della lista */
+.nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Puntini di continuità fra le pagine non contigue */
+.ellipsis {
+  padding: 0 var(--space-1);
+  color: var(--color-text-faint);
+  user-select: none;
+}

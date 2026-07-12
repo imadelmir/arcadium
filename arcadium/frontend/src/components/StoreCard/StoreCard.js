@@ -3,16 +3,20 @@ import Link from "next/link";
 
 import { GameImage } from "@/components/GameImage/GameImage";
 import { Button } from "@/components/Button/Button";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, platformsOf } from "@/lib/format";
 import styles from "./StoreCard.module.css";
 
 // StoreCard — card di un gioco nel negozio (M5 - T8), COLLEGATA al backend (M5-T13).
 // -----------------------------------------------------------------------------
-// Ora riceve i campi reali di GameSummaryResponse:
+// Riceve i campi reali di GameSummaryResponse:
 //   { appId, name, headerImage, price, discount, windows, mac, linux }
 // Il prezzo dal backend è in EURO (es. 19.99), 0 = gratis. La copertina è
-// headerImage (URL del DB). Recensioni/valutazione/generi non esistono nel
-// backend, quindi non sono più mostrati.
+// headerImage (URL del DB).
+//
+// Change request Negozio:
+//   - la PIATTAFORMA è mostrata in un badge dedicato (colore proprio, testo in
+//     MAIUSCOLO e più grande degli altri badge);
+//   - NESSUN badge di GENERE sulla card (rimosso).
 
 // Logo di Steam per la CTA (lucide non ha l'icona di Steam).
 function SteamIcon({ size = 16 }) {
@@ -28,6 +32,10 @@ export function StoreCard({ game, className = "", ...rest }) {
 
   // Campi reali dal backend, con default di sicurezza.
   const { appId, name, headerImage, price = 0, discount = 0 } = game;
+
+  // Codici piattaforma presenti (es. ["windows", "mac"]); il MAIUSCOLO è gestito
+  // via CSS (text-transform), così l'etichetta resta il dato originale.
+  const platforms = platformsOf(game);
 
   // formatPrice (da lib/format) calcola gratis/sconto e formatta in euro.
   const p = formatPrice(price, discount);
@@ -54,6 +62,18 @@ export function StoreCard({ game, className = "", ...rest }) {
         <h3 className={styles.title} title={name}>
           {name}
         </h3>
+
+        {/* Badge PIATTAFORMA: colore dedicato, testo in MAIUSCOLO e più grande.
+            Nessun badge di genere sulla card (change request Negozio). */}
+        {platforms.length > 0 && (
+          <ul className={styles.platforms}>
+            {platforms.map((code) => (
+              <li key={code} className={styles.platform}>
+                {code}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Prezzo + pulsante d'acquisto (sopra il link esteso) */}
         <div className={styles.footer}>

@@ -42,9 +42,12 @@ public final class GameSpecifications {
      * @param genre    nome del genere (match esatto, case-insensitive), nullable
      * @param platform piattaforma richiesta, nullable
      * @param status   stato commerciale richiesto, nullable
+     * @param minPrice prezzo minimo incluso (price &gt;= minPrice), nullable
+     * @param maxPrice prezzo massimo incluso (price &lt;= maxPrice), nullable
      */
     public static Specification<Game> build(String q, String genre,
-                                            GamePlatform platform, CatalogGameStatus status) {
+                                            GamePlatform platform, CatalogGameStatus status,
+                                            BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -81,6 +84,14 @@ public final class GameSpecifications {
                     case PAID -> predicates.add(cb.gt(root.<BigDecimal>get("price"), 0));
                     case DISCOUNTED -> predicates.add(cb.gt(root.<Short>get("discount"), 0));
                 }
+            }
+
+            // --- Fascia di prezzo (change request Negozio): price >= min, price <= max ---
+            if (minPrice != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.<BigDecimal>get("price"), minPrice));
+            }
+            if (maxPrice != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.<BigDecimal>get("price"), maxPrice));
             }
 
             // Nessun filtro → congiunzione vuota (sempre vera): tutto il catalogo.

@@ -1,0 +1,97 @@
+/* PriceRangeSlider — stile della slider a doppia maniglia (change request Negozio).
+   Usa i design token esistenti (palette violet) per restare coerente col tema. */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Etichette dei valori correnti (min e max) sopra il binario */
+.values {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Contenitore del binario: ancora relativa per tratto e maniglie */
+.slider {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+/* Binario di sfondo (tutta la scala) */
+.track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+}
+
+/* Tratto attivo, compreso fra le due maniglie: accento brand (violet) */
+.range {
+  position: absolute;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
+/* I due input range coprono tutta la larghezza e sono trasparenti:
+   il binario NON intercetta il puntatore, così restano cliccabili entrambe
+   le maniglie (che invece riattivano pointer-events qui sotto). */
+.thumb {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+}
+
+/* --- Maniglia (WebKit/Blink) --- */
+.thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto; /* solo la maniglia è trascinabile */
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--color-primary);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.thumb::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* --- Maniglia (Firefox) --- */
+.thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--color-primary);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+/* Anello di focus da tastiera, coerente col resto dei controlli */
+.thumb:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--ring);
+}
+.thumb:focus-visible::-moz-range-thumb {
+  box-shadow: var(--ring);
+}

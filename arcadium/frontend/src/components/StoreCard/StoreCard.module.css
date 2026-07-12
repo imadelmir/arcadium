@@ -35,29 +35,6 @@
   position: relative; /* ancora per i badge posizionati in assoluto */
 }
 
-/* Badge recensioni (in alto a sinistra), in stile glass */
-.reviews {
-  position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text);
-  background: rgba(10, 12, 25, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-pill);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.reviewsIcon {
-  color: var(--color-warning); /* stellina ambra */
-}
-
 /* Pillola verde con la percentuale di sconto (in alto a destra) */
 .discount {
   position: absolute;
@@ -93,20 +70,24 @@
   overflow: hidden;
 }
 
-/* Lista dei generi come chip in linea */
-.genres {
+/* --- Piattaforme: badge con COLORE DEDICATO (change request Negozio) ---
+   Testo in MAIUSCOLO e più grande rispetto ai vecchi chip; il colore proprio
+   (token --color-platform, cyan) lo distingue da sconto (verde) e brand (violet). */
+.platforms {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   list-style: none;
 }
-.genre {
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+.platform {
+  padding: 4px 10px;
+  font-size: 13px; /* più grande dei precedenti chip (11px) */
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase; /* piattaforma sempre in MAIUSCOLO */
+  color: var(--color-platform);
+  background: var(--color-platform-soft);
+  border: 1px solid var(--color-platform);
   border-radius: var(--radius-pill);
 }
 

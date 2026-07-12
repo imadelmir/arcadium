@@ -1,5 +1,6 @@
 package com.ace5.arcadium.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -39,8 +40,12 @@ import com.ace5.arcadium.repository.spec.GameSpecifications;
 @Service
 public class GameService {
 
-    /** Tetto alla dimensione di pagina, per non degradare su richieste abusive. */
-    private static final int MAX_PAGE_SIZE = 100;
+    /**
+     * Tetto alla dimensione di pagina, per non degradare su richieste abusive.
+     * Alzato a 300 per supportare la paginazione del Negozio (300 giochi/pagina,
+     * change request Negozio).
+     */
+    private static final int MAX_PAGE_SIZE = 300;
 
     /** Ordinamento di default quando la richiesta non specifica un sort. */
     private static final Sort DEFAULT_SORT = Sort.by("name").ascending();
@@ -48,6 +53,8 @@ public class GameService {
     /**
      * Campi ordinabili ammessi. Whitelist esplicita: evita 500 su proprietà
      * inesistenti o su collezioni (che non sono ordinabili) e dà un 400 chiaro.
+     * La whitelist è per <em>campo</em>, quindi entrambe le direzioni sono
+     * ammesse: "name,asc" (A → Z) e "name,desc" (Z → A) passano già.
      */
     private static final Set<String> SORTABLE_FIELDS = Set.of(
             "name", "price", "discount", "releaseDate",
@@ -70,10 +77,12 @@ public class GameService {
     public PageResponse<GameSummaryResponse> search(CatalogQuery filter, Pageable pageable) {
         GamePlatform platform = parsePlatform(filter.platform());
         CatalogGameStatus status = parseStatus(filter.status());
+        validatePriceRange(filter.minPrice(), filter.maxPrice());
         Pageable safePageable = sanitize(pageable);
 
         Specification<Game> spec = GameSpecifications.build(
-                filter.q(), filter.genre(), platform, status);
+                filter.q(), filter.genre(), platform, status,
+                filter.minPrice(), filter.maxPrice());
 
         Page<Game> page = gameRepository.findAll(spec, safePageable);
         List<GameSummaryResponse> content = page.getContent().stream()
@@ -124,6 +133,24 @@ public class GameService {
             return CatalogGameStatus.valueOf(raw.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "error.catalog.status.invalid", raw);
+        }
+    }
+
+    /**
+     * Valida la fascia di prezzo (change request Negozio):
+     * {@code minPrice >= 0} e {@code maxPrice >= minPrice}. In caso contrario
+     * risponde 400 con messaggio localizzato. Entrambi i parametri sono opzionali:
+     * se assenti non si applica alcun vincolo.
+     */
+    private void validatePriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        if (minPrice != null && minPrice.signum() < 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "error.catalog.price.invalid");
+        }
+        if (maxPrice != null && maxPrice.signum() < 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "error.catalog.price.invalid");
+        }
+        if (minPrice != null && maxPrice != null && maxPrice.compareTo(minPrice) < 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "error.catalog.price.invalid");
         }
     }
 

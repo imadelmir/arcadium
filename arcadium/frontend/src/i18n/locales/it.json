@@ -12,7 +12,8 @@
   "common": {
     "underConstruction": "Pagina in costruzione",
     "search": "Cerca giochi, generi, sviluppatori…",
-    "loading": "Attendere…"
+    "loading": "Attendere…",
+    "all": "Tutti"
   },
   "social": {
     "discord": "Unisciti a noi su Discord",
@@ -85,7 +86,11 @@
       "r80": "Positive (80%+)",
       "r70": "Nella media (70%+)",
       "language": "Lingua",
-      "anyLanguage": "Qualsiasi lingua"
+      "anyLanguage": "Qualsiasi lingua",
+      "priceRange": "Fascia di prezzo",
+      "minPrice": "Prezzo minimo",
+      "maxPrice": "Prezzo massimo",
+      "reset": "Reimposta"
     },
     "sort": {
       "label": "Ordina",
@@ -94,7 +99,15 @@
       "priceDesc": "Prezzo decrescente",
       "discount": "Sconto maggiore",
       "rating": "Valutazione",
-      "name": "Nome (A-Z)"
+      "name": "Nome (A-Z)",
+      "nameDesc": "Nome (Z-A)",
+      "newest": "Più recenti"
+    },
+    "clearSearch": "Svuota la ricerca",
+    "pagination": {
+      "previous": "Precedente",
+      "next": "Successiva",
+      "page": "Pagina"
     }
   },
   "gameDetail": {

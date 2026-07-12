@@ -12,7 +12,8 @@
   "common": {
     "underConstruction": "Page under construction",
     "search": "Search games, genres, developers…",
-    "loading": "Please wait…"
+    "loading": "Please wait…",
+    "all": "All"
   },
   "social": {
     "discord": "Join us on Discord",
@@ -85,7 +86,11 @@
       "r80": "Very positive (80%+)",
       "r70": "Mostly positive (70%+)",
       "language": "Language",
-      "anyLanguage": "Any language"
+      "anyLanguage": "Any language",
+      "priceRange": "Price range",
+      "minPrice": "Minimum price",
+      "maxPrice": "Maximum price",
+      "reset": "Reset"
     },
     "sort": {
       "label": "Sort",
@@ -94,7 +99,15 @@
       "priceDesc": "Price: high to low",
       "discount": "Biggest discount",
       "rating": "Rating",
-      "name": "Name (A-Z)"
+      "name": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)",
+      "newest": "Newest"
+    },
+    "clearSearch": "Clear search",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page"
     }
   },
   "gameDetail": {

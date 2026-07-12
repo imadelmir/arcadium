@@ -39,6 +39,11 @@
   --color-danger: #f06b6b;   /* errors */
   --color-warning: #f5b14c;  /* warnings */
 
+  /* --- Colore dedicato al badge PIATTAFORMA sulle card del Negozio (change request) ---
+     Cyan, distinto da sconto (verde), errori (rosso) e accento brand (violet). */
+  --color-platform: #22d3ee;
+  --color-platform-soft: rgba(34, 211, 238, 0.14);
+
   /* --- Game status colours (library / backlog) --- */
   --status-never: #6b7280;     /* "Mai giocato" */
   --status-playing: #4f7bff;   /* "In corso" */
