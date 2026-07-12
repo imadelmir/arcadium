@@ -7,15 +7,12 @@
     "backlog": "Backlog",
     "statistiche": "Statistiche",
     "community": "Community",
-    "achievement": "Achievement",
     "impostazioni": "Impostazioni"
   },
   "common": {
     "underConstruction": "Pagina in costruzione",
     "search": "Cerca giochi, generi, sviluppatori…",
-    "all": "Tutti",
-    "loading": "Caricamento…",
-    "logout": "Esci"
+    "loading": "Attendere…"
   },
   "social": {
     "discord": "Unisciti a noi su Discord",
@@ -25,14 +22,38 @@
     "label": "Notifiche"
   },
   "pages": {
-    "panoramica": { "title": "Panoramica", "subtitle": "Uno sguardo d'insieme alla tua attività." },
-    "libreria": { "title": "La tua libreria", "subtitle": "Tutti i giochi che possiedi, in un colpo d'occhio." },
-    "negozio": { "title": "Negozio", "subtitle": "Esplora il catalogo Steam, filtra e acquista in un clic." },
-    "wishlist": { "title": "La tua wishlist", "subtitle": "I giochi che desideri, con avvisi quando il prezzo scende." },
-    "backlog": { "title": "Backlog", "subtitle": "Organizza i giochi per stato: in corso, finito, abbandonato." },
-    "statistiche": { "title": "Statistiche", "subtitle": "Ore di gioco, completamenti e achievement." },
-    "community": { "title": "Community", "subtitle": "Confronta libreria e achievement con altri giocatori." },
-    "impostazioni": { "title": "Impostazioni", "subtitle": "Account, lingua e collegamento con Steam." }
+    "panoramica": {
+      "title": "Panoramica",
+      "subtitle": "Uno sguardo d'insieme alla tua attività."
+    },
+    "libreria": {
+      "title": "La tua libreria",
+      "subtitle": "Tutti i giochi che possiedi, in un colpo d'occhio."
+    },
+    "negozio": {
+      "title": "Negozio",
+      "subtitle": "Esplora il catalogo Steam, filtra e acquista in un clic."
+    },
+    "wishlist": {
+      "title": "La tua wishlist",
+      "subtitle": "I giochi che desideri, con avvisi quando il prezzo scende."
+    },
+    "backlog": {
+      "title": "Backlog",
+      "subtitle": "Organizza i giochi per stato: in corso, finito, abbandonato."
+    },
+    "statistiche": {
+      "title": "Statistiche",
+      "subtitle": "Ore di gioco, completamenti e achievement."
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Confronta libreria e achievement con altri giocatori."
+    },
+    "impostazioni": {
+      "title": "Impostazioni",
+      "subtitle": "Account, lingua e collegamento con Steam."
+    }
   },
   "store": {
     "dealsTitle": "Sconti del momento",
@@ -48,17 +69,32 @@
       "price": "Prezzo",
       "anyPrice": "Qualsiasi prezzo",
       "free": "Gratis",
-      "paid": "A pagamento",
-      "onSale": "In sconto",
+      "under10": "Meno di 10 €",
+      "under20": "Meno di 20 €",
+      "under40": "Meno di 40 €",
       "discount": "Sconto",
-      "platform": "Piattaforma"
+      "anyDiscount": "Qualsiasi sconto",
+      "onSale": "Solo in sconto",
+      "d25": "-25% o più",
+      "d50": "-50% o più",
+      "d75": "-75% o più",
+      "platform": "Piattaforma",
+      "rating": "Valutazione",
+      "anyRating": "Qualsiasi valutazione",
+      "r90": "Molto positive (90%+)",
+      "r80": "Positive (80%+)",
+      "r70": "Nella media (70%+)",
+      "language": "Lingua",
+      "anyLanguage": "Qualsiasi lingua"
     },
     "sort": {
       "label": "Ordina",
-      "name": "Nome (A-Z)",
+      "popularity": "Popolarità",
       "priceAsc": "Prezzo crescente",
       "priceDesc": "Prezzo decrescente",
-      "newest": "Più recenti"
+      "discount": "Sconto maggiore",
+      "rating": "Valutazione",
+      "name": "Nome (A-Z)"
     }
   },
   "gameDetail": {
@@ -98,6 +134,7 @@
   "library": {
     "allTab": "Tutti",
     "hoursUnit": "ore",
+    "noAchievements": "—",
     "changeStatusAria": "Cambia stato",
     "empty": {
       "title": "Nessun gioco qui",
@@ -111,11 +148,15 @@
       "discount": "Sconto maggiore",
       "name": "Nome (A-Z)"
     },
+    "priceDrop": "{{name}} dalla tua wishlist è sceso di prezzo!",
+    "alertOn": "Notifica prezzo attiva",
+    "alertOff": "Attiva notifica prezzo",
     "free": "Gratis",
     "remove": "Rimuovi dalla wishlist",
+    "footer": "Ricevi un avviso automatico quando un gioco in wishlist scende di prezzo.",
     "empty": {
       "title": "La tua wishlist è vuota",
-      "text": "Aggiungi giochi dal negozio per tenerli d'occhio."
+      "text": "Aggiungi giochi dal negozio per tenerli d'occhio e ricevere avvisi sui cali di prezzo."
     }
   },
   "backlog": {
@@ -125,18 +166,59 @@
     "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga."
   },
   "stats": {
+    "months": [
+      "Gen",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mag",
+      "Giu",
+      "Lug",
+      "Ago",
+      "Set",
+      "Ott",
+      "Nov",
+      "Dic"
+    ],
     "kpi": {
       "totalGames": "Giochi totali",
       "hoursPlayed": "Ore giocate",
+      "achievements": "Achievement",
       "avgCompletion": "Completamento medio",
-      "genres": "Generi"
+      "genres": "Generi",
+      "deltaGames": "+{{count}} questo mese",
+      "deltaHours": "+{{count}}h questo mese",
+      "deltaAch": "+{{count}} questo mese",
+      "avgHint": "su {{count}} giochi"
     },
     "charts": {
+      "hoursTitle": "Ore giocate per mese",
+      "hoursSubtitle": "Ultimi 12 mesi",
       "genreTitle": "Giochi per genere",
       "statusTitle": "Stato dei giochi"
     },
-    "unit": { "hours": "h", "games": "giochi" },
-    "tooltip": { "games": "giochi" }
+    "status": {
+      "completed": "Completati",
+      "playing": "In corso",
+      "notStarted": "Non iniziati",
+      "backlog": "Backlog"
+    },
+    "table": {
+      "title": "Giochi più giocati",
+      "game": "Gioco",
+      "hours": "Ore",
+      "progress": "Achievement",
+      "status": "Stato",
+      "empty": "Nessun gioco da mostrare."
+    },
+    "tooltip": {
+      "hours": "ore",
+      "games": "giochi"
+    },
+    "unit": {
+      "hours": "h",
+      "games": "giochi"
+    }
   },
   "community": {
     "subtitle": "Scopri altri giocatori e le loro librerie.",
@@ -150,25 +232,6 @@
     "emptyBacklog": "Nessun gioco nella libreria.",
     "privateNotice": "Questo profilo è privato."
   },
-  "findPlayers": {
-    "title": "Trova giocatori",
-    "subtitle": "Cerca altri giocatori e visita il loro profilo.",
-    "searchPlaceholder": "Cerca un giocatore…",
-    "noResults": "Nessun giocatore trovato."
-  },
-  "achievements": {
-    "title": "Achievement",
-    "unlocked": "Sbloccati",
-    "completion": "Completamento",
-    "points": "Punti",
-    "share": "Condividi i tuoi achievement",
-    "empty": "Nessun achievement da mostrare.",
-    "filter": {
-      "all": "Tutti",
-      "unlocked": "Sbloccati",
-      "locked": "Da sbloccare"
-    }
-  },
   "auth": {
     "fields": {
       "email": "Email",
@@ -181,6 +244,7 @@
     "login": {
       "title": "Bentornato",
       "subtitle": "Accedi al tuo account Arcadium.",
+      "badge": "Form di accesso",
       "submit": "Accedi",
       "forgotPassword": "Password dimenticata?",
       "error": "Nome utente o password non corretti. Riprova.",
@@ -190,6 +254,7 @@
     "register": {
       "title": "Crea il tuo account",
       "subtitle": "Inizia a organizzare la tua libreria.",
+      "badge": "Form di registrazione",
       "submit": "Crea account",
       "error": "Controlla i campi e riprova.",
       "passwordMismatch": "Le password non coincidono.",
@@ -200,6 +265,24 @@
       "required": "Questo campo è obbligatorio.",
       "invalidEmail": "Inserisci un'email valida.",
       "passwordTooShort": "La password deve avere almeno 8 caratteri."
+    },
+    "forgot": {
+      "title": "Password dimenticata",
+      "subtitle": "Inserisci la tua email: ti invieremo le istruzioni per reimpostare la password.",
+      "submit": "Invia istruzioni",
+      "sent": "Se l'indirizzo è associato a un account, riceverai a breve un'email con il link per reimpostare la password.",
+      "devLink": "Apri il link di reimpostazione (solo sviluppo)",
+      "backToLogin": "Torna all'accesso"
+    },
+    "reset": {
+      "title": "Reimposta la password",
+      "subtitle": "Scegli una nuova password per il tuo account.",
+      "newPassword": "Nuova password",
+      "submit": "Reimposta password",
+      "success": "Password reimpostata con successo. Verrai reindirizzato all'accesso.",
+      "invalidToken": "Il link di reimpostazione non è valido o è scaduto.",
+      "requestNew": "Richiedi un nuovo link",
+      "goToLogin": "Vai all'accesso"
     }
   },
   "errors": {

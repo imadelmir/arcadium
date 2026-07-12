@@ -7,15 +7,12 @@
     "backlog": "Backlog",
     "statistiche": "Statistics",
     "community": "Community",
-    "achievement": "Achievements",
     "impostazioni": "Settings"
   },
   "common": {
     "underConstruction": "Page under construction",
     "search": "Search games, genres, developers…",
-    "all": "All",
-    "loading": "Loading…",
-    "logout": "Log out"
+    "loading": "Please wait…"
   },
   "social": {
     "discord": "Join us on Discord",
@@ -25,14 +22,38 @@
     "label": "Notifications"
   },
   "pages": {
-    "panoramica": { "title": "Overview", "subtitle": "A bird's-eye view of your activity." },
-    "libreria": { "title": "Your library", "subtitle": "Every game you own, at a glance." },
-    "negozio": { "title": "Store", "subtitle": "Browse the Steam catalogue, filter and buy in one click." },
-    "wishlist": { "title": "Your wishlist", "subtitle": "The games you want, with alerts when the price drops." },
-    "backlog": { "title": "Backlog", "subtitle": "Sort your games by status: playing, finished, abandoned." },
-    "statistiche": { "title": "Statistics", "subtitle": "Playtime, completions and achievements." },
-    "community": { "title": "Community", "subtitle": "Compare your library and achievements with other players." },
-    "impostazioni": { "title": "Settings", "subtitle": "Account, language and Steam connection." }
+    "panoramica": {
+      "title": "Overview",
+      "subtitle": "A bird's-eye view of your activity."
+    },
+    "libreria": {
+      "title": "Your library",
+      "subtitle": "Every game you own, at a glance."
+    },
+    "negozio": {
+      "title": "Store",
+      "subtitle": "Browse the Steam catalogue, filter and buy in one click."
+    },
+    "wishlist": {
+      "title": "Your wishlist",
+      "subtitle": "The games you want, with alerts when the price drops."
+    },
+    "backlog": {
+      "title": "Backlog",
+      "subtitle": "Sort your games by status: playing, finished, abandoned."
+    },
+    "statistiche": {
+      "title": "Statistics",
+      "subtitle": "Playtime, completions and achievements."
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Compare your library and achievements with other players."
+    },
+    "impostazioni": {
+      "title": "Settings",
+      "subtitle": "Account, language and Steam connection."
+    }
   },
   "store": {
     "dealsTitle": "Current deals",
@@ -48,17 +69,32 @@
       "price": "Price",
       "anyPrice": "Any price",
       "free": "Free",
-      "paid": "Paid",
-      "onSale": "On sale",
+      "under10": "Under €10",
+      "under20": "Under €20",
+      "under40": "Under €40",
       "discount": "Discount",
-      "platform": "Platform"
+      "anyDiscount": "Any discount",
+      "onSale": "On sale only",
+      "d25": "25% or more",
+      "d50": "50% or more",
+      "d75": "75% or more",
+      "platform": "Platform",
+      "rating": "Rating",
+      "anyRating": "Any rating",
+      "r90": "Overwhelmingly positive (90%+)",
+      "r80": "Very positive (80%+)",
+      "r70": "Mostly positive (70%+)",
+      "language": "Language",
+      "anyLanguage": "Any language"
     },
     "sort": {
       "label": "Sort",
-      "name": "Name (A-Z)",
+      "popularity": "Popularity",
       "priceAsc": "Price: low to high",
       "priceDesc": "Price: high to low",
-      "newest": "Newest"
+      "discount": "Biggest discount",
+      "rating": "Rating",
+      "name": "Name (A-Z)"
     }
   },
   "gameDetail": {
@@ -98,6 +134,7 @@
   "library": {
     "allTab": "All",
     "hoursUnit": "hours",
+    "noAchievements": "—",
     "changeStatusAria": "Change status",
     "empty": {
       "title": "Nothing here yet",
@@ -111,11 +148,15 @@
       "discount": "Biggest discount",
       "name": "Name (A-Z)"
     },
+    "priceDrop": "{{name}} from your wishlist has dropped in price!",
+    "alertOn": "Price alert on",
+    "alertOff": "Turn on price alert",
     "free": "Free",
     "remove": "Remove from wishlist",
+    "footer": "Get an automatic alert when a wishlisted game drops in price.",
     "empty": {
       "title": "Your wishlist is empty",
-      "text": "Add games from the store to track them."
+      "text": "Add games from the store to track them and get price-drop alerts."
     }
   },
   "backlog": {
@@ -125,18 +166,59 @@
     "hint": "Drag a game to another section to change its status, or use the menu on the row."
   },
   "stats": {
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
     "kpi": {
       "totalGames": "Total games",
       "hoursPlayed": "Hours played",
+      "achievements": "Achievements",
       "avgCompletion": "Average completion",
-      "genres": "Genres"
+      "genres": "Genres",
+      "deltaGames": "+{{count}} this month",
+      "deltaHours": "+{{count}}h this month",
+      "deltaAch": "+{{count}} this month",
+      "avgHint": "across {{count}} games"
     },
     "charts": {
+      "hoursTitle": "Hours played per month",
+      "hoursSubtitle": "Last 12 months",
       "genreTitle": "Games by genre",
       "statusTitle": "Games by status"
     },
-    "unit": { "hours": "h", "games": "games" },
-    "tooltip": { "games": "games" }
+    "status": {
+      "completed": "Completed",
+      "playing": "In progress",
+      "notStarted": "Not started",
+      "backlog": "Backlog"
+    },
+    "table": {
+      "title": "Most played games",
+      "game": "Game",
+      "hours": "Hours",
+      "progress": "Achievements",
+      "status": "Status",
+      "empty": "No games to show."
+    },
+    "tooltip": {
+      "hours": "hours",
+      "games": "games"
+    },
+    "unit": {
+      "hours": "h",
+      "games": "games"
+    }
   },
   "community": {
     "subtitle": "Discover other players and their libraries.",
@@ -150,25 +232,6 @@
     "emptyBacklog": "No games in the library.",
     "privateNotice": "This profile is private."
   },
-  "findPlayers": {
-    "title": "Find players",
-    "subtitle": "Search other players and visit their profile.",
-    "searchPlaceholder": "Search a player…",
-    "noResults": "No players found."
-  },
-  "achievements": {
-    "title": "Achievements",
-    "unlocked": "Unlocked",
-    "completion": "Completion",
-    "points": "Points",
-    "share": "Share your achievements",
-    "empty": "No achievements to show.",
-    "filter": {
-      "all": "All",
-      "unlocked": "Unlocked",
-      "locked": "Locked"
-    }
-  },
   "auth": {
     "fields": {
       "email": "Email",
@@ -181,6 +244,7 @@
     "login": {
       "title": "Welcome back",
       "subtitle": "Sign in to your Arcadium account.",
+      "badge": "Sign-in form",
       "submit": "Sign in",
       "forgotPassword": "Forgot password?",
       "error": "Incorrect username or password. Try again.",
@@ -190,6 +254,7 @@
     "register": {
       "title": "Create your account",
       "subtitle": "Start organising your library.",
+      "badge": "Sign-up form",
       "submit": "Create account",
       "error": "Check the fields and try again.",
       "passwordMismatch": "Passwords do not match.",
@@ -200,6 +265,24 @@
       "required": "This field is required.",
       "invalidEmail": "Enter a valid email.",
       "passwordTooShort": "Password must be at least 8 characters."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we'll send you instructions to reset your password.",
+      "submit": "Send instructions",
+      "sent": "If the address is linked to an account, you'll receive an email with a link to reset your password.",
+      "devLink": "Open the reset link (development only)",
+      "backToLogin": "Back to sign in"
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "Choose a new password for your account.",
+      "newPassword": "New password",
+      "submit": "Reset password",
+      "success": "Password reset successfully. You'll be redirected to sign in.",
+      "invalidToken": "The reset link is invalid or has expired.",
+      "requestNew": "Request a new link",
+      "goToLogin": "Go to sign in"
     }
   },
   "errors": {

@@ -22,6 +22,14 @@ import com.ace5.arcadium.entity.AppUser;
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByUsername(String username);
+    /**
+     * Utente per email: serve al recupero password (M4-T17) per trovare l'account
+     * a cui inviare il link di reset.
+     *
+     * @param email indirizzo email
+     * @return l'utente con quella email, se esiste
+     */
+    Optional<AppUser> findByEmail(String email);
 
     /**
      * Utente per SteamID: serve al connect Steam (M4-T16) per garantire che uno
