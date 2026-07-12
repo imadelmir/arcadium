@@ -68,3 +68,22 @@
     transform: none;
   }
 }
+/* Campanello: contenitore per ancorare il popup */
+.bellWrap { position: relative; display: inline-flex; }
+
+/* Mini popup "presto disponibile" (colore oro) */
+.notifPopup {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 60;
+  padding: 10px 14px;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  border: 1px solid rgba(245, 196, 81, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+}
