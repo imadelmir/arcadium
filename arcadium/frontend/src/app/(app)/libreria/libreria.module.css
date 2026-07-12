@@ -4,6 +4,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  /* Riduce la larghezza del contenuto così non si allarga a dismisura sugli
+     schermi grandi: la barra dei filtri e la riga dei giochi restano allineate
+     e coincidono in larghezza (change request Libreria, punto 2). */
+  max-width: 1500px;
 }
 
 .head {
@@ -11,34 +15,63 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+/* Titolo pagina (blocco riscritto: prima era annidato per errore e non si
+   applicava). */
 .title {
- .title {
   font-size: 55px;
   font-weight: 700;
   color: var(--color-text);
-}
 }
 .subtitle {
   font-size: 14px;
   color: var(--color-text-muted);
 }
 
+/* Avviso quando il salvataggio di un cambio stato fallisce (punto 7). */
+.statusError {
+  padding: var(--space-3) var(--space-4);
+  font-size: 14px;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  border-radius: var(--radius-md);
+}
+
+/* --- Barra dei filtri (a tutta larghezza, coincide con la riga dei giochi) ---
+   La barra ora occupa l'intera larghezza del contenuto e le tab si dividono lo
+   spazio equamente (controllo segmentato): il bordo destro coincide con la fine
+   dell'ultima immagine della riga (change request Libreria, punto 2). */
 .tabs {
+  display: flex;
+  width: 100%;
   margin-top: var(--space-1);
   margin-bottom: var(--space-4);
 }
-
-/* Ingrandisce le tab solo in questa pagina (senza toccare il componente Tabs) */
 .tabs :global(button) {
+  flex: 1 1 0; /* ogni tab occupa la stessa frazione della barra */
+  justify-content: center;
   padding: 12px 20px;
   font-size: 15px;
   border-radius: var(--radius-pill);
+  text-align: center;
 }
-/* Griglia responsive delle card */
+
+/* --- Griglia dei giochi: 5 colonne allineate (punti 1 e 3) --- */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(5, 1fr); /* max 5 giochi per riga, colonne allineate */
   gap: var(--space-4);
+}
+
+/* Colonne responsive sugli schermi più stretti (senza superare mai le 5). */
+@media (max-width: 1280px) {
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 980px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 680px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Stato vuoto */

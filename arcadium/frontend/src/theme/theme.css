@@ -45,10 +45,10 @@
   --color-platform-soft: rgba(34, 211, 238, 0.14);
 
   /* --- Game status colours (library / backlog) --- */
-  --status-never: #6b7280;     /* "Mai giocato" */
-  --status-playing: #4f7bff;   /* "In corso" */
-  --status-finished: #8b5cf6;  /* "Finito" */
-  --status-abandoned: #f5894c; /* "Abbandonato" */
+  --status-never: #64748b;     /* "Mai giocato" — grigio-ardesia neutro */
+  --status-playing: #4f7bff;   /* "In corso" — blu (attivo) */
+  --status-finished: #34d399;  /* "Finito" — verde (completato) */
+  --status-abandoned: #f06b6b; /* "Abbandonato" — rosso (negativo) */
 
   /* --- Brand gradient (logo and primary buttons) --- */
   --gradient-brand: linear-gradient(135deg, #7c5cff 0%, #4f7bff 100%);

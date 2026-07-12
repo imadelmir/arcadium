@@ -152,7 +152,8 @@
     "empty": {
       "title": "Nothing here yet",
       "text": "No games in this state. Switch filter or add some from the store."
-    }
+    },
+    "statusError": "Couldn't save the new status. Please try again."
   },
   "wishlist": {
     "sortLabel": "Sort",
