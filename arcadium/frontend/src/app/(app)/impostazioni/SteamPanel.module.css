@@ -1,0 +1,111 @@
+/* =============================================================================
+   SteamPanel — stili della sezione "Integrazione Steam" (M5-T15).
+   Usa i token del tema (variabili CSS della palette violet) per restare
+   coerente col resto dell'app.
+   ============================================================================= */
+
+/* Contenitore della sezione (dentro una Card). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Intestazione: titolo + descrizione. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Corpo: contenuto dello stato corrente (collegato / non collegato). */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+/* Testo attenuato (etichette, stati vuoti). */
+.muted {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Riga "Account Steam collegato". */
+.connected {
+  margin: 0;
+  font-weight: 600;
+  color: var(--success, #37d67a);
+}
+
+/* SteamID mostrato quando l'account è collegato. */
+.steamId {
+  margin: 0;
+  font-family: monospace;
+  color: var(--text-primary);
+}
+
+/* Gruppo di pulsanti (Sincronizza / Scollega). */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Riquadro di avviso "profilo privato". */
+.privateBox {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warning, #e0a800);
+  border-radius: var(--radius, 8px);
+  background: color-mix(in srgb, var(--warning, #e0a800) 12%, transparent);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.privateBox p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Link alle impostazioni privacy di Steam. */
+.privateLink {
+  align-self: flex-start;
+  color: var(--accent, #8b5cf6);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.privateLink:hover {
+  text-decoration: underline;
+}
+
+/* Messaggi di esito. */
+.success {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--success, #37d67a);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--danger, #ef4444);
+}
