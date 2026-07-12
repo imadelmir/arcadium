@@ -3,6 +3,13 @@
 // Pagina "La tua libreria" (M5-T10) — COLLEGATA al backend (M5-T13).
 // La libreria = i giochi posseduti = GET /api/backlog. Griglia con filtro per
 // stato (tab) e cambio stato reale (PATCH /api/backlog/{appId}).
+//
+// FIX bug "In corso" (change request Libreria, punto 7):
+//   il cambio stato ora è guidato dalla RISPOSTA del server. Dopo il PATCH, la
+//   voce locale viene riconciliata con lo stato restituito dal backend (fonte
+//   di verità): così ciò che si vede coincide con ciò che è stato persistito e
+//   sopravvive al reload. In caso di errore si ripristina lo stato precedente e
+//   si mostra un avviso (niente più fallimenti silenziosi).
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +28,8 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState("all");
+  // Avviso quando il salvataggio di un cambio stato fallisce.
+  const [statusError, setStatusError] = useState(false);
 
   // Carica i giochi posseduti all'apertura.
   useEffect(() => {
@@ -45,9 +54,11 @@ export default function LibraryPage() {
   const visible =
     filter === "all" ? items : items.filter((it) => it.status.code === filter);
 
-  // Cambio stato reale (aggiorna la UI, chiama PATCH, rollback se fallisce).
+  // Cambio stato reale, guidato dalla risposta del server.
   async function changeStatus(appId, nextCode) {
+    // 1) Aggiornamento OTTIMISTICO: la UI risponde subito.
     const backup = items;
+    setStatusError(false);
     setItems((prev) =>
       prev.map((it) =>
         it.game.appId === appId
@@ -55,10 +66,31 @@ export default function LibraryPage() {
           : it
       )
     );
+
     try {
-      await updateBacklog(appId, { status: nextCode });
+      // 2) PATCH: invia il CODICE dello stato (es. "in_corso") e riceve la voce
+      //    aggiornata dal backend (BacklogItemResponse), con lo stato reale.
+      const updated = await updateBacklog(appId, { status: nextCode });
+
+      // 3) RICONCILIAZIONE con la risposta: lo stato locale diventa quello
+      //    persistito dal server (code + etichette), non un valore "presunto".
+      //    È questo il passaggio che garantisce coerenza dopo il reload.
+      setItems((prev) =>
+        prev.map((it) =>
+          it.game.appId === appId
+            ? {
+                ...it,
+                status: updated.status,
+                playtimeMinutes: updated.playtimeMinutes ?? it.playtimeMinutes,
+              }
+            : it
+        )
+      );
     } catch {
+      // 4) Fallimento: ripristina lo stato precedente e AVVISA l'utente
+      //    (niente fallimento silenzioso: prima l'errore veniva ignorato).
       setItems(backup);
+      setStatusError(true);
     }
   }
 
@@ -76,6 +108,13 @@ export default function LibraryPage() {
       <header className={styles.head}>
         <h1 className={styles.title}>{t("nav.libreria")}</h1>
       </header>
+
+      {/* Avviso di errore sul salvataggio del cambio stato */}
+      {statusError && (
+        <div className={styles.statusError} role="alert">
+          {t("library.statusError")}
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: "grid", placeItems: "center", minHeight: 200 }}>

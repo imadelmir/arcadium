@@ -67,6 +67,9 @@
   box-shadow: 0 0 8px var(--accent);
 }
 
+/* Selettore di stato (dropdown): reso più NITIDO e MENO TRASPARENTE, con
+   colori coerenti col tema della pagina (change request Libreria, punto 6).
+   Sfondo pieno su tinta di superficie del tema invece del nero semitrasparente. */
 .picker {
   position: absolute;
   top: var(--space-2);
@@ -77,22 +80,22 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text);
-  background-color: rgba(6, 8, 20, 0.7);
+  /* superficie del tema quasi opaca: dropdown ben leggibile e definito */
+  background-color: color-mix(in srgb, var(--color-surface-2) 96%, transparent);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b92a8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 8px center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--color-border); /* bordo coerente col tema */
   border-radius: var(--radius-pill);
-  backdrop-filter: blur(8px);
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  opacity: 0.85;
-  transition: border-color var(--transition), opacity var(--transition);
+  opacity: 1; /* niente attenuazione: sempre nitido */
+  transition: border-color var(--transition), background-color var(--transition);
 }
-.card:hover .picker { opacity: 1; }
 .picker:hover { border-color: var(--accent); }
-.picker:focus-visible { outline: none; box-shadow: var(--ring); opacity: 1; }
+.picker:focus-visible { outline: none; box-shadow: var(--ring); }
+/* Voci del menu su superficie piena del tema (leggibili all'apertura). */
 .picker option { color: var(--color-text); background: var(--color-surface-2); }
 
 .body {

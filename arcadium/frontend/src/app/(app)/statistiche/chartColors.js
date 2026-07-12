@@ -25,9 +25,12 @@ export const GENRE_PALETTE = [
 
 // Un colore per ogni stato del backlog. Le CHIAVI sono i codici veri del DB
 // (mai_giocato / in_corso / finito / abbandonato), come nel resto dell'app.
+// IMPORTANTE: questi valori DEVONO restare allineati ai token --status-* di
+// theme.css, così lo stesso stato ha lo stesso colore su TUTTE le pagine
+// (badge in Libreria/Backlog/Profilo e barre in Statistiche).
 export const STATUS_COLORS = {
-  mai_giocato: "#6b7280", // grigio
-  in_corso: "#4f7bff", // blu
-  finito: "#8b5cf6", // viola
-  abbandonato: "#f5894c", // arancio
+  mai_giocato: "#64748b", // grigio-ardesia neutro  (--status-never)
+  in_corso: "#4f7bff", // blu (attivo)              (--status-playing)
+  finito: "#34d399", // verde (completato)          (--status-finished)
+  abbandonato: "#f06b6b", // rosso (negativo)       (--status-abandoned)
 };

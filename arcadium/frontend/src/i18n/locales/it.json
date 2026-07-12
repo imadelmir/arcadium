@@ -152,7 +152,8 @@
     "empty": {
       "title": "Nessun gioco qui",
       "text": "Non hai giochi in questo stato. Cambia filtro o aggiungine dal negozio."
-    }
+    },
+    "statusError": "Impossibile salvare il nuovo stato. Riprova."
   },
   "wishlist": {
     "sortLabel": "Ordina",

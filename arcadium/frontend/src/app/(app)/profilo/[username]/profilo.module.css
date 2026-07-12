@@ -165,16 +165,28 @@
 /* ---------------------------------------------------------------------------
    "STO GIOCANDO": mini card orizzontali con la copertina.
    --------------------------------------------------------------------------- */
+/* "Sto giocando": griglia a 5 colonne -> 5 giochi per riga
+   (change request Profilo, punto 9). */
 .playingRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-3);
-  flex-wrap: wrap;
 }
 .playingCard {
-  width: 300px;
+  width: auto; /* riempie la colonna della griglia */
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--color-border);
+}
+/* Colonne responsive sugli schermi più stretti (senza superare mai le 5). */
+@media (max-width: 1280px) {
+  .playingRow { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 980px) {
+  .playingRow { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 680px) {
+  .playingRow { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ---------------------------------------------------------------------------
