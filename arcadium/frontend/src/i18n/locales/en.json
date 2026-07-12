@@ -295,6 +295,33 @@
     "text": "The page you're looking for doesn't exist or has been moved.",
     "back": "Back to the Store"
   },
+  "integrations": {
+    "steam": {
+      "title": "Steam Integration",
+      "description": "Connect your Steam account to import your library and playtime.",
+      "connect": "Connect Steam",
+      "connecting": "Redirecting to Steam…",
+      "connected": "Steam account connected",
+      "notConnected": "No Steam account connected.",
+      "steamId": "SteamID",
+      "sync": "Sync now",
+      "syncing": "Syncing…",
+      "disconnect": "Disconnect",
+      "disconnecting": "Disconnecting…",
+      "connectSuccess": "Steam account connected successfully.",
+      "syncSuccess_one": "Synced: {{count}} game imported.",
+      "syncSuccess_other": "Synced: {{count}} games imported.",
+      "disconnectSuccess": "Steam account disconnected.",
+      "connectError": "Connection failed. Please try again.",
+      "syncError": "Sync failed. Please try again.",
+      "disconnectError": "Disconnect failed. Please try again.",
+      "private": {
+        "title": "Steam profile is private",
+        "text": "Your Steam profile is private, so we can't read your library. Set your game details to \"Public\" in your Steam privacy settings and try again.",
+        "cta": "Open Steam privacy settings"
+      }
+    }
+  },
   "language": {
     "label": "Language"
   }

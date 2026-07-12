@@ -295,6 +295,33 @@
     "text": "La pagina che cerchi non esiste o è stata spostata.",
     "back": "Torna al Negozio"
   },
+  "integrations": {
+    "steam": {
+      "title": "Integrazione Steam",
+      "description": "Collega il tuo account Steam per importare libreria e ore di gioco.",
+      "connect": "Connetti Steam",
+      "connecting": "Reindirizzamento a Steam…",
+      "connected": "Account Steam collegato",
+      "notConnected": "Nessun account Steam collegato.",
+      "steamId": "SteamID",
+      "sync": "Sincronizza ora",
+      "syncing": "Sincronizzazione…",
+      "disconnect": "Scollega",
+      "disconnecting": "Scollegamento…",
+      "connectSuccess": "Account Steam collegato con successo.",
+      "syncSuccess_one": "Sincronizzato: {{count}} gioco importato.",
+      "syncSuccess_other": "Sincronizzato: {{count}} giochi importati.",
+      "disconnectSuccess": "Account Steam scollegato.",
+      "connectError": "Collegamento non riuscito. Riprova.",
+      "syncError": "Sincronizzazione non riuscita. Riprova.",
+      "disconnectError": "Scollegamento non riuscito. Riprova.",
+      "private": {
+        "title": "Profilo Steam privato",
+        "text": "Il tuo profilo Steam è privato, quindi non possiamo leggere la tua libreria. Imposta i dettagli del gioco su «Pubblico» nella privacy di Steam e riprova.",
+        "cta": "Apri la privacy di Steam"
+      }
+    }
+  },
   "language": {
     "label": "Lingua"
   }
