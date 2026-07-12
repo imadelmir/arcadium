@@ -10,34 +10,40 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ace5.arcadium.dto.AuthResponse;
+import com.ace5.arcadium.dto.ForgotPasswordRequest;
 import com.ace5.arcadium.dto.LoginRequest;
+import com.ace5.arcadium.dto.PasswordResetResponse;
 import com.ace5.arcadium.dto.RegisterRequest;
+import com.ace5.arcadium.dto.ResetPasswordRequest;
 import com.ace5.arcadium.dto.UserResponse;
 import com.ace5.arcadium.security.AppUserPrincipal;
 import com.ace5.arcadium.service.AuthService;
+import com.ace5.arcadium.service.PasswordResetService;
 
 import jakarta.validation.Valid;
 
 /**
- * Endpoint di autenticazione (M4-T3).
+ * Endpoint di autenticazione (M4-T3) e recupero password (M4-T17).
  *
  * <ul>
  *   <li>{@code POST /api/auth/register} — registrazione (pubblico), 201 + token;</li>
  *   <li>{@code POST /api/auth/login} — login (pubblico), 200 + token;</li>
- *   <li>{@code GET  /api/auth/me} — utente autenticato (protetto), 200.</li>
+ *   <li>{@code GET  /api/auth/me} — utente autenticato (protetto), 200;</li>
+ *   <li>{@code POST /api/auth/forgot-password} — richiesta reset (pubblico), 200;</li>
+ *   <li>{@code POST /api/auth/reset-password} — reimposta password (pubblico), 200.</li>
  * </ul>
- *
- * register e login sono aperti nella SecurityConfig; me richiede un Bearer token
- * valido, da cui il filtro ricava il principal iniettato con @AuthenticationPrincipal.
  */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,
+                          PasswordResetService passwordResetService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -54,5 +60,23 @@ public class AuthController {
     @GetMapping("/me")
     public UserResponse me(@AuthenticationPrincipal AppUserPrincipal principal) {
         return UserResponse.from(principal.getAppUser());
+    }
+
+    /**
+     * Passo 1 del recupero password (M4-T17): l'utente indica la propria email.
+     * Risponde sempre 200 con lo stesso messaggio generico, esista o no l'email.
+     */
+    @PostMapping("/forgot-password")
+    public PasswordResetResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return passwordResetService.forgotPassword(request);
+    }
+
+    /**
+     * Passo 2 del recupero password (M4-T17): l'utente arriva dal link col token
+     * e sceglie una nuova password. Token non valido/scaduto/gia' usato -> 400.
+     */
+    @PostMapping("/reset-password")
+    public PasswordResetResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return passwordResetService.resetPassword(request);
     }
 }

@@ -22,10 +22,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * Configurazione di Spring Security (M4-T3).
  *
  * <p>API stateless protetta da JWT: nessuna sessione, niente CSRF (non servono
- * cookie di sessione). Sono pubblici solo la registrazione, il login e
- * l'health; tutto il resto richiede un token valido. Il
- * {@link JwtAuthenticationFilter} è inserito prima del filtro username/password
- * standard e popola il contesto a partire dal token.
+ * cookie di sessione). Sono pubblici solo la registrazione, il login, il
+ * recupero password (M6-T0) e l'health; tutto il resto richiede un token
+ * valido. Il {@link JwtAuthenticationFilter} è inserito prima del filtro
+ * username/password standard e popola il contesto a partire dal token.
  *
  * <p>La verifica delle credenziali al login NON passa da un AuthenticationManager:
  * è fatta esplicitamente in AuthService (passwordEncoder.matches), scelta di
@@ -55,6 +55,8 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // Recupero password (M4-T17): pubblici, l'utente non e' ancora loggato.
+                        .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // Documentazione API (M4-T12): Swagger UI e descrizione OpenAPI pubbliche.
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()

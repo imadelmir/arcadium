@@ -65,72 +65,72 @@ export default function LoginPage() {
   }
 
   return (
-    <div className={styles.card}>
-      <img src="/arcadium-icon-clean.png" alt="Arcadium" className={styles.logo} />
-      <h1 className={styles.title}>{t("auth.login.title")}</h1>
-      <p className={styles.subtitle}>{t("auth.login.subtitle")}</p>
+      <div className={styles.card}>
+        <img src="/arcadium-icon-clean.png" alt="Arcadium" className={styles.logo} />
+        <h1 className={styles.title}>{t("auth.login.title")}</h1>
+        <p className={styles.subtitle}>{t("auth.login.subtitle")}</p>
 
-      {formError && (
-        <div className={styles.errorBanner} role="alert">
-          <AlertCircle size={16} />
-          <span>{formError}</span>
-        </div>
-      )}
+        {formError && (
+            <div className={styles.errorBanner} role="alert">
+              <AlertCircle size={16} />
+              <span>{formError}</span>
+            </div>
+        )}
 
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <Input
-          name="username"
-          type="text"
-          label={t("auth.fields.username")}
-          placeholder="luca"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          error={errors.username}
-          autoComplete="username"
-        />
-
-        <div className={styles.passwordField}>
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <Input
-            name="password"
-            type={showPassword ? "text" : "password"}
-            label={t("auth.fields.password")}
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={errors.password}
-            autoComplete="current-password"
+              name="username"
+              type="text"
+              label={t("auth.fields.username")}
+              placeholder="luca"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              error={errors.username}
+              autoComplete="username"
           />
-          <button
-            type="button"
-            className={styles.eyeButton}
-            onClick={() => setShowPassword((v) => !v)}
-            aria-label={
-              showPassword
-                ? t("auth.fields.hidePassword")
-                : t("auth.fields.showPassword")
-            }
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
 
-        <p className={styles.forgot}>
-          <Link className={styles.link} href="#">
-            {t("auth.login.forgotPassword")}
+          <div className={styles.passwordField}>
+            <Input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                label={t("auth.fields.password")}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={errors.password}
+                autoComplete="current-password"
+            />
+            <button
+                type="button"
+                className={styles.eyeButton}
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={
+                  showPassword
+                      ? t("auth.fields.hidePassword")
+                      : t("auth.fields.showPassword")
+                }
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          <p className={styles.forgot}>
+            <Link className={styles.link} href="/recupero-password">
+              {t("auth.login.forgotPassword")}
+            </Link>
+          </p>
+
+          <Button type="submit" fullWidth disabled={submitting}>
+            {submitting ? t("common.loading") : t("auth.login.submit")}
+          </Button>
+        </form>
+
+        <p className={styles.alt}>
+          {t("auth.login.noAccount")}{" "}
+          <Link className={styles.link} href="/registrazione">
+            {t("auth.login.signUp")}
           </Link>
         </p>
-
-        <Button type="submit" fullWidth disabled={submitting}>
-          {submitting ? t("common.loading") : t("auth.login.submit")}
-        </Button>
-      </form>
-
-      <p className={styles.alt}>
-        {t("auth.login.noAccount")}{" "}
-        <Link className={styles.link} href="/registrazione">
-          {t("auth.login.signUp")}
-        </Link>
-      </p>
-    </div>
+      </div>
   );
 }
