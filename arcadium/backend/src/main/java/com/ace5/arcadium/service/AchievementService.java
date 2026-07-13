@@ -12,32 +12,34 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ace5.arcadium.dto.AchievementResponse;
 import com.ace5.arcadium.dto.UserStatsResponse;
 import com.ace5.arcadium.entity.Achievement;
-import com.ace5.arcadium.entity.AppUser;
 import com.ace5.arcadium.entity.UserAchievement;
 import com.ace5.arcadium.repository.AchievementRepository;
-import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.repository.UserAchievementRepository;
 
 /**
- * Motore di sblocco degli achievement interni (M4-T11).
+ * Achievement interni (M4-T11): motore di sblocco data-driven.
  *
- * <p>Sistema <em>data-driven</em> (M1-T7): non c'e' codice dedicato a ogni
- * badge. Ogni definizione porta una {@code metric} e una {@code threshold}; il
- * motore calcola le metriche dell'utente, e per ogni badge attivo confronta il
- * valore della sua metrica con la soglia. Aggiungere un badge = aggiungere una
- * riga al seed, senza toccare questo codice.
+ * <p>Ogni definizione porta una <em>metrica</em> ({@code games_owned},
+ * {@code games_finished}, ...) e una <em>soglia</em>. Il motore calcola le metriche
+ * dell'utente dal suo backlog e dalla wishlist (riusando {@link StatsService}), le
+ * confronta con le soglie degli achievement attivi e registra gli sblocchi nuovi.
+ * Non esiste codice dedicato per singolo badge: aggiungerne uno significa
+ * aggiungere una riga al seed.
  *
- * <p>Le metriche non vengono ricalcolate qui: si riusano quelle gia' aggregate
- * da {@link StatsService} (M4-T10) — {@code games_owned}, {@code games_finished}
- * e sorelle, {@code playtime_hours}, {@code wishlist_size},
- * {@code distinct_genres} — le stesse elencate in M1-T7 §5. I conteggi per stato
- * (finito/abbandonato/in corso) si leggono dalla ripartizione {@code byStatus}.
+ * <p><b>M6-T4 — gli achievement non si sbloccavano mai.</b> Il motore esisteva ed
+ * era corretto, ma {@link #evaluate(Long)} non veniva chiamato da nessuno: il
+ * frontend leggeva solo {@link #list(Long)}, che mostrava il progresso ma pescava
+ * gli sblocchi da una tabella che restava vuota per sempre. Ora la valutazione e'
+ * parte della lettura: {@code list()} calcola le metriche (cosa che gia' faceva),
+ * sblocca cio' che e' dovuto e restituisce la lista aggiornata. Cosi' non c'e'
+ * nessun punto di chiamata da ricordarsi — ne' ora ne' in futuro — e anche le
+ * librerie popolate <em>prima</em> di questa correzione sbloccano i badge alla
+ * prima apertura della pagina. {@link #evaluate(Long)} resta come endpoint
+ * esplicito e condivide lo stesso motore.
  *
- * <p>Lo sblocco e' idempotente: un badge gia' presente in {@code user_achievement}
- * non viene ri-sbloccato, e gli sblocchi non si revocano mai (coerente con M1-T7:
- * i badge si disattivano, non si cancellano; se in futuro l'utente scende sotto
- * la soglia, il badge conquistato resta). Tutto e' "scoped" all'utente ricevuto
- * dal token: nessun 404/403 da localizzare, quindi nessuna nuova chiave messaggio.
+ * <p>La scrittura durante una GET e' voluta: e' idempotente (uno sblocco gia'
+ * registrato non viene toccato) e invisibile al chiamante, che riceve comunque
+ * solo la lista.
  */
 @Service
 public class AchievementService {
@@ -58,77 +60,104 @@ public class AchievementService {
 
     private final AchievementRepository achievementRepository;
     private final UserAchievementRepository userAchievementRepository;
-    private final AppUserRepository userRepository;
     private final StatsService statsService;
 
+    // AppUserRepository non serve piu': lo sblocco non costruisce un'entita'
+    // UserAchievement (che avrebbe richiesto il riferimento all'utente), ma passa
+    // dall'INSERT ... ON CONFLICT del repository.
     public AchievementService(AchievementRepository achievementRepository,
                               UserAchievementRepository userAchievementRepository,
-                              AppUserRepository userRepository,
                               StatsService statsService) {
         this.achievementRepository = achievementRepository;
         this.userAchievementRepository = userAchievementRepository;
-        this.userRepository = userRepository;
         this.statsService = statsService;
     }
 
     /**
-     * Elenca tutti gli achievement attivi per l'utente, con avanzamento e stato
-     * di sblocco. Non sblocca nulla: e' una sola lettura (per la pagina badge).
+     * Catalogo degli achievement attivi con progresso e stato di sblocco dell'utente.
+     * Prima di rispondere valuta le soglie e registra gli sblocchi maturati.
      *
-     * @param userId id dell'utente autenticato
-     * @return badge attivi con progress e flag di sblocco, in ordine di seed
+     * @param userId utente autenticato
+     * @return tutti gli achievement attivi, in ordine di definizione
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AchievementResponse> list(Long userId) {
         Map<String, Long> metrics = metricsOf(userId);
+        List<Achievement> active = achievementRepository.findByIsActiveTrueOrderByIdAsc();
         Map<Long, LocalDateTime> unlockedAt = unlockedByAchievementId(userId);
 
-        return achievementRepository.findByIsActiveTrueOrderByIdAsc().stream()
+        List<Achievement> unlockedNow = unlockDue(userId, active, metrics, unlockedAt);
+        if (!unlockedNow.isEmpty()) {
+            // Rilettura: i timestamp degli sblocchi appena registrati li conosce il DB.
+            unlockedAt = unlockedByAchievementId(userId);
+        }
+
+        Map<Long, LocalDateTime> tempi = unlockedAt;
+        return active.stream()
                 .map(achievement -> AchievementResponse.of(
                         achievement,
                         progress(metrics, achievement),
-                        unlockedAt.get(achievement.getId())))
+                        tempi.get(achievement.getId())))
                 .toList();
     }
 
     /**
-     * Valuta gli achievement dell'utente e sblocca quelli appena conquistati:
-     * per ogni badge attivo non ancora sbloccato, se il valore della sua metrica
-     * ha raggiunto la soglia, inserisce lo sblocco. Idempotente: rieseguito senza
-     * nuovi progressi non sblocca nulla.
+     * Valuta le soglie e registra gli sblocchi maturati (endpoint esplicito).
      *
-     * @param userId id dell'utente autenticato
-     * @return i badge sbloccati in questa esecuzione (vuoto se nessuno)
+     * @param userId utente autenticato
+     * @return i soli achievement sbloccati adesso (lista vuota se nulla di nuovo)
      */
     @Transactional
     public List<AchievementResponse> evaluate(Long userId) {
         Map<String, Long> metrics = metricsOf(userId);
+        List<Achievement> active = achievementRepository.findByIsActiveTrueOrderByIdAsc();
         Map<Long, LocalDateTime> unlockedAt = unlockedByAchievementId(userId);
 
-        List<AchievementResponse> newlyUnlocked = new ArrayList<>();
-        AppUser user = null; // riferimento risolto solo se c'e' almeno uno sblocco
-
-        for (Achievement achievement : achievementRepository.findByIsActiveTrueOrderByIdAsc()) {
-            if (unlockedAt.containsKey(achievement.getId())) {
-                continue; // gia' sbloccato: non si tocca
-            }
-            long current = progress(metrics, achievement);
-            if (current >= achievement.getThreshold()) {
-                if (user == null) {
-                    user = userRepository.getReferenceById(userId);
-                }
-                UserAchievement saved = userAchievementRepository
-                        .saveAndFlush(new UserAchievement(user, achievement));
-                newlyUnlocked.add(AchievementResponse.of(achievement, current, saved.getUnlockedAt()));
-            }
+        List<Achievement> unlockedNow = unlockDue(userId, active, metrics, unlockedAt);
+        if (unlockedNow.isEmpty()) {
+            return List.of();
         }
-        return newlyUnlocked;
+
+        Map<Long, LocalDateTime> tempi = unlockedByAchievementId(userId);
+        return unlockedNow.stream()
+                .map(achievement -> AchievementResponse.of(
+                        achievement,
+                        progress(metrics, achievement),
+                        tempi.get(achievement.getId())))
+                .toList();
     }
 
+    // -------------------------------------------------------------------------
+    // Motore di sblocco (unico, condiviso da list ed evaluate).
+    // -------------------------------------------------------------------------
+
     /**
-     * Metriche dell'utente (M1-T7 §5) riusando l'aggregato di {@link StatsService}
-     * (M4-T10). I conteggi per stato derivano dalla ripartizione byStatus.
+     * Registra gli achievement la cui metrica ha raggiunto la soglia e che l'utente
+     * non ha ancora. L'inserimento passa da {@code ON CONFLICT DO NOTHING}: due
+     * valutazioni in parallelo non si pestano i piedi (vedi
+     * {@link UserAchievementRepository#insertIfAbsent}).
+     *
+     * @return gli achievement sbloccati da questa esecuzione
      */
+    private List<Achievement> unlockDue(Long userId,
+                                        List<Achievement> active,
+                                        Map<String, Long> metrics,
+                                        Map<Long, LocalDateTime> alreadyUnlocked) {
+        List<Achievement> unlockedNow = new ArrayList<>();
+        for (Achievement achievement : active) {
+            if (alreadyUnlocked.containsKey(achievement.getId())) {
+                continue; // gia' sbloccato: non si tocca
+            }
+            if (progress(metrics, achievement) < achievement.getThreshold()) {
+                continue; // soglia non raggiunta
+            }
+            if (userAchievementRepository.insertIfAbsent(userId, achievement.getId()) > 0) {
+                unlockedNow.add(achievement);
+            }
+        }
+        return unlockedNow;
+    }
+
     private Map<String, Long> metricsOf(Long userId) {
         UserStatsResponse stats = statsService.getStats(userId);
 
@@ -148,7 +177,6 @@ public class AchievementService {
         return metrics;
     }
 
-    /** Mappa achievementId -> momento di sblocco, per l'utente. */
     private Map<Long, LocalDateTime> unlockedByAchievementId(Long userId) {
         Map<Long, LocalDateTime> unlockedAt = new HashMap<>();
         for (UserAchievement ua : userAchievementRepository.findByUserWithAchievement(userId)) {
@@ -157,12 +185,7 @@ public class AchievementService {
         return unlockedAt;
     }
 
-    /**
-     * Valore corrente della metrica del badge. Se la metrica non e' fra quelle
-     * supportate (riga di seed introdotta prima del supporto nel motore), vale 0:
-     * il badge resta non sbloccabile finche' la metrica non viene gestita, senza
-     * far fallire l'endpoint (data-driven robusto).
-     */
+    /** Valore corrente della metrica misurata dall'achievement (0 se sconosciuta). */
     private long progress(Map<String, Long> metrics, Achievement achievement) {
         return metrics.getOrDefault(achievement.getMetric(), 0L);
     }
