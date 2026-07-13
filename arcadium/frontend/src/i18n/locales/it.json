@@ -72,6 +72,7 @@
       "price": "Prezzo",
       "anyPrice": "Qualsiasi prezzo",
       "free": "Gratis",
+      "paid": "A pagamento",
       "under10": "Meno di 10 €",
       "under20": "Meno di 20 €",
       "under40": "Meno di 40 €",
@@ -180,6 +181,12 @@
     "moveAria": "Sposta gioco",
     "emptyColumn": "Nessun gioco",
     "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga."
+  },
+  "status": {
+    "mai_giocato": "Mai giocato",
+    "in_corso": "In corso",
+    "finito": "Finito",
+    "abbandonato": "Abbandonato"
   },
   "stats": {
     "months": [

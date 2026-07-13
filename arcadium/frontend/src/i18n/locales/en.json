@@ -72,6 +72,7 @@
       "price": "Price",
       "anyPrice": "Any price",
       "free": "Free",
+      "paid": "Paid",
       "under10": "Under €10",
       "under20": "Under €20",
       "under40": "Under €40",
@@ -180,6 +181,12 @@
     "moveAria": "Move game",
     "emptyColumn": "No games",
     "hint": "Drag a game to another section to change its status, or use the menu on the row."
+  },
+  "status": {
+    "mai_giocato": "Never played",
+    "in_corso": "Playing",
+    "finito": "Completed",
+    "abbandonato": "Abandoned"
   },
   "stats": {
     "months": [
