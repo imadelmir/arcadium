@@ -27,6 +27,16 @@ import com.ace5.arcadium.config.SteamProperties;
  * <p>Le risposte JSON si mappano su record con i nomi dei campi identici alle
  * chiavi Steam ({@code appid}, {@code playtime_forever}), cosi' il converter le
  * deserializza senza annotazioni ne' dipendenze aggiuntive.
+ *
+ * <p><b>Profilo privato (M6-T4).</b> Steam non risponde con un errore HTTP quando
+ * il profilo dell'utente e' privato: risponde 200 con un involucro <em>vuoto</em>
+ * ({@code {"response":{}}}), senza {@code game_count} e senza {@code games}. Un
+ * profilo pubblico con zero giochi risponde invece con {@code game_count: 0}. La
+ * discriminante e' quindi la presenza di {@code game_count}: senza di esso la
+ * libreria non e' leggibile. Prima questa distinzione andava persa (entrambi i
+ * casi diventavano "lista vuota") e la sync riportava un finto successo con zero
+ * giochi; ora {@link #getOwnedLibrary(String)} la espone con il flag
+ * {@code visible}.
  */
 @Component
 public class SteamClient {
@@ -68,12 +78,14 @@ public class SteamClient {
     }
 
     /**
-     * Giochi posseduti su Steam da un account, col tempo di gioco totale.
+     * Libreria posseduta su Steam, con l'indicazione se sia leggibile o meno.
      *
-     * @param steamId SteamID64 dell'account
-     * @return coppie (app_id, minuti giocati); vuoto se l'account non espone la libreria
+     * @param steamId SteamID64 dell'utente
+     * @return {@link OwnedLibrary} con {@code visible=false} se il profilo Steam e'
+     *         privato (libreria non leggibile), altrimenti i giochi posseduti con
+     *         il tempo di gioco in minuti (lista eventualmente vuota)
      */
-    public List<OwnedGame> getOwnedGames(String steamId) {
+    public OwnedLibrary getOwnedLibrary(String steamId) {
         OwnedGamesEnvelope envelope = restClient.get()
                 .uri(OWNED_GAMES_ENDPOINT
                         + "?key={key}&steamid={id}&include_appinfo=1&include_played_free_games=1&format=json",
@@ -81,16 +93,31 @@ public class SteamClient {
                 .retrieve()
                 .body(OwnedGamesEnvelope.class);
 
-        if (envelope == null || envelope.response() == null || envelope.response().games() == null) {
-            return List.of();
+        SteamResponse response = envelope == null ? null : envelope.response();
+
+        // Nessun game_count = profilo privato: Steam non ci fa vedere la libreria.
+        if (response == null || response.game_count() == null) {
+            return new OwnedLibrary(false, List.of());
         }
-        return envelope.response().games().stream()
+
+        List<SteamGame> games = response.games() == null ? List.of() : response.games();
+        List<OwnedGame> owned = games.stream()
                 .map(game -> new OwnedGame(game.appid(),
                         game.playtime_forever() == null ? 0 : game.playtime_forever()))
                 .toList();
+        return new OwnedLibrary(true, owned);
     }
 
-    /** Un gioco posseduto: app_id e minuti giocati totali. */
+    /**
+     * Esito della lettura della libreria.
+     *
+     * @param visible false se il profilo Steam e' privato (games e' vuoto e non
+     *                significa "nessun gioco", ma "non possiamo saperlo")
+     * @param games   giochi posseduti, vuoto se il profilo non e' leggibile
+     */
+    public record OwnedLibrary(boolean visible, List<OwnedGame> games) {
+    }
+
     public record OwnedGame(Long appId, Integer playtimeMinutes) {
     }
 
