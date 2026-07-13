@@ -6,6 +6,7 @@
     "wishlist": "Wishlist",
     "backlog": "Backlog",
     "statistiche": "Statistics",
+    "achievement": "Achievements",
     "community": "Community",
     "impostazioni": "Settings"
   },
@@ -13,7 +14,8 @@
     "underConstruction": "Page under construction",
     "search": "Search games, genres, developers…",
     "loading": "Please wait…",
-    "all": "All"
+    "all": "All",
+    "logout": "Log out"
   },
   "social": {
     "discord": "Join us on Discord",
@@ -232,6 +234,19 @@
     "unit": {
       "hours": "h",
       "games": "games"
+    }
+  },
+  "achievements": {
+    "title": "Achievements",
+    "unlocked": "Unlocked",
+    "completion": "Completion",
+    "points": "Points",
+    "share": "Share your achievements",
+    "empty": "No achievements in this section.",
+    "filter": {
+      "all": "All",
+      "unlocked": "Unlocked",
+      "locked": "Locked"
     }
   },
   "community": {
