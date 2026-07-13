@@ -2,7 +2,6 @@ package com.ace5.arcadium.service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -26,6 +25,7 @@ import com.ace5.arcadium.repository.BacklogStatusRepository;
 import com.ace5.arcadium.repository.GameRepository;
 import com.ace5.arcadium.steam.SteamClient;
 import com.ace5.arcadium.steam.SteamClient.OwnedGame;
+import com.ace5.arcadium.steam.SteamClient.OwnedLibrary;
 
 /**
  * Integrazione Steam (M4-T16): connect via OpenID e sincronizzazione opt-in di
@@ -44,6 +44,11 @@ import com.ace5.arcadium.steam.SteamClient.OwnedGame;
  * gioco di quelle gia' presenti, <em>senza</em> toccarne lo stato ne' rimuovere i
  * giochi aggiunti a mano. Cosi' "tenere la propria libreria" e "sincronizzare"
  * convivono: e' l'utente a scegliere se lanciare la sync.
+ *
+ * <p><b>Profilo privato (M6-T4).</b> Se il profilo Steam non e' leggibile, la sync
+ * fallisce con 422 e chiave {@code error.steam.profilePrivate}: il frontend mostra
+ * l'avviso con il link alle impostazioni privacy di Steam. Prima questo caso
+ * passava per un successo con zero giochi, indistinguibile da una libreria vuota.
  */
 @Service
 public class SteamIntegrationService {
@@ -122,6 +127,8 @@ public class SteamIntegrationService {
      *
      * @param userId utente autenticato
      * @return riepilogo dell'operazione
+     * @throws ApiException 422 {@code error.steam.profilePrivate} se il profilo Steam
+     *                      non e' leggibile
      */
     @Transactional
     public SteamSyncResponse sync(Long userId) {
@@ -134,15 +141,21 @@ public class SteamIntegrationService {
             throw new ApiException(HttpStatus.CONFLICT, "error.steam.notConnected");
         }
 
+        OwnedLibrary library = steamClient.getOwnedLibrary(steamId);
+        if (!library.visible()) {
+            // Profilo privato: non e' una libreria vuota, e' una libreria che non
+            // possiamo leggere. Meglio un errore parlante che un falso successo.
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "error.steam.profilePrivate");
+        }
+
         BacklogStatus defaultStatus = backlogStatusRepository.findByCode(DEFAULT_STATUS)
                 .orElseThrow(() -> new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "error.internal"));
 
-        List<OwnedGame> owned = steamClient.getOwnedGames(steamId);
         int added = 0;
         int updated = 0;
         int skipped = 0;
 
-        for (OwnedGame game : owned) {
+        for (OwnedGame game : library.games()) {
             if (!gameRepository.existsById(game.appId())) {
                 skipped++; // gioco posseduto ma non nel catalogo Arcadium
                 continue;
@@ -159,7 +172,7 @@ public class SteamIntegrationService {
                 added++;
             }
         }
-        return new SteamSyncResponse(owned.size(), added, updated, skipped);
+        return new SteamSyncResponse(library.games().size(), added, updated, skipped);
     }
 
     /**

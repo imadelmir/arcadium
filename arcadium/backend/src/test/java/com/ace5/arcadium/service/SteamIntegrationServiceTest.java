@@ -3,8 +3,8 @@ package com.ace5.arcadium.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -38,16 +38,8 @@ import com.ace5.arcadium.repository.BacklogStatusRepository;
 import com.ace5.arcadium.repository.GameRepository;
 import com.ace5.arcadium.steam.SteamClient;
 import com.ace5.arcadium.steam.SteamClient.OwnedGame;
+import com.ace5.arcadium.steam.SteamClient.OwnedLibrary;
 
-/**
- * Test unitari del {@link SteamIntegrationService} (M4-T16).
- *
- * <p>Verificano, senza rete ({@link SteamClient} mockato) e senza database, il
- * connect (verifica OpenID, estrazione SteamID, unicita' dell'account) e la sync
- * non distruttiva (aggiunge i nuovi, aggiorna il tempo di gioco degli esistenti,
- * salta i giochi fuori catalogo), oltre ai casi d'errore (non configurato, non
- * collegato, verifica fallita, account gia' collegato).
- */
 @ExtendWith(MockitoExtension.class)
 class SteamIntegrationServiceTest {
 
@@ -129,6 +121,45 @@ class SteamIntegrationServiceTest {
                 });
     }
 
+    /**
+     * M6-T4: profilo Steam privato. Steam risponde 200 con un involucro vuoto e il
+     * client lo segnala con visible=false. Prima diventava un successo con zero
+     * giochi; ora deve essere un 422 parlante, cosi' il frontend puo' mostrare
+     * l'avviso con il link alla privacy di Steam.
+     */
+    @Test
+    void syncFailsWhenSteamProfileIsPrivate() {
+        when(properties.isConfigured()).thenReturn(true);
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, STEAM_ID)));
+        when(steamClient.getOwnedLibrary(STEAM_ID)).thenReturn(new OwnedLibrary(false, List.of()));
+
+        assertThatThrownBy(() -> service.sync(USER_ID))
+                .isInstanceOfSatisfying(ApiException.class, ex -> {
+                    assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+                    assertThat(ex.getMessageKey()).isEqualTo("error.steam.profilePrivate");
+                });
+
+        verify(backlogRepository, never()).save(any(Backlog.class));
+    }
+
+    /** Profilo pubblico ma libreria vuota: e' un successo, con zero giochi. */
+    @Test
+    void syncSucceedsWithZeroGamesWhenPublicLibraryIsEmpty() {
+        when(properties.isConfigured()).thenReturn(true);
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, STEAM_ID)));
+        when(steamClient.getOwnedLibrary(STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of()));
+        when(backlogStatusRepository.findByCode("mai_giocato"))
+                .thenReturn(Optional.of(status("mai_giocato")));
+
+        SteamSyncResponse response = service.sync(USER_ID);
+
+        assertThat(response.ownedOnSteam()).isZero();
+        assertThat(response.added()).isZero();
+        assertThat(response.updated()).isZero();
+        assertThat(response.skipped()).isZero();
+        verify(backlogRepository, never()).save(any(Backlog.class));
+    }
+
     @Test
     void syncAddsNewUpdatesExistingAndSkipsGamesOutOfCatalog() {
         AppUser user = appUser(USER_ID, STEAM_ID);
@@ -138,10 +169,10 @@ class SteamIntegrationServiceTest {
         when(properties.isConfigured()).thenReturn(true);
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(backlogStatusRepository.findByCode("mai_giocato")).thenReturn(Optional.of(status));
-        when(steamClient.getOwnedGames(STEAM_ID)).thenReturn(List.of(
+        when(steamClient.getOwnedLibrary(STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of(
                 new OwnedGame(10L, 120),   // in catalogo, gia' presente -> update
                 new OwnedGame(20L, 300),   // in catalogo, nuovo         -> add
-                new OwnedGame(99L, 5)));   // fuori catalogo             -> skip
+                new OwnedGame(99L, 5))));  // fuori catalogo             -> skip
         when(gameRepository.existsById(10L)).thenReturn(true);
         when(gameRepository.existsById(20L)).thenReturn(true);
         when(gameRepository.existsById(99L)).thenReturn(false);

@@ -60,6 +60,21 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  // Ricarica l'utente da GET /api/auth/me (M6-T4).
+  // Serve quando qualcosa cambia il profilo lato server e lo stato in memoria
+  // resterebbe vecchio: es. dopo aver collegato o scollegato Steam, `user.steamId`
+  // deve aggiornarsi senza costringere l'utente a rifare il login.
+  const refresh = useCallback(async () => {
+    if (!getToken()) return null;
+    try {
+      const me = await authApi.me();
+      setUser(me);
+      return me;
+    } catch {
+      return null; // il chiamante mostra già il proprio messaggio di errore
+    }
+  }, []);
+
   const value = {
     user,
     loading,
@@ -67,6 +82,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    refresh,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

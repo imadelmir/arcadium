@@ -42,6 +42,13 @@ export default function StatistichePage() {
   // Formatta i numeri col separatore della lingua attiva.
   const nf = (n) => new Intl.NumberFormat(i18n.language).format(n ?? 0);
 
+  // M6-T4 — il backend restituisce `completionRate` come QUOTA in [0,1]
+  // (UserStatsResponse: giochi finiti / giochi posseduti). Prima veniva stampata
+  // tale e quale seguita da "%", quindi un utente al 42% leggeva "0.42%".
+  // Qui la si converte in percentuale intera: la conversione è una scelta di
+  // presentazione e resta nel frontend, il contratto dell'API non cambia.
+  const percentuale = (quota) => Math.round((quota ?? 0) * 100);
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -98,7 +105,7 @@ export default function StatistichePage() {
           icon={Target}
           tone="green"
           label={t("stats.kpi.avgCompletion")}
-          value={`${stats.completionRate ?? 0}%`}
+          value={`${percentuale(stats.completionRate)}%`}
         />
         <KpiCard
           icon={Layers}
