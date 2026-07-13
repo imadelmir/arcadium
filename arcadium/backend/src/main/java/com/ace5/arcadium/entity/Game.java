@@ -44,6 +44,13 @@ public class Game {
 
     private String name;                      // TEXT NOT NULL
 
+    // Chiave di ordinamento alfabetico generata dal DB (change request Negozio,
+    // migrazione V7): nome minuscolo senza i caratteri iniziali non-lettera,
+    // NULL per i titoli senza lettera latina (numeri, cinese/coreano) così
+    // finiscono in fondo con "NULLS LAST". SOLA LETTURA: la calcola PostgreSQL.
+    @Column(name = "name_sort", insertable = false, updatable = false)
+    private String nameSort;
+
     private LocalDate releaseDate;            // DATE, nullable
 
     private Long ownersMin;                   // BIGINT
@@ -85,51 +92,51 @@ public class Game {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_language",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "language_id"))
+            name = "game_language",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id"))
     private Set<Language> supportedLanguages = new LinkedHashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_audio_language",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "language_id"))
+            name = "game_audio_language",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id"))
     private Set<Language> audioLanguages = new LinkedHashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_developer",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "developer_id"))
+            name = "game_developer",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "developer_id"))
     private Set<Developer> developers = new LinkedHashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_publisher",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "publisher_id"))
+            name = "game_publisher",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "publisher_id"))
     private Set<Publisher> publishers = new LinkedHashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_category",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "category_id"))
+            name = "game_category",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new LinkedHashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_genre",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "genre_id"))
+            name = "game_genre",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private Set<Genre> genres = new LinkedHashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "game_tag",
-        joinColumns = @JoinColumn(name = "app_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id"))
+            name = "game_tag",
+            joinColumns = @JoinColumn(name = "app_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new LinkedHashSet<>();
 
     // --- Screenshot: entità debole (app_id, url) come element collection ---
@@ -137,8 +144,8 @@ public class Game {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
-        name = "game_screenshot",
-        joinColumns = @JoinColumn(name = "app_id"))
+            name = "game_screenshot",
+            joinColumns = @JoinColumn(name = "app_id"))
     @Column(name = "url")
     private Set<String> screenshots = new LinkedHashSet<>();
 

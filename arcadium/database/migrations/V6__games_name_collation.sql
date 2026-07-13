@@ -1,0 +1,36 @@
+-- =============================================================================
+-- Arcadium — ACE5
+-- Milestone M5 — Frontend · change request Negozio (ordinamento "Nome A-Z / Z-A")
+-- Migrazione: collation della colonna games.name
+--
+-- Sesta migrazione versionata (V6), successiva a V1 (baseline), V2 (campi
+-- utente), V3 (achievement), V4 (tabelle future-ready) e V5 (password reset).
+--
+-- PROBLEMA
+--   L'ordinamento "Nome (A-Z)" del Negozio non mostrava in cima i giochi che
+--   iniziano con l'alfabeto latino: con la collation di default del database
+--   i titoli non latini (cinese, coreano, giapponese, cirillico, ...) — molto
+--   presenti nel dataset Steam — venivano ordinati PRIMA della "A". Il codice
+--   applica correttamente ORDER BY name; a decidere l'ordine è la collation.
+--
+-- SOLUZIONE
+--   La collation "C" ordina per code point Unicode: prima le cifre, poi A-Z
+--   (maiuscole) e a-z (minuscole) dell'alfabeto latino, infine i caratteri non
+--   latini. Così "Nome (A-Z)" mostra i titoli latini in cima e "Nome (Z-A)" li
+--   mostra in fondo, come atteso.
+--
+-- COMPATIBILITÀ
+--   - La ricerca del catalogo NON cambia: usa lower(name) LIKE lower(?), e "C"
+--     è deterministica, quindi LIKE continua a funzionare (anzi, più veloce).
+--   - L'indice trigram idx_games_name_trgm (gin_trgm_ops) è indipendente dalla
+--     collation e resta valido; l'indice btree idx_games_name viene ricostruito
+--     automaticamente da PostgreSQL con la nuova collation.
+--
+-- NOTA
+--   ALTER COLUMN ... TYPE riscrive la tabella una sola volta (operazione rapida
+--   sul dataset del progetto). Forward-only: non modifica le migrazioni V1-V5.
+--   Coerente con la change request Negozio (fascia di prezzo, Z-A, paginazione).
+-- =============================================================================
+
+ALTER TABLE games
+    ALTER COLUMN name TYPE text COLLATE "C";

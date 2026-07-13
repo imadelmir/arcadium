@@ -78,7 +78,8 @@ public class GameService {
         GamePlatform platform = parsePlatform(filter.platform());
         CatalogGameStatus status = parseStatus(filter.status());
         validatePriceRange(filter.minPrice(), filter.maxPrice());
-        Pageable safePageable = sanitize(pageable);
+        boolean hasGenre = filter.genre() != null && !filter.genre().isBlank();
+        Pageable safePageable = sanitize(pageable, hasGenre);
 
         Specification<Game> spec = GameSpecifications.build(
                 filter.q(), filter.genre(), platform, status,
@@ -158,15 +159,47 @@ public class GameService {
      * Valida l'ordinamento (whitelist) e limita la dimensione della pagina.
      * Ricostruisce un {@link Pageable} pulito da passare al repository.
      */
-    private Pageable sanitize(Pageable pageable) {
+    private Pageable sanitize(Pageable pageable, boolean hasGenre) {
         for (Sort.Order order : pageable.getSort()) {
             if (!SORTABLE_FIELDS.contains(order.getProperty())) {
                 throw new ApiException(HttpStatus.BAD_REQUEST,
                         "error.catalog.sort.invalid", order.getProperty());
             }
         }
-        Sort sort = pageable.getSort().isSorted() ? pageable.getSort() : DEFAULT_SORT;
+        Sort requested = pageable.getSort().isSorted() ? pageable.getSort() : DEFAULT_SORT;
+        Sort effective = toEffectiveSort(requested, hasGenre);
         int size = Math.min(Math.max(pageable.getPageSize(), 1), MAX_PAGE_SIZE);
-        return PageRequest.of(pageable.getPageNumber(), size, sort);
+        return PageRequest.of(pageable.getPageNumber(), size, effective);
+    }
+
+    /**
+     * Ordinamento per nome con l'alfabeto latino in testa (change request
+     * Negozio: "Nome A-Z / Z-A").
+     *
+     * <p>Ordina sulla colonna generata {@code name_sort} (migrazione V7): nome
+     * minuscolo ripulito dei caratteri iniziali non-lettera, quindi "!AnyWay!"
+     * ordina come "anyway" e "#Archery" come "archery". I titoli senza lettera
+     * latina (soli numeri, cinese/coreano) hanno {@code name_sort} NULL e con
+     * {@code NULLS LAST} restano in fondo sia in A-Z sia in Z-A. {@code appId}
+     * è il tie-breaker che rende la paginazione deterministica.
+     *
+     * <p>Eccezione: con il filtro per genere attivo la query usa {@code DISTINCT}
+     * e PostgreSQL vieta un {@code ORDER BY} con colonne non presenti nella
+     * {@code SELECT DISTINCT}: in quel solo caso si tiene l'ordinamento semplice
+     * per {@code name}. Il Negozio non usa il filtro genere.
+     */
+    private Sort toEffectiveSort(Sort requested, boolean hasGenre) {
+        Sort effective = Sort.unsorted();
+        for (Sort.Order order : requested) {
+            Sort piece;
+            if (!hasGenre && "name".equals(order.getProperty())) {
+                Sort.Order key = new Sort.Order(order.getDirection(), "nameSort").nullsLast();
+                piece = Sort.by(key).and(Sort.by(Sort.Direction.ASC, "appId"));
+            } else {
+                piece = Sort.by(order.getDirection(), order.getProperty());
+            }
+            effective = effective.and(piece);
+        }
+        return effective;
     }
 }
