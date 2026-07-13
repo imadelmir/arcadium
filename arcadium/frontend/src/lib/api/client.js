@@ -138,6 +138,19 @@ async function request(path, { method = "GET", body, params, auth = true } = {})
     }
   }
 
+  // Sessione scaduta o token non valido (M6-T4).
+  // Riguarda solo le chiamate autenticate: il 401 di /api/auth/login significa
+  // "credenziali sbagliate" e deve restare un errore normale, mostrato nel form
+  // (quelle chiamate passano auth: false). Qui invece il token che avevamo non
+  // vale più: lo buttiamo e riportiamo l'utente al login, altrimenti resterebbe
+  // in un'app che risponde 401 a ogni richiesta senza dirgli perché.
+  if (response.status === 401 && auth) {
+    clearToken();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+      window.location.replace("/login");
+    }
+  }
+
   // Risposta di errore: costruiamo un ApiError leggendo la forma del backend.
   if (!response.ok) {
     const message = data?.message || response.statusText;
