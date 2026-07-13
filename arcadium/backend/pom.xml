@@ -96,10 +96,22 @@
 
         <!-- Flyway: esegue all'avvio le STESSE migrazioni M2/M3
              (database/migrations + database/seed), condividendo la history
-             flyway_schema_history gia' presente nel DB. Vedi database/README.md. -->
+             flyway_schema_history gia' presente nel DB. Vedi database/README.md.
+
+             NOTA (Spring Boot 4): la sola libreria flyway-core NON basta piu'.
+             Boot 4 ha modularizzato le auto-configurazioni: la classe
+             FlywayAutoConfiguration vive nel modulo spring-boot-flyway, che
+             arriva solo con lo starter. Senza starter, Flyway resta sul
+             classpath ma non viene MAI eseguito all'avvio (nessun log, nessuna
+             migrazione applicata) e Hibernate fallisce la validazione dello
+             schema. Lo starter porta flyway-core in transitiva: non va aggiunto
+             una seconda volta.
+
+             flyway-database-postgresql resta necessario: contiene il supporto
+             specifico per il dialetto PostgreSQL. -->
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
