@@ -24,6 +24,7 @@
 // =============================================================================
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthProvider";
 import { Button, Card } from "@/components";
@@ -46,49 +47,57 @@ export function SteamPanel() {
   const { t } = useTranslation();
   const { user, refresh } = useAuth();
 
+  // Esito del ritorno da Steam (?steam=connected|error). Si legge durante il
+  // render — non dentro un effetto che scrive stato (M6-T4).
+  const searchParams = useSearchParams();
+  const esitoSteam = searchParams.get("steam");
+
   // Fonte di verità: l'utente della sessione. Niente stato locale duplicato.
   const steamId = user?.steamId ?? null;
   const connesso = Boolean(steamId);
 
   const [fase, setFase] = useState("idle"); // idle | connecting | syncing | disconnecting
   const [profiloPrivato, setProfiloPrivato] = useState(false);
-  const [avviso, setAvviso] = useState(null); // { tipo: "success"|"error", testo }
+  // Messaggio prodotto dalle azioni locali (sync, scollega). Se è null vale
+  // quello derivato dal ritorno da Steam, qui sotto.
+  const [avvisoLocale, setAvvisoLocale] = useState(null);
 
   const occupato = fase !== "idle";
 
-  // Al ritorno dal callback Steam leggiamo l'esito da ?steam=connected|error,
-  // ricarichiamo l'utente (così compare lo SteamID) e puliamo l'URL.
+  const avvisoRitorno =
+    esitoSteam === "connected"
+      ? { tipo: "success", testo: t("integrations.steam.connectSuccess") }
+      : esitoSteam === "error"
+        ? { tipo: "error", testo: t("integrations.steam.connectError") }
+        : null;
+
+  const avviso = avvisoLocale ?? avvisoRitorno;
+
+  // Al ritorno dal callback Steam: ricarichiamo l'utente (così compare lo
+  // SteamID) e togliamo il parametro dall'URL. Nessuno stato locale toccato qui.
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const esito = query.get("steam");
-    if (!esito) return;
-
-    if (esito === "connected") {
-      setAvviso({ tipo: "success", testo: t("integrations.steam.connectSuccess") });
+    if (!esitoSteam) return;
+    if (esitoSteam === "connected") {
       refresh(); // rilegge /api/auth/me: user.steamId ora è valorizzato
-    } else if (esito === "error") {
-      setAvviso({ tipo: "error", testo: t("integrations.steam.connectError") });
     }
-
-    // Ripuliamo l'URL dal parametro steam.
     window.history.replaceState({}, "", window.location.pathname);
-  }, [t, refresh]);
+  }, [esitoSteam, refresh]);
 
   // Connetti: chiediamo l'URL di login e reindirizziamo il browser a Steam.
   const gestisciConnetti = useCallback(async () => {
     setFase("connecting");
-    setAvviso(null);
+    setAvvisoLocale(null);
     try {
       const res = await getSteamLoginUrl(); // SteamLoginUrlResponse -> { redirectUrl }
       // Difesa: se manca l'URL (es. sessione scaduta), non reindirizziamo su /undefined.
       if (!res?.redirectUrl) {
-        setAvviso({ tipo: "error", testo: t("integrations.steam.connectError") });
+        setAvvisoLocale({ tipo: "error", testo: t("integrations.steam.connectError") });
         setFase("idle");
         return;
       }
       window.location.href = res.redirectUrl;
     } catch {
-      setAvviso({ tipo: "error", testo: t("integrations.steam.connectError") });
+      setAvvisoLocale({ tipo: "error", testo: t("integrations.steam.connectError") });
       setFase("idle");
     }
   }, [t]);
@@ -96,12 +105,12 @@ export function SteamPanel() {
   // Sincronizza libreria e ore di gioco.
   const gestisciSync = useCallback(async () => {
     setFase("syncing");
-    setAvviso(null);
+    setAvvisoLocale(null);
     setProfiloPrivato(false);
     try {
       // SteamSyncResponse -> { ownedOnSteam, added, updated, skipped }
       const res = await syncSteam();
-      setAvviso({
+      setAvvisoLocale({
         tipo: "success",
         testo: t("integrations.steam.syncSuccess", {
           owned: res?.ownedOnSteam ?? 0,
@@ -114,7 +123,7 @@ export function SteamPanel() {
       if (err instanceof ApiError && err.status === HTTP_PROFILO_PRIVATO) {
         setProfiloPrivato(true); // mostriamo l'avviso "profilo privato"
       } else {
-        setAvviso({ tipo: "error", testo: t("integrations.steam.syncError") });
+        setAvvisoLocale({ tipo: "error", testo: t("integrations.steam.syncError") });
       }
     } finally {
       setFase("idle");
@@ -124,14 +133,14 @@ export function SteamPanel() {
   // Scollega l'account Steam.
   const gestisciScollega = useCallback(async () => {
     setFase("disconnecting");
-    setAvviso(null);
+    setAvvisoLocale(null);
     try {
       await disconnectSteam();
       await refresh(); // user.steamId torna null -> il pannello mostra "Connetti"
       setProfiloPrivato(false);
-      setAvviso({ tipo: "success", testo: t("integrations.steam.disconnectSuccess") });
+      setAvvisoLocale({ tipo: "success", testo: t("integrations.steam.disconnectSuccess") });
     } catch {
-      setAvviso({ tipo: "error", testo: t("integrations.steam.disconnectError") });
+      setAvvisoLocale({ tipo: "error", testo: t("integrations.steam.disconnectError") });
     } finally {
       setFase("idle");
     }

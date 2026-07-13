@@ -34,6 +34,10 @@ export function GameImage({
       {status === "loading" && <div className={styles.skeleton} aria-hidden="true" />}
 
       {status !== "error" && (
+        // Copertine remote dalla CDN Steam: next/image richiederebbe
+        // images.remotePatterns e un ottimizzatore server-side per centinaia di
+        // immagini a pagina. Restiamo su <img>: scelta consapevole (M6-T4).
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           className={styles.image}
           src={src}

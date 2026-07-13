@@ -30,12 +30,22 @@ export default function CommunityPage() {
   // Carica gli utenti quando cambia la ricerca.
   useEffect(() => {
     let attivo = true;
-    setLoading(true);
-    setError(false);
-    searchUsers({ q: qDebounced.trim() || undefined, page: 0, size: 40 })
-      .then((res) => attivo && setUsers(res.content))
-      .catch(() => attivo && setError(true))
-      .finally(() => attivo && setLoading(false));
+    // M6-T4: il caricamento vive dentro una funzione asincrona. L'effetto rigira
+    // a ogni cambio dipendenze e lo spinner deve ricomparire, quindi il setState
+    // serve: qui non e' piu' nel corpo sincrono dell'effetto.
+    const carica = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const res = await searchUsers({ q: qDebounced.trim() || undefined, page: 0, size: 40 });
+        if (attivo) setUsers(res.content);
+      } catch {
+        if (attivo) setError(true);
+      } finally {
+        if (attivo) setLoading(false);
+      }
+    };
+    carica();
     return () => { attivo = false; };
   }, [qDebounced]);
 

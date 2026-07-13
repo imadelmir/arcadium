@@ -68,6 +68,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className={styles.card}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- logo statico da /public con dimensioni fissate dal CSS: next/image non porta benefici e imporrebbe width/height espliciti. */}
       <img src="/arcadium-icon-clean.png" alt="Arcadium" className={styles.logo} />
       <h1 className={styles.title}>{t("auth.forgot.title")}</h1>
       <p className={styles.subtitle}>{t("auth.forgot.subtitle")}</p>

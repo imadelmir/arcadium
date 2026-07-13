@@ -84,6 +84,7 @@ export default function RegisterPage() {
 
   return (
     <div className={styles.card}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- logo statico da /public con dimensioni fissate dal CSS: next/image non porta benefici e imporrebbe width/height espliciti. */}
       <img src="/arcadium-icon-clean.png" alt="Arcadium" className={styles.logo} />
       <h1 className={styles.title}>{t("auth.register.title")}</h1>
       <p className={styles.subtitle}>{t("auth.register.subtitle")}</p>

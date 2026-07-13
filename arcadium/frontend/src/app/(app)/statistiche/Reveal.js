@@ -27,9 +27,12 @@ export function Reveal({ children, minHeight }) {
     if (!el) return;
 
     // Se il browser non supporta IntersectionObserver, mostra subito.
+    // M6-T4: fuori dal corpo sincrono dell'effetto (setState sincrono li' dentro
+    // costa un render in piu' ed e' segnalato da react-hooks/set-state-in-effect).
+    // E' un ramo di fallback per browser molto vecchi: il tick di ritardo e' invisibile.
     if (typeof IntersectionObserver === "undefined") {
-      setVisible(true);
-      return;
+      const id = setTimeout(() => setVisible(true), 0);
+      return () => clearTimeout(id);
     }
 
     const observer = new IntersectionObserver(

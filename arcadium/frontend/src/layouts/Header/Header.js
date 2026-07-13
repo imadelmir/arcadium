@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, LogOut, User as UserIcon, Bell } from "lucide-react";
+import { Search, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { LanguageSwitcher, Avatar, SocialLinks } from "@/components";
 import { useAuth } from "@/context/AuthProvider";
 import { listGames } from "@/lib/api/games";
@@ -25,9 +25,9 @@ export function Header() {
 
   // Menu utente aperto/chiuso.
   const [menuAperto, setMenuAperto] = useState(false);
-  // Popup notifiche (funzione non ancora attiva - M4-T13).
-  const [notifOpen, setNotifOpen] = useState(false);
   // Testo digitato nella barra.
+  // (M6-T4: rimossi lo stato `notifOpen` e l'icona Bell, mai usati: il campanello
+  //  vive dentro SocialLinks. Erano codice morto.)
   const [ricerca, setRicerca] = useState("");
 
   // Suggerimenti di ricerca.
@@ -54,13 +54,12 @@ export function Header() {
   }
 
   // Chiede i suggerimenti al backend mentre si digita (debounce 150ms).
+  // M6-T4: quando la barra e' vuota non azzeriamo piu' lo stato dentro l'effetto
+  // (setState sincrono). La tendina e' nascosta da `mostraSuggerimenti`, che deriva
+  // dal testo digitato: stesso comportamento a schermo, un render in meno.
   useEffect(() => {
     const q = ricerca.trim();
-    if (q.length < 1) {
-      setSuggerimenti([]);
-      setAperto(false);
-      return;
-    }
+    if (q.length < 1) return;
     const id = setTimeout(() => {
       listGames({ q, page: 0, size: 6 })
         .then((res) => {
@@ -83,6 +82,10 @@ export function Header() {
     document.addEventListener("mousedown", onClickFuori);
     return () => document.removeEventListener("mousedown", onClickFuori);
   }, []);
+
+  // La tendina si vede solo se e' aperta E c'e' del testo: cosi' svuotare la barra
+  // la nasconde senza bisogno di azzerare lo stato dentro l'effetto.
+  const mostraSuggerimenti = aperto && ricerca.trim().length > 0;
 
   // Va al dettaglio di un gioco suggerito e pulisce la barra.
   function vaiAlGioco(appId) {
@@ -107,7 +110,7 @@ export function Header() {
           autoComplete="off"
         />
 
-        {aperto && (
+        {mostraSuggerimenti && (
           <ul className={suggest.suggestList}>
             {suggerimenti.length === 0 ? (
               <li className={suggest.suggestEmpty}>{t("store.noResults")}</li>
@@ -121,6 +124,7 @@ export function Header() {
                       className={suggest.suggestItem}
                       onClick={() => vaiAlGioco(g.appId)}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- copertine remote dalla CDN Steam: next/image richiederebbe images.remotePatterns e un ottimizzatore server-side per centinaia di immagini a pagina. Scelta consapevole (M6-T4). */}
                       <img className={suggest.suggestThumb} src={g.headerImage} alt="" loading="lazy" />
                       <span className={suggest.suggestText}>
                         <span className={suggest.suggestName}>{g.name}</span>

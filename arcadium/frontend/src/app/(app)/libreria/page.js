@@ -34,8 +34,9 @@ export default function LibraryPage() {
   // Carica i giochi posseduti all'apertura.
   useEffect(() => {
     let attivo = true;
-    setLoading(true);
-    setError(false);
+    // M6-T4: niente setState sincrono qui dentro. `loading` parte gia' a true
+    // dalla useState e l'effetto gira una volta sola (deps []): il vecchio
+    // setLoading(true)/setError(false) provocava solo un render in piu'.
     listBacklog()
       .then((list) => attivo && setItems(list))
       .catch(() => attivo && setError(true))
