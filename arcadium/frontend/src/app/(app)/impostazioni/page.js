@@ -7,6 +7,7 @@
 // In futuro qui si aggiungeranno profilo, lingua e altre preferenze.
 // =============================================================================
 
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { SteamPanel } from "./SteamPanel";
 import styles from "../placeholder.module.css";
@@ -20,8 +21,12 @@ export default function ImpostazioniPage() {
       <h1 className={styles.title}>{t("pages.impostazioni.title")}</h1>
       <p className={styles.subtitle}>{t("pages.impostazioni.subtitle")}</p>
 
-      {/* Sezione integrazione Steam (M5-T15) */}
-      <SteamPanel />
+      {/* Sezione integrazione Steam (M5-T15).
+          Suspense: SteamPanel legge ?steam= con useSearchParams e Next lo esige
+          per non bloccare il prerender della pagina (M6-T4). */}
+      <Suspense fallback={null}>
+        <SteamPanel />
+      </Suspense>
     </section>
   );
 }

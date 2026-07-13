@@ -110,37 +110,40 @@ function NegozioContent() {
   // --- Ricarica dal backend a ogni variazione di ricerca, filtri o pagina ---
   useEffect(() => {
     let attivo = true;
-    setLoading(true);
-    setError(false);
 
-    listGames({
-      q: debouncedQuery || undefined,
-      platform: platform || undefined,
-      status: price || undefined,
-      // La fascia di prezzo viene inviata solo se diversa dall'intervallo pieno.
-      minPrice: rangeActive ? range.min : undefined,
-      maxPrice: rangeActive ? range.max : undefined,
-      sort,
-      page,
-      size: PAGE_SIZE,
-    })
-      .then((res) => {
+    // M6-T4: il caricamento sta dentro una funzione asincrona, cosi' non c'e'
+    // setState nel corpo sincrono dell'effetto. Qui lo spinner al cambio di
+    // filtro/pagina serve, quindi setLoading(true) resta — solo, spostato.
+    const carica = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const res = await listGames({
+          q: debouncedQuery || undefined,
+          platform: platform || undefined,
+          status: price || undefined,
+          // La fascia di prezzo viene inviata solo se diversa dall'intervallo pieno.
+          minPrice: rangeActive ? range.min : undefined,
+          maxPrice: rangeActive ? range.max : undefined,
+          sort,
+          page,
+          size: PAGE_SIZE,
+        });
         if (!attivo) return;
-        setGames(res.content);       // PageResponse.content = lista giochi
+        setGames(res.content);         // PageResponse.content = lista giochi
         setTotalPages(res.totalPages); // PageResponse.totalPages = numero pagine
-      })
-      .catch(() => {
+      } catch {
         if (attivo) setError(true);
-      })
-      .finally(() => {
+      } finally {
         if (attivo) setLoading(false);
-      });
+      }
+    };
 
+    carica();
     return () => {
       attivo = false;
     };
-    // rangeActive dipende da range.min/range.max: bastano quelli nelle dipendenze.
-  }, [debouncedQuery, platform, price, range.min, range.max, sort, page]);
+  }, [debouncedQuery, platform, price, rangeActive, range.min, range.max, sort, page]);
 
   return (
     <div className={styles.page}>

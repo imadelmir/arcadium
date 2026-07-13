@@ -39,28 +39,41 @@ export default function ProfiloPage() {
 
   useEffect(() => {
     let attivo = true;
-    setLoading(true);
-    setNotFound(false);
-    setPrivato(false);
 
-    getUserProfile(username)
-      .then((p) => attivo && setProfile(p))
-      .catch((err) => {
-        if (attivo && err instanceof ApiError && err.status === 404) setNotFound(true);
-      });
+    // M6-T4: tutto il caricamento vive dentro una funzione asincrona, cosi' non
+    // c'e' piu' alcun setState nel corpo sincrono dell'effetto. Qui il reset dello
+    // stato serve davvero, perche' l'effetto rigira quando si passa da un profilo
+    // a un altro: senza, si vedrebbero per un istante i dati dell'utente precedente.
+    const carica = async () => {
+      setLoading(true);
+      setNotFound(false);
+      setPrivato(false);
 
-    getUserBacklog(username)
-      .then((list) => attivo && setBacklog(list))
-      .catch((err) => {
-        if (attivo && err instanceof ApiError && err.status === 403) setPrivato(true);
-      })
-      .finally(() => attivo && setLoading(false));
+      // Profilo e libreria si chiedono in parallelo: sono indipendenti, e la
+      // libreria puo' fallire con 403 (profilo privato) senza che il profilo lo faccia.
+      const profilo = getUserProfile(username)
+        .then((p) => attivo && setProfile(p))
+        .catch((err) => {
+          if (attivo && err instanceof ApiError && err.status === 404) setNotFound(true);
+        });
 
-    if (user?.username === username) {
-      getMyStats().then((s) => attivo && setMyStats(s)).catch(() => {});
-      listAchievements().then((a) => attivo && setAchievements(a)).catch(() => {});
-    }
+      const libreria = getUserBacklog(username)
+        .then((list) => attivo && setBacklog(list))
+        .catch((err) => {
+          if (attivo && err instanceof ApiError && err.status === 403) setPrivato(true);
+        });
 
+      // Statistiche e achievement solo sul proprio profilo.
+      if (user?.username === username) {
+        getMyStats().then((s) => attivo && setMyStats(s)).catch(() => {});
+        listAchievements().then((a) => attivo && setAchievements(a)).catch(() => {});
+      }
+
+      await Promise.all([profilo, libreria]);
+      if (attivo) setLoading(false);
+    };
+
+    carica();
     return () => {
       attivo = false;
     };

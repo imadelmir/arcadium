@@ -49,12 +49,22 @@ export default function GameDetailPage() {
   // Carica il gioco dal backend quando cambia l'appId.
   useEffect(() => {
     let attivo = true;
-    setLoading(true);
-    setError(false);
-    getGame(appId)
-      .then((data) => attivo && setGame(data))
-      .catch(() => attivo && setError(true))
-      .finally(() => attivo && setLoading(false));
+    // M6-T4: il caricamento vive dentro una funzione asincrona. L'effetto rigira
+    // a ogni cambio dipendenze e lo spinner deve ricomparire, quindi il setState
+    // serve: qui non e' piu' nel corpo sincrono dell'effetto.
+    const carica = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const data = await getGame(appId);
+        if (attivo) setGame(data);
+      } catch {
+        if (attivo) setError(true);
+      } finally {
+        if (attivo) setLoading(false);
+      }
+    };
+    carica();
     return () => { attivo = false; };
   }, [appId]);
 
