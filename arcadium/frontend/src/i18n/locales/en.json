@@ -93,10 +93,7 @@
       "priceRange": "Price range",
       "minPrice": "Minimum price",
       "maxPrice": "Maximum price",
-      "reset": "Reset",
-      "category": "Category",
-      "searchInList": "Search in list...",
-      "clearSelection": "Clear selection"
+      "reset": "Reset"
     },
     "sort": {
       "label": "Sort",
@@ -148,8 +145,7 @@
       "title": "Game not found",
       "text": "The game you are looking for does not exist or is no longer in the catalog.",
       "cta": "Back to store"
-    },
-    "genres": "Genres"
+    }
   },
   "library": {
     "allTab": "All",
@@ -184,7 +180,8 @@
     "hoursUnit": "hours",
     "moveAria": "Move game",
     "emptyColumn": "No games",
-    "hint": "Drag a game to another section to change its status, or use the menu on the row."
+    "hint": "Drag a game to another section to change its status, or use the menu on the row.",
+    "statusError": "Couldn't save the new status. Please try again."
   },
   "status": {
     "mai_giocato": "Never played",

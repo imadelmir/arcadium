@@ -93,10 +93,7 @@
       "priceRange": "Fascia di prezzo",
       "minPrice": "Prezzo minimo",
       "maxPrice": "Prezzo massimo",
-      "reset": "Reimposta",
-      "category": "Categoria",
-      "searchInList": "Cerca nell'elenco...",
-      "clearSelection": "Cancella selezione"
+      "reset": "Reimposta"
     },
     "sort": {
       "label": "Ordina",
@@ -148,8 +145,7 @@
       "title": "Gioco non trovato",
       "text": "Il gioco che cerchi non esiste o non è più disponibile nel catalogo.",
       "cta": "Torna al negozio"
-    },
-    "genres": "Generi"
+    }
   },
   "library": {
     "allTab": "Tutti",
@@ -184,7 +180,8 @@
     "hoursUnit": "ore",
     "moveAria": "Sposta gioco",
     "emptyColumn": "Nessun gioco",
-    "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga."
+    "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga.",
+    "statusError": "Impossibile salvare il nuovo stato. Riprova."
   },
   "status": {
     "mai_giocato": "Mai giocato",
