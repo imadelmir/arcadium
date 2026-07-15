@@ -45,16 +45,32 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     boolean existsByEmail(String email);
 
     /**
-     * Ricerca utenti per sottostringa (case-insensitive) su username o nome
-     * visualizzato. Il nome visualizzato e' nullable: la clausola lo ignora se
-     * assente. L'ordinamento e la paginazione arrivano dal {@link Pageable}.
+     * Elenco degli utenti PUBBLICI, escluso il richiedente (change request
+     * privacy): usato quando la ricerca e' senza testo. Gli utenti con profilo
+     * privato non compaiono (non sono cercabili).
      *
-     * @param q        sottostringa da cercare
-     * @param pageable pagina, dimensione e ordinamento
-     * @return pagina di utenti che soddisfano la ricerca
+     * @param requesterId id di chi cerca (escluso dai risultati)
+     * @param pageable    pagina, dimensione e ordinamento
+     * @return pagina di utenti pubblici diversi dal richiedente
      */
-    @Query("select u from AppUser u where "
+    Page<AppUser> findByIsProfilePublicTrueAndIdNot(Long requesterId, Pageable pageable);
+
+    /**
+     * Ricerca utenti per sottostringa (case-insensitive) su username o nome
+     * visualizzato, LIMITATA ai profili pubblici ed escluso il richiedente
+     * (change request privacy): un utente privato non e' cercabile. Il nome
+     * visualizzato e' nullable: la clausola lo ignora se assente. Ordinamento e
+     * paginazione arrivano dal {@link Pageable}.
+     *
+     * @param q           sottostringa da cercare
+     * @param requesterId id di chi cerca (escluso dai risultati)
+     * @param pageable    pagina, dimensione e ordinamento
+     * @return pagina di utenti pubblici che soddisfano la ricerca
+     */
+    @Query("select u from AppUser u where u.isProfilePublic = true and u.id <> :requesterId and ("
             + "lower(u.username) like lower(concat('%', :q, '%')) "
-            + "or (u.displayName is not null and lower(u.displayName) like lower(concat('%', :q, '%')))")
-    Page<AppUser> search(@Param("q") String q, Pageable pageable);
+            + "or (u.displayName is not null and lower(u.displayName) like lower(concat('%', :q, '%'))))")
+    Page<AppUser> searchPublic(@Param("q") String q,
+                               @Param("requesterId") Long requesterId,
+                               Pageable pageable);
 }

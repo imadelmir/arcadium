@@ -266,7 +266,10 @@
     "backlogTitle": "Library",
     "emptyWishlist": "No games in the wishlist.",
     "emptyBacklog": "No games in the library.",
-    "privateNotice": "This profile is private."
+    "privateNotice": "This profile is private.",
+    "searchDisabledTitle": "Search unavailable",
+    "searchDisabledText": "Your profile is private: make it public to search for other users and to be found.",
+    "searchDisabledCta": "Go to settings"
   },
   "auth": {
     "fields": {
@@ -359,5 +362,18 @@
   },
   "language": {
     "label": "Language"
+  },
+  "settings": {
+    "privacy": {
+      "title": "Profile privacy",
+      "description": "With a public profile you can search for other users and appear in their searches. With a private profile you can't search anyone and you can't be found.",
+      "public": "Public",
+      "private": "Private",
+      "publicHint": "You are searchable and can search for others.",
+      "privateHint": "You are not searchable and can't search for others.",
+      "saved": "Setting saved.",
+      "error": "Couldn't save the setting. Please try again.",
+      "locked": "You changed your visibility recently. You can change it again on {{time}}."
+    }
   }
 }

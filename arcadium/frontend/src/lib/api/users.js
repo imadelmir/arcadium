@@ -29,3 +29,9 @@ export function getUserBacklog(username) {
 export function getUserWishlist(username) {
   return api.get(`/api/users/${username}/wishlist`);
 }
+
+// Aggiorna le impostazioni dell'utente autenticato (change request privacy).
+// `payload` = { profilePublic? }. Restituisce lo UserResponse aggiornato.
+export function updateMySettings(payload) {
+  return api.patch("/api/users/me", payload);
+}

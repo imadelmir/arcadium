@@ -6,17 +6,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ace5.arcadium.dto.BacklogItemResponse;
 import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.dto.UserResponse;
+import com.ace5.arcadium.dto.UserSettingsRequest;
 import com.ace5.arcadium.dto.UserSummaryResponse;
 import com.ace5.arcadium.dto.WishlistItemResponse;
 import com.ace5.arcadium.security.AppUserPrincipal;
 import com.ace5.arcadium.service.UserService;
+
+import jakarta.validation.Valid;
 
 /**
  * Endpoint di ricerca utenti e consultazione della libreria altrui (M4-T9).
@@ -48,9 +54,20 @@ public class UserController {
      */
     @GetMapping
     public PageResponse<UserSummaryResponse> search(
+            @AuthenticationPrincipal AppUserPrincipal principal,
             @RequestParam(required = false) String q,
             @PageableDefault(size = 20) Pageable pageable) {
-        return userService.search(q, pageable);
+        return userService.search(principal.getId(), q, pageable);
+    }
+
+    /**
+     * Aggiorna le impostazioni dell'utente autenticato (change request privacy):
+     * per ora la visibilita' del profilo. PATCH parziale.
+     */
+    @PatchMapping("/me")
+    public UserResponse updateMe(@AuthenticationPrincipal AppUserPrincipal principal,
+                                 @Valid @RequestBody UserSettingsRequest request) {
+        return userService.updateSettings(principal.getId(), request);
     }
 
     /** Profilo pubblico di un utente. 404 se l'username non esiste. */

@@ -1,0 +1,112 @@
+/* =============================================================================
+   ProfilePanel — stili della sezione "Privacy del profilo" (change request
+   privacy). Usa i token del tema (palette violet) come SteamPanel, per restare
+   coerente col resto della pagina Impostazioni.
+   ============================================================================= */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Le due opzioni Pubblico / Privato, affiancate (a colonna su schermi stretti). */
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 560px) {
+  .options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ogni opzione e' un pulsante-card selezionabile. */
+.option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icon label"
+    "icon hint";
+  column-gap: 0.6rem;
+  row-gap: 0.15rem;
+  align-items: center;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border, #232b44);
+  border-radius: var(--radius, 8px);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.option:hover:not(:disabled) {
+  border-color: var(--accent, #8b5cf6);
+}
+
+.option:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.option[data-active="true"] {
+  border-color: var(--accent, #8b5cf6);
+  background: color-mix(in srgb, var(--accent, #8b5cf6) 12%, transparent);
+}
+
+.option > svg {
+  grid-area: icon;
+  color: var(--accent, #8b5cf6);
+}
+
+.optionLabel {
+  grid-area: label;
+  font-weight: 600;
+}
+
+.optionHint {
+  grid-area: hint;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.success {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--success, #37d67a);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--danger, #ef4444);
+}
+
+/* Avviso di cooldown attivo (change request): visibilita' bloccata per 48h. */
+.locked {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}

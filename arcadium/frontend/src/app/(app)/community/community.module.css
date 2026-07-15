@@ -75,9 +75,34 @@
 
 /* Stati: caricamento / vuoto / errore */
 .state {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   min-height: 200px;
   color: var(--color-text-muted);
   text-align: center;
+}
+/* Stato "ricerca disattivata" (profilo privato, change request privacy):
+   la .state e' gia' centrata; qui solo il titolo in evidenza e il link CTA. */
+.disabledTitle {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.disabledCta {
+  margin-top: 0.75rem;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-primary, #7c5cff);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.disabledCta:hover {
+  filter: brightness(1.08);
 }
