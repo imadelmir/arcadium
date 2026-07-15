@@ -2,17 +2,25 @@ package com.ace5.arcadium.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import com.ace5.arcadium.entity.Game;
 
 /**
  * Vista sintetica di un gioco per la lista del catalogo (M4-T5).
  *
- * <p>Contiene solo i campi che servono alla "card" del catalogo (M5-T8): niente
- * collezioni LAZY (generi, screenshot, sviluppatori...). Questo evita sia il
- * problema N+1 sia i lazy-init con {@code open-in-view: false}: la vista
- * completa del gioco — con generi, lingue e screenshot — è compito
- * dell'endpoint di dettaglio (M4-T6).
+ * <p>Contiene i campi che servono alla "card" del catalogo (M5-T8) più, dalla
+ * change request Negozio, i nomi dei generi: mostrarli sulla card rende
+ * "coerente" il risultato con i filtri Genere applicati (l'utente vede subito
+ * PERCHÉ quel gioco è comparso), invece di doversi fidare a scatola chiusa
+ * dell'esito del filtro lato server. Le altre collezioni LAZY (lingue,
+ * categorie, sviluppatori, screenshot, ...) restano escluse: la vista
+ * completa del gioco è compito dell'endpoint di dettaglio (M4-T6).
+ *
+ * <p>I generi sono sicuri da includere qui senza reintrodurre il problema N+1:
+ * la collezione {@code Game.genres} è annotata {@code @BatchSize(size = 50)},
+ * quindi Hibernate la carica in blocchi da 50 giochi per query invece di una
+ * query per gioco.
  *
  * @param appId       chiave del gioco (PK naturale dal dataset)
  * @param name        nome del gioco
@@ -23,6 +31,7 @@ import com.ace5.arcadium.entity.Game;
  * @param windows     disponibile su Windows
  * @param mac         disponibile su macOS
  * @param linux       disponibile su Linux
+ * @param genres      nomi dei generi del gioco, in ordine alfabetico
  */
 public record GameSummaryResponse(
         Long appId,
@@ -33,7 +42,8 @@ public record GameSummaryResponse(
         Short discount,
         boolean windows,
         boolean mac,
-        boolean linux
+        boolean linux,
+        List<String> genres
 ) {
 
     /** Proietta un'entità {@link Game} nella sua vista sintetica di catalogo. */
@@ -47,6 +57,10 @@ public record GameSummaryResponse(
                 game.getDiscount(),
                 Boolean.TRUE.equals(game.getWindows()),
                 Boolean.TRUE.equals(game.getMac()),
-                Boolean.TRUE.equals(game.getLinux()));
+                Boolean.TRUE.equals(game.getLinux()),
+                game.getGenres().stream()
+                        .map(g -> g.getName())
+                        .sorted(String.CASE_INSENSITIVE_ORDER)
+                        .toList());
     }
 }

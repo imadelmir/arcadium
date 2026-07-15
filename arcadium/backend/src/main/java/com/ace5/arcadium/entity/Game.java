@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Immutable;
 
 import jakarta.persistence.CollectionTable;
@@ -133,7 +134,14 @@ public class Game {
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new LinkedHashSet<>();
 
+    // @BatchSize (change request Negozio): i generi compaiono ora anche nella
+    // card sintetica del catalogo (GameSummaryResponse), per mostrare quali
+    // filtri "spiegano" ogni risultato. Senza questa annotazione, caricare i
+    // generi per una pagina di 300 giochi farebbe 300 query separate (N+1);
+    // con @BatchSize Hibernate le raggruppa in blocchi da 50
+    // (WHERE app_id IN (...50 valori...)), riducendole a poche query totali.
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @JoinTable(
             name = "game_genre",
             joinColumns = @JoinColumn(name = "app_id"),

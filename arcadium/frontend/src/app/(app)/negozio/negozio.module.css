@@ -130,6 +130,26 @@
   cursor: pointer;
 }
 
+/* Mini barra di ricerca dentro i pannelli Genere/Lingua/Categoria (change
+   request Negozio: filtra la lista mostrata senza chiamare il backend). */
+.panelSearch {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.panelSearch::placeholder {
+  color: var(--color-text-faint);
+}
+.panelSearch:focus {
+  border-color: var(--color-primary);
+}
+
 /* --- Blocco "Fascia di prezzo" dentro il pannello Prezzo (slider + reset) --- */
 .rangeBlock {
   margin-top: var(--space-3);

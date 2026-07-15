@@ -9,14 +9,16 @@ import styles from "./StoreCard.module.css";
 // StoreCard — card di un gioco nel negozio (M5 - T8), COLLEGATA al backend (M5-T13).
 // -----------------------------------------------------------------------------
 // Riceve i campi reali di GameSummaryResponse:
-//   { appId, name, headerImage, price, discount, windows, mac, linux }
+//   { appId, name, headerImage, price, discount, windows, mac, linux, genres }
 // Il prezzo dal backend è in EURO (es. 19.99), 0 = gratis. La copertina è
 // headerImage (URL del DB).
 //
 // Change request Negozio:
 //   - la PIATTAFORMA è mostrata in un badge dedicato (colore proprio, testo in
 //     MAIUSCOLO e più grande degli altri badge);
-//   - NESSUN badge di GENERE sulla card (rimosso).
+//   - GENERE mostrato come riga di testo compatta sotto il titolo (change
+//     request Negozio del filtro multi-select: rende visibile su ogni card
+//     PERCHÉ quel gioco è comparso nei risultati di un filtro Genere attivo).
 
 // Logo di Steam per la CTA (lucide non ha l'icona di Steam).
 function SteamIcon({ size = 16 }) {
@@ -31,7 +33,7 @@ export function StoreCard({ game, className = "", ...rest }) {
   const { t } = useTranslation();
 
   // Campi reali dal backend, con default di sicurezza.
-  const { appId, name, headerImage, price = 0, discount = 0 } = game;
+  const { appId, name, headerImage, price = 0, discount = 0, genres = [] } = game;
 
   // Codici piattaforma presenti (es. ["windows", "mac"]); il MAIUSCOLO è gestito
   // via CSS (text-transform), così l'etichetta resta il dato originale.
@@ -63,8 +65,16 @@ export function StoreCard({ game, className = "", ...rest }) {
           {name}
         </h3>
 
-        {/* Badge PIATTAFORMA: colore dedicato, testo in MAIUSCOLO e più grande.
-            Nessun badge di genere sulla card (change request Negozio). */}
+        {/* Generi: riga compatta su una linea (change request Negozio: rende
+            trasparente il match con un filtro Genere attivo). Troncata con
+            ellissi se lunga; il testo completo resta nel title="" al hover. */}
+        {genres.length > 0 && (
+          <p className={styles.genres} title={genres.join(", ")}>
+            {genres.join(", ")}
+          </p>
+        )}
+
+        {/* Badge PIATTAFORMA: colore dedicato, testo in MAIUSCOLO e più grande. */}
         {platforms.length > 0 && (
           <ul className={styles.platforms}>
             {platforms.map((code) => (

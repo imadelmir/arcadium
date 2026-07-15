@@ -93,7 +93,10 @@
       "priceRange": "Fascia di prezzo",
       "minPrice": "Prezzo minimo",
       "maxPrice": "Prezzo massimo",
-      "reset": "Reimposta"
+      "reset": "Reimposta",
+      "category": "Categoria",
+      "searchInList": "Cerca nell'elenco...",
+      "clearSelection": "Cancella selezione"
     },
     "sort": {
       "label": "Ordina",
@@ -145,7 +148,8 @@
       "title": "Gioco non trovato",
       "text": "Il gioco che cerchi non esiste o non è più disponibile nel catalogo.",
       "cta": "Torna al negozio"
-    }
+    },
+    "genres": "Generi"
   },
   "library": {
     "allTab": "Tutti",

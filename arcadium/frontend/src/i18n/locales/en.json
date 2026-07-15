@@ -93,7 +93,10 @@
       "priceRange": "Price range",
       "minPrice": "Minimum price",
       "maxPrice": "Maximum price",
-      "reset": "Reset"
+      "reset": "Reset",
+      "category": "Category",
+      "searchInList": "Search in list...",
+      "clearSelection": "Clear selection"
     },
     "sort": {
       "label": "Sort",
@@ -145,7 +148,8 @@
       "title": "Game not found",
       "text": "The game you are looking for does not exist or is no longer in the catalog.",
       "cta": "Back to store"
-    }
+    },
+    "genres": "Genres"
   },
   "library": {
     "allTab": "All",

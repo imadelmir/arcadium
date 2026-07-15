@@ -1,6 +1,7 @@
 package com.ace5.arcadium.controller;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,7 +29,10 @@ import com.ace5.arcadium.service.GameService;
  * <p>Filtri della lista (query param, tutti opzionali, in AND):
  * <ul>
  *   <li>{@code q} — sottostringa nel nome (case-insensitive);</li>
- *   <li>{@code genre} — nome del genere;</li>
+ *   <li>{@code genre} / {@code language} / {@code category} — nomi selezionati,
+ *       multi-valore (change request Negozio): {@code ?genre=Action,Indie} include
+ *       i giochi con almeno uno dei generi elencati (OR), combinato in AND con
+ *       gli altri filtri;</li>
  *   <li>{@code platform} — {@code windows} | {@code mac} | {@code linux};</li>
  *   <li>{@code status} — {@code free} | {@code paid} | {@code discounted};</li>
  *   <li>{@code minPrice} / {@code maxPrice} — fascia di prezzo inclusiva
@@ -53,7 +57,9 @@ public class GameController {
     @GetMapping
     public PageResponse<GameSummaryResponse> list(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) List<String> genre,
+            @RequestParam(required = false) List<String> language,
+            @RequestParam(required = false) List<String> category,
             @RequestParam(required = false) String platform,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) BigDecimal minPrice,
@@ -61,8 +67,20 @@ public class GameController {
             @RequestParam(required = false) Boolean europeanOnly,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        CatalogQuery filter = new CatalogQuery(q, genre, platform, status, minPrice, maxPrice, europeanOnly);
+        CatalogQuery filter = new CatalogQuery(
+                q, genre, language, category, platform, status, minPrice, maxPrice, europeanOnly);
         return gameService.search(filter, pageable);
+    }
+
+    /**
+     * Valori disponibili per i menu a tendina dei filtri del Negozio: generi,
+     * categorie e lingue presenti nel catalogo (change request Negozio). Il
+     * frontend li carica una volta per popolare le tendine "Genere", "Categoria"
+     * e "Lingua". Path letterale: precede la mappatura {@code /{appId}}.
+     */
+    @GetMapping("/filters")
+    public com.ace5.arcadium.dto.CatalogFiltersResponse filters() {
+        return gameService.filters();
     }
 
     /**
