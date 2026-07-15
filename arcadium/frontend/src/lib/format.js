@@ -8,17 +8,14 @@ import { PLATFORMS } from "./constants";
 
 // -----------------------------------------------------------------------------
 // Prezzo e sconto.
-// ATTENZIONE: nel database i prezzi sono INCOERENTI (dati dal dataset/ETL):
-// alcuni sono già in euro (es. 3.99, 13.99), altri in centesimi (es. 500, 99998).
-// Regola tampone: se il valore è un intero grande (>= 1000) lo trattiamo come
-// centesimi e dividiamo per 100; altrimenti è già in euro. (Fix vero: DB.)
+// I prezzi nel database sono in EURO (colonna NUMERIC(10,2)): decimali come
+// 3.99 / 19.99, interi come 35 (= 35,00 €), 0 = gratis. La diagnostica M6-T4
+// sul dataset reale (122.479 giochi) ha ESCLUSO una doppia unità euro/centesimi:
+// nessun prezzo >= 1000, massimo 999,98, il 78% ha i decimali. Quindi il prezzo
+// si formatta direttamente, senza euristiche di conversione.
 // -----------------------------------------------------------------------------
 export function formatPrice(rawPrice, discount = 0, lang = "it") {
-  const n = Number(rawPrice ?? 0);
-
-  // Decide l'unità: interi molto grandi = centesimi; il resto = già euro.
-  const isCents = Number.isInteger(n) && n >= 1000;
-  const value = isCents ? n / 100 : n;
+  const value = Number(rawPrice ?? 0);
 
   const pct = Number(discount ?? 0);
   const isFree = value <= 0;
