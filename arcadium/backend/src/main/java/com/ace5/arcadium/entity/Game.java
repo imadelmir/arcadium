@@ -51,6 +51,14 @@ public class Game {
     @Column(name = "name_sort", insertable = false, updatable = false)
     private String nameSort;
 
+    // Flag generato dal DB (change request Negozio, migrazione V8): true quando
+    // il titolo inizia con una lettera europea (latina). La vetrina del Negozio
+    // filtra su questo campo quando la ricerca e' vuota, così i titoli asiatici
+    // o che iniziano con simboli/cifre restano raggiungibili solo in ricerca.
+    // SOLA LETTURA: la calcola PostgreSQL.
+    @Column(name = "name_starts_latin", insertable = false, updatable = false)
+    private Boolean nameStartsLatin;
+
     private LocalDate releaseDate;            // DATE, nullable
 
     private Long ownersMin;                   // BIGINT
@@ -155,6 +163,7 @@ public class Game {
 
     public Long getAppId() { return appId; }
     public String getName() { return name; }
+    public Boolean getNameStartsLatin() { return nameStartsLatin; }
     public LocalDate getReleaseDate() { return releaseDate; }
     public Long getOwnersMin() { return ownersMin; }
     public Long getOwnersMax() { return ownersMax; }
