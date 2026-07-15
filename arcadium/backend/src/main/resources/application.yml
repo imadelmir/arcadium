@@ -47,6 +47,7 @@ spring:
       filesystem:${ARCADIUM_DB_SEED:../database/seed}
     baseline-on-migrate: false
     validate-migration-naming: true
+    out-of-order: true
 
 # --- Sicurezza (M4-T3) ---
 # Segreto di firma JWT: OBBLIGATORIO in staging via env JWT_SECRET, almeno 32
