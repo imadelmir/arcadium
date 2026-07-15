@@ -1,6 +1,7 @@
 package com.ace5.arcadium.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Filtri di ricerca del catalogo, così come arrivano dalla richiesta (M4-T5).
@@ -13,7 +14,13 @@ import java.math.BigDecimal;
  * localizzato.
  *
  * @param q        sottostringa da cercare nel nome del gioco (case-insensitive)
- * @param genre    nome esatto del genere (join su game_genre → genre.name)
+ * @param genre    nomi di genere selezionati (change request Negozio: multi-select).
+ *                 Un gioco è incluso se ha ALMENO UNO dei generi elencati (OR);
+ *                 lista vuota/assente = nessun filtro. Join su game_genre → genre.name
+ * @param language nomi di lingua selezionati, stessa semantica OR di {@code genre}.
+ *                 Join su game_language → language.name
+ * @param category nomi di categoria selezionati, stessa semantica OR di {@code genre}.
+ *                 Join su game_category → category.name
  * @param platform "windows" | "mac" | "linux" (case-insensitive)
  * @param status   "free" | "paid" | "discounted" (case-insensitive)
  * @param minPrice prezzo minimo incluso (games.price &gt;= minPrice), nullable
@@ -24,7 +31,9 @@ import java.math.BigDecimal;
  */
 public record CatalogQuery(
         String q,
-        String genre,
+        List<String> genre,
+        List<String> language,
+        List<String> category,
         String platform,
         String status,
         BigDecimal minPrice,

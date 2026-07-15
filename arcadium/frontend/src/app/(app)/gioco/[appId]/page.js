@@ -20,7 +20,7 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, Heart, ListPlus, Check, ExternalLink, Calendar, Code2,
-  Building2, Trophy, Star, ThumbsUp, Gamepad2,
+  Building2, Trophy, Star, Gamepad2,
 } from "lucide-react";
 
 import { Button, Card, Badge, GameImage, Spinner } from "@/components";
@@ -182,34 +182,29 @@ export default function GameDetailPage() {
           <div className={styles.heroText}>
             <h1 className={styles.title}>{game.name}</h1>
 
-            {developers.length > 0 && (
-              <p className={styles.byline}>
-                {t("gameDetail.by")} <strong>{developers.join(", ")}</strong>
-              </p>
-            )}
-
-            <div className={styles.heroMeta}>
-              {review.total > 0 && (
-                <>
-                  <span className={styles.metaItem}>
-                    <ThumbsUp className={styles.metaIcon} aria-hidden="true" />
-                    <span style={{ color: review.color }}>{review.label}</span>
-                    <span className={styles.metaMuted}>({review.percent}%)</span>
+            {/* Header snello (fix duplicazione con la sidebar): qui resta solo
+                l'informazione che NON è già altrove nella pagina — la
+                valutazione, che non compare nella card di destra. Sviluppatore,
+                data di uscita, generi, tag e categorie vivono tutti nella
+                sidebar (card acquisto), zero ripetizioni. */}
+            {/* Recensioni nell'header (non più duplicate più sotto nel corpo):
+                etichetta + conteggio + barra, subito sotto il titolo. */}
+            {review.total > 0 && (
+              <div className={styles.heroReviews}>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel} style={{ color: review.color }}>
+                    {review.label}
                   </span>
-                  <span className={styles.metaDot} aria-hidden="true" />
-                </>
-              )}
-              <span className={styles.metaItem}>
-                <Calendar className={styles.metaIcon} aria-hidden="true" />
-                {formatDate(game.releaseDate)}
-              </span>
-            </div>
-
-            <div className={styles.heroGenres}>
-              {genres.map((g) => (
-                <Badge key={g} tone="primary">{g}</Badge>
-              ))}
-            </div>
+                  <span className={styles.reviewCount}>
+                    {review.percent}% {t("gameDetail.reviewOf")}{" "}
+                    {formatNumber(review.total)} {t("gameDetail.reviewWord")}
+                  </span>
+                </div>
+                <div className={styles.reviewBar} role="img" aria-label={`${review.percent}%`}>
+                  <span style={{ width: `${review.percent}%` }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -237,48 +232,10 @@ export default function GameDetailPage() {
             </section>
           )}
 
-          {/* Recensioni (da positive/negative) */}
-          {review.total > 0 && (
-            <section className={styles.block}>
-              <h2 className={styles.blockTitle}>{t("gameDetail.reviews")}</h2>
-              <div className={styles.reviewRow}>
-                <span className={styles.reviewLabel} style={{ color: review.color }}>
-                  {review.label}
-                </span>
-                <span className={styles.reviewCount}>
-                  {review.percent}% {t("gameDetail.reviewOf")}{" "}
-                  {formatNumber(review.total)} {t("gameDetail.reviewWord")}
-                </span>
-              </div>
-              <div className={styles.reviewBar} role="img" aria-label={`${review.percent}%`}>
-                <span style={{ width: `${review.percent}%` }} />
-              </div>
-            </section>
-          )}
+          {/* Recensioni: spostate nell'header, subito sotto il titolo. */}
 
-          {/* Tag */}
-          {tags.length > 0 && (
-            <section className={styles.block}>
-              <h2 className={styles.blockTitle}>{t("gameDetail.tags")}</h2>
-              <div className={styles.chips}>
-                {tags.map((tag) => (
-                  <Badge key={tag}>{tag}</Badge>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Categorie */}
-          {categories.length > 0 && (
-            <section className={styles.block}>
-              <h2 className={styles.blockTitle}>{t("gameDetail.categories")}</h2>
-              <div className={styles.chips}>
-                {categories.map((c) => (
-                  <Badge key={c} tone="neutral">{c}</Badge>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Tag e Categorie (fix duplicazione: spostati nella sidebar, insieme
+              ai Generi — un solo posto per tutte le "etichette" del gioco). */}
         </main>
 
         {/* CARD ACQUISTO (sticky) */}
@@ -356,6 +313,41 @@ export default function GameDetailPage() {
                 />
               )}
             </dl>
+
+            {/* Generi, Tag, Categorie — consolidati qui (fix duplicazione con
+                l'header): un solo posto per tutte le "etichette" del gioco. */}
+            {genres.length > 0 && (
+              <div className={styles.sideGroup}>
+                <p className={styles.sideGroupTitle}>{t("gameDetail.genres")}</p>
+                <div className={styles.chips}>
+                  {genres.map((g) => (
+                    <Badge key={g} tone="primary">{g}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tags.length > 0 && (
+              <div className={styles.sideGroup}>
+                <p className={styles.sideGroupTitle}>{t("gameDetail.tags")}</p>
+                <div className={styles.chips}>
+                  {tags.map((tag) => (
+                    <Badge key={tag}>{tag}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {categories.length > 0 && (
+              <div className={styles.sideGroup}>
+                <p className={styles.sideGroupTitle}>{t("gameDetail.categories")}</p>
+                <div className={styles.chips}>
+                  {categories.map((c) => (
+                    <Badge key={c} tone="neutral">{c}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </Card>
         </aside>
       </div>

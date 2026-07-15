@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ace5.arcadium.dto.CatalogGameStatus;
+import com.ace5.arcadium.dto.CatalogFiltersResponse;
 import com.ace5.arcadium.dto.CatalogQuery;
 import com.ace5.arcadium.dto.GameDetailResponse;
 import com.ace5.arcadium.dto.GamePlatform;
@@ -78,12 +79,14 @@ public class GameService {
         GamePlatform platform = parsePlatform(filter.platform());
         CatalogGameStatus status = parseStatus(filter.status());
         validatePriceRange(filter.minPrice(), filter.maxPrice());
-        boolean hasGenre = filter.genre() != null && !filter.genre().isBlank();
-        Pageable safePageable = sanitize(pageable, hasGenre);
+        boolean hasJoinFilter = notEmpty(filter.genre())
+                || notEmpty(filter.language())
+                || notEmpty(filter.category());
+        Pageable safePageable = sanitize(pageable, hasJoinFilter);
 
         Specification<Game> spec = GameSpecifications.build(
-                filter.q(), filter.genre(), platform, status,
-                filter.minPrice(), filter.maxPrice(), filter.europeanOnly());
+                filter.q(), filter.genre(), filter.language(), filter.category(),
+                platform, status, filter.minPrice(), filter.maxPrice(), filter.europeanOnly());
 
         Page<Game> page = gameRepository.findAll(spec, safePageable);
         List<GameSummaryResponse> content = page.getContent().stream()
@@ -113,7 +116,25 @@ public class GameService {
         return GameDetailResponse.from(game);
     }
 
+    /**
+     * Valori disponibili per i menu a tendina del Negozio (change request
+     * Negozio): generi, categorie e lingue presenti nel catalogo, ciascuno in
+     * ordine alfabetico. Sola lettura.
+     */
+    @Transactional(readOnly = true)
+    public CatalogFiltersResponse filters() {
+        return new CatalogFiltersResponse(
+                gameRepository.findGenreNames(),
+                gameRepository.findCategoryNames(),
+                gameRepository.findLanguageNames());
+    }
+
     // ------------------------------------------------------------------ parsing
+
+    /** True se la lista contiene almeno un valore selezionato (non null/vuota). */
+    private boolean notEmpty(List<String> values) {
+        return values != null && !values.isEmpty();
+    }
 
     private GamePlatform parsePlatform(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -159,7 +180,7 @@ public class GameService {
      * Valida l'ordinamento (whitelist) e limita la dimensione della pagina.
      * Ricostruisce un {@link Pageable} pulito da passare al repository.
      */
-    private Pageable sanitize(Pageable pageable, boolean hasGenre) {
+    private Pageable sanitize(Pageable pageable, boolean hasJoinFilter) {
         for (Sort.Order order : pageable.getSort()) {
             if (!SORTABLE_FIELDS.contains(order.getProperty())) {
                 throw new ApiException(HttpStatus.BAD_REQUEST,
@@ -167,7 +188,7 @@ public class GameService {
             }
         }
         Sort requested = pageable.getSort().isSorted() ? pageable.getSort() : DEFAULT_SORT;
-        Sort effective = toEffectiveSort(requested, hasGenre);
+        Sort effective = toEffectiveSort(requested, hasJoinFilter);
         int size = Math.min(Math.max(pageable.getPageSize(), 1), MAX_PAGE_SIZE);
         return PageRequest.of(pageable.getPageNumber(), size, effective);
     }
@@ -188,11 +209,11 @@ public class GameService {
      * {@code SELECT DISTINCT}: in quel solo caso si tiene l'ordinamento semplice
      * per {@code name}. Il Negozio non usa il filtro genere.
      */
-    private Sort toEffectiveSort(Sort requested, boolean hasGenre) {
+    private Sort toEffectiveSort(Sort requested, boolean hasJoinFilter) {
         Sort effective = Sort.unsorted();
         for (Sort.Order order : requested) {
             Sort piece;
-            if (!hasGenre && "name".equals(order.getProperty())) {
+            if (!hasJoinFilter && "name".equals(order.getProperty())) {
                 Sort.Order key = new Sort.Order(order.getDirection(), "nameSort").nullsLast();
                 piece = Sort.by(key).and(Sort.by(Sort.Direction.ASC, "appId"));
             } else {

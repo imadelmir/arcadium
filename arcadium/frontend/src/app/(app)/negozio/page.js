@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 
 import { StoreCard, FilterDropdown, PriceRangeSlider, Pagination } from "@/components";
-import { listGames } from "@/lib/api/games";
+import { listGames, getGameFilters } from "@/lib/api/games";
 import styles from "./negozio.module.css";
 
 // Piattaforme accettate dal filtro `platform` del backend.
@@ -67,9 +67,24 @@ function NegozioContent() {
 
   // Stato dei filtri supportati dal backend.
   const [platform, setPlatform] = useState("");            // "" = tutte
+  // Genere/Lingua/Categoria: MULTI-SELECT (change request Negozio). Ogni stato
+  // è un array di nomi selezionati; array vuoto = nessun filtro (tutti inclusi).
+  const [genreValues, setGenreValues] = useState([]);
+  const [languageValues, setLanguageValues] = useState([]);
+  const [categoryValues, setCategoryValues] = useState([]);
+  // Testo della mini ricerca dentro ciascun pannello (filtra la lista mostrata,
+  // non chiama il backend: le opzioni sono già tutte caricate una volta sola).
+  const [genreSearch, setGenreSearch] = useState("");
+  const [languageSearch, setLanguageSearch] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
   const [price, setPrice] = useState("");                  // "" | free | paid | discounted
   const [range, setRange] = useState({ min: PRICE_MIN, max: PRICE_MAX }); // fascia di prezzo
   const [sort, setSort] = useState("releaseDate,desc");
+
+  // Valori disponibili per le tendine Genere / Lingua / Categoria (dal backend).
+  const [genreOptions, setGenreOptions] = useState([]);
+  const [languageOptions, setLanguageOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
 
   // Paginazione (0-based lato stato, come il backend).
   const [page, setPage] = useState(0);
@@ -99,12 +114,92 @@ function NegozioContent() {
   const changeRange = (next) => { setRange(next); setPage(0); };
   const resetRange = () => { setRange({ min: PRICE_MIN, max: PRICE_MAX }); setPage(0); };
 
+  // Genere/Lingua/Categoria (multi-select): spunta/togli un valore dall'array.
+  const toggleValue = (setValues) => (opt) => {
+    setValues((prev) => (
+      prev.includes(opt) ? prev.filter((v) => v !== opt) : [...prev, opt]
+    ));
+    setPage(0);
+  };
+  const toggleGenre = toggleValue(setGenreValues);
+  const toggleLanguage = toggleValue(setLanguageValues);
+  const toggleCategory = toggleValue(setCategoryValues);
+  const clearGenre = () => { setGenreValues([]); setPage(0); };
+  const clearLanguage = () => { setLanguageValues([]); setPage(0); };
+  const clearCategory = () => { setCategoryValues([]); setPage(0); };
+
+  // --- Carica una sola volta i valori delle tendine Genere/Lingua/Categoria ---
+  useEffect(() => {
+    let attivo = true;
+    getGameFilters()
+      .then((f) => {
+        if (!attivo) return;
+        setGenreOptions(f.genres || []);
+        setLanguageOptions(f.languages || []);
+        setCategoryOptions(f.categories || []);
+      })
+      .catch(() => { /* tendine vuote in caso di errore: i filtri restano opzionali */ });
+    return () => { attivo = false; };
+  }, []);
+
   // Cambio pagina dalla barra di paginazione: aggiorna la pagina e torna in alto.
   const goToPage = (p) => {
     setPage(p);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  // Tendina di filtro MULTI-SELECT su una lista di valori dal backend (Genere /
+  // Lingua / Categoria, già in ordine alfabetico). Include una mini barra di
+  // ricerca che filtra la lista mostrata (client-side, nessuna chiamata al
+  // backend) e un link "Cancella" quando c'è almeno una selezione. La lista
+  // scorre se lunga (es. le lingue).
+  const renderLookupFilter = (labelKey, values, search, setSearch, options, onToggle, onClear) => {
+    const q = search.trim().toLowerCase();
+    const filteredOptions = q ? options.filter((opt) => opt.toLowerCase().includes(q)) : options;
+    const label = values.length > 0
+      ? `${t(`store.filters.${labelKey}`)} (${values.length})`
+      : t(`store.filters.${labelKey}`);
+
+    return (
+      <FilterDropdown label={label} active={values.length > 0}>
+        <p className={styles.panelTitle}>{t(`store.filters.${labelKey}`)}</p>
+
+        <input
+          type="search"
+          className={styles.panelSearch}
+          placeholder={t("store.filters.searchInList")}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label={t(`store.filters.${labelKey}`)}
+        />
+
+        {values.length > 0 && (
+          <button type="button" className={styles.resetBtn} onClick={onClear}>
+            {t("store.filters.clearSelection")}
+          </button>
+        )}
+
+        <div style={{ maxHeight: "16rem", overflowY: "auto", marginTop: "0.5rem" }}>
+          {filteredOptions.length === 0 ? (
+            <p className={styles.panelTitle}>{t("store.noResults")}</p>
+          ) : (
+            filteredOptions.map((opt) => (
+              <label key={opt} className={styles.option}>
+                <input
+                  type="checkbox"
+                  className={styles.optionInput}
+                  checked={values.includes(opt)}
+                  onChange={() => onToggle(opt)}
+                />
+                <span>{opt}</span>
+              </label>
+            ))
+          )}
+        </div>
+      </FilterDropdown>
+    );
   };
 
   // --- Ricarica dal backend a ogni variazione di ricerca, filtri o pagina ---
@@ -121,6 +216,9 @@ function NegozioContent() {
         const res = await listGames({
           q: debouncedQuery || undefined,
           platform: platform || undefined,
+          genre: genreValues.length ? genreValues : undefined,
+          language: languageValues.length ? languageValues : undefined,
+          category: categoryValues.length ? categoryValues : undefined,
           status: price || undefined,
           // La fascia di prezzo viene inviata solo se diversa dall'intervallo pieno.
           minPrice: rangeActive ? range.min : undefined,
@@ -147,7 +245,11 @@ function NegozioContent() {
     return () => {
       attivo = false;
     };
-  }, [debouncedQuery, platform, price, rangeActive, range.min, range.max, sort, page]);
+  }, [
+    debouncedQuery, platform,
+    genreValues.join(","), languageValues.join(","), categoryValues.join(","),
+    price, rangeActive, range.min, range.max, sort, page,
+  ]);
 
   return (
     <div className={styles.page}>
@@ -246,6 +348,15 @@ function NegozioContent() {
             </label>
           ))}
         </FilterDropdown>
+
+        {/* Genere: multi-select con mini ricerca (valori dal backend) */}
+        {renderLookupFilter("genre", genreValues, genreSearch, setGenreSearch, genreOptions, toggleGenre, clearGenre)}
+
+        {/* Lingua: multi-select con mini ricerca (valori dal backend, solo quelle con giochi associati) */}
+        {renderLookupFilter("language", languageValues, languageSearch, setLanguageSearch, languageOptions, toggleLanguage, clearLanguage)}
+
+        {/* Categoria: multi-select con mini ricerca (valori dal backend) */}
+        {renderLookupFilter("category", categoryValues, categorySearch, setCategorySearch, categoryOptions, toggleCategory, clearCategory)}
 
         {/* Ordina: ancorato a destra */}
         <FilterDropdown

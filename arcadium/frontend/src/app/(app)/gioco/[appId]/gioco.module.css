@@ -90,52 +90,15 @@
   color: var(--color-text);
 }
 
-.byline {
-  margin: 0 0 var(--space-4);
-  color: var(--color-text-muted);
-  font-size: 15px;
-}
-.byline strong {
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-/* Riga dei dati rapidi (recensioni · data). */
-.heroMeta {
+/* Recensioni nell'header, subito sotto il titolo (fix duplicazione: non più
+   ripetute più sotto nel corpo). Stesso reviewRow/reviewBar della sezione che
+   c'era nel corpo, solo spostati qui, con lo spazio sotto per il resto dell'hero. */
+.heroReviews {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 420px;
   margin-bottom: var(--space-4);
-  font-size: 14px;
-  color: var(--color-text);
-}
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-weight: 600;
-}
-.metaIcon {
-  width: 16px;
-  height: 16px;
-  color: var(--color-text-muted);
-}
-.metaMuted {
-  color: var(--color-text-muted);
-  font-weight: 500;
-}
-.metaDot {
-  width: 4px;
-  height: 4px;
-  border-radius: var(--radius-pill);
-  background: var(--color-text-faint);
-}
-
-.heroGenres {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }
 
 /* =============================================================================
@@ -305,6 +268,25 @@
   color: var(--color-text);
   font-size: 13px;
   font-weight: 600;
+}
+
+/* Generi / Tag / Categorie nella sidebar (fix duplicazione con l'header):
+   stesso trattamento visivo dei gruppi filtro del Negozio (titoletto piccolo
+   in maiuscolo + chip che vanno a capo), separati da una linea sottile. */
+.sideGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.sideGroupTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
 }
 
 /* Badge Metacritic (colore impostato inline dal componente) */

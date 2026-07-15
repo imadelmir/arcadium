@@ -4,10 +4,13 @@
 //   GET /api/games/{appId}  -> GameDetailResponse                  (dettaglio completo)
 //
 // Filtri della lista (tutti opzionali, in AND):
-//   q        sottostringa nel nome (case-insensitive)
-//   genre    nome del genere
-//   platform "windows" | "mac" | "linux"
-//   status   "free" | "paid" | "discounted"
+//   q                    sottostringa nel nome (case-insensitive)
+//   genre/language/category  array di nomi selezionati (change request Negozio:
+//                        multi-select). Un gioco entra se ha ALMENO UNO dei
+//                        valori scelti per ciascun filtro (OR dentro il filtro,
+//                        AND fra filtri). Inviati come CSV: ["Action","Indie"] -> "Action,Indie".
+//   platform             "windows" | "mac" | "linux"
+//   status               "free" | "paid" | "discounted"
 // Paginazione/ordinamento standard Spring Data:
 //   page (0-based), size, sort (es. "price,desc"). Default backend: 20, per nome.
 // =============================================================================
@@ -20,8 +23,17 @@ import api from "./client";
  *   - sort può essere stringa "price,desc" oppure array ["price","desc"].
  * @returns PageResponse<GameSummaryResponse>
  */
-export function listGames({ q, genre, platform, status, minPrice, maxPrice, europeanOnly, page, size, sort } = {}) {
-  return api.get("/api/games", { q, genre, platform, status, minPrice, maxPrice, europeanOnly, page, size, sort });
+export function listGames({ q, genre, language, category, platform, status, minPrice, maxPrice, europeanOnly, page, size, sort } = {}) {
+  return api.get("/api/games", { q, genre, language, category, platform, status, minPrice, maxPrice, europeanOnly, page, size, sort });
+}
+
+/**
+ * Valori per i menu a tendina dei filtri del Negozio (generi, categorie, lingue).
+ * Da chiamare una volta al montaggio della pagina.
+ * @returns { genres: string[], categories: string[], languages: string[] }
+ */
+export function getGameFilters() {
+  return api.get("/api/games/filters");
 }
 
 /**
