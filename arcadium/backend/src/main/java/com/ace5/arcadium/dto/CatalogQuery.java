@@ -18,6 +18,9 @@ import java.math.BigDecimal;
  * @param status   "free" | "paid" | "discounted" (case-insensitive)
  * @param minPrice prezzo minimo incluso (games.price &gt;= minPrice), nullable
  * @param maxPrice prezzo massimo incluso (games.price &lt;= maxPrice), nullable
+ * @param europeanOnly se {@code true}, limita ai titoli che iniziano con una
+ *                     lettera europea (vetrina Negozio); assente/false = tutto
+ *                     il catalogo. Il Negozio lo attiva solo a ricerca vuota.
  */
 public record CatalogQuery(
         String q,
@@ -25,6 +28,7 @@ public record CatalogQuery(
         String platform,
         String status,
         BigDecimal minPrice,
-        BigDecimal maxPrice
+        BigDecimal maxPrice,
+        Boolean europeanOnly
 ) {
 }

@@ -44,10 +44,14 @@ public final class GameSpecifications {
      * @param status   stato commerciale richiesto, nullable
      * @param minPrice prezzo minimo incluso (price &gt;= minPrice), nullable
      * @param maxPrice prezzo massimo incluso (price &lt;= maxPrice), nullable
+     * @param europeanOnly se {@code TRUE}, limita ai titoli che iniziano con una
+     *                     lettera europea (colonna generata name_starts_latin,
+     *                     V8); {@code null}/false non aggiunge alcun predicato
      */
     public static Specification<Game> build(String q, String genre,
                                             GamePlatform platform, CatalogGameStatus status,
-                                            BigDecimal minPrice, BigDecimal maxPrice) {
+                                            BigDecimal minPrice, BigDecimal maxPrice,
+                                            Boolean europeanOnly) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -92,6 +96,13 @@ public final class GameSpecifications {
             }
             if (maxPrice != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.<BigDecimal>get("price"), maxPrice));
+            }
+
+            // --- Vetrina Negozio: solo titoli che iniziano con lettera europea ---
+            // Attivo solo quando richiesto (ricerca vuota): il flag generato
+            // name_starts_latin (V8) è true per i titoli latini/europei.
+            if (Boolean.TRUE.equals(europeanOnly)) {
+                predicates.add(cb.isTrue(root.<Boolean>get("nameStartsLatin")));
             }
 
             // Nessun filtro → congiunzione vuota (sempre vera): tutto il catalogo.

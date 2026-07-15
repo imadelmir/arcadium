@@ -125,6 +125,10 @@ function NegozioContent() {
           // La fascia di prezzo viene inviata solo se diversa dall'intervallo pieno.
           minPrice: rangeActive ? range.min : undefined,
           maxPrice: rangeActive ? range.max : undefined,
+          // Vetrina: a ricerca vuota mostra solo i titoli in caratteri europei;
+          // appena si cerca (debouncedQuery presente) il filtro si spegne e si
+          // cerca in tutto il catalogo (asiatici, simboli, cifre inclusi).
+          europeanOnly: debouncedQuery ? undefined : true,
           sort,
           page,
           size: PAGE_SIZE,

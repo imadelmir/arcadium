@@ -20,8 +20,8 @@ import api from "./client";
  *   - sort può essere stringa "price,desc" oppure array ["price","desc"].
  * @returns PageResponse<GameSummaryResponse>
  */
-export function listGames({ q, genre, platform, status, page, size, sort } = {}) {
-  return api.get("/api/games", { q, genre, platform, status, page, size, sort });
+export function listGames({ q, genre, platform, status, minPrice, maxPrice, europeanOnly, page, size, sort } = {}) {
+  return api.get("/api/games", { q, genre, platform, status, minPrice, maxPrice, europeanOnly, page, size, sort });
 }
 
 /**

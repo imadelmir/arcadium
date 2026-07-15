@@ -58,9 +58,10 @@ public class GameController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Boolean europeanOnly,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        CatalogQuery filter = new CatalogQuery(q, genre, platform, status, minPrice, maxPrice);
+        CatalogQuery filter = new CatalogQuery(q, genre, platform, status, minPrice, maxPrice, europeanOnly);
         return gameService.search(filter, pageable);
     }
 
