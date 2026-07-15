@@ -23,8 +23,10 @@ import java.util.List;
  *                 Join su game_category → category.name
  * @param platform "windows" | "mac" | "linux" (case-insensitive)
  * @param status   "free" | "paid" | "discounted" (case-insensitive)
- * @param minPrice prezzo minimo incluso (games.price &gt;= minPrice), nullable
- * @param maxPrice prezzo massimo incluso (games.price &lt;= maxPrice), nullable
+ * @param minPrice prezzo minimo incluso, confrontato con il prezzo EFFETTIVO
+ *                 scontato (V13), non il listino: games.effective_price &gt;= minPrice, nullable
+ * @param maxPrice prezzo massimo incluso, confrontato con il prezzo EFFETTIVO
+ *                 scontato (V13), non il listino: games.effective_price &lt;= maxPrice, nullable
  * @param europeanOnly se {@code true}, limita ai titoli che iniziano con una
  *                     lettera europea (vetrina Negozio); assente/false = tutto
  *                     il catalogo. Il Negozio lo attiva solo a ricerca vuota.

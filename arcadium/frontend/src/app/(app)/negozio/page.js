@@ -53,6 +53,9 @@ const PAGE_SIZE = 300;
 const PRICE_MIN = 0;
 const PRICE_MAX = 100;
 
+// Ordinamento di default del Negozio (novità più recenti in cima).
+const DEFAULT_SORT = "releaseDate,desc";
+
 function NegozioContent() {
   const { t } = useTranslation();
 
@@ -79,7 +82,7 @@ function NegozioContent() {
   const [categorySearch, setCategorySearch] = useState("");
   const [price, setPrice] = useState("");                  // "" | free | paid | discounted
   const [range, setRange] = useState({ min: PRICE_MIN, max: PRICE_MAX }); // fascia di prezzo
-  const [sort, setSort] = useState("releaseDate,desc");
+  const [sort, setSort] = useState(DEFAULT_SORT);
 
   // Valori disponibili per le tendine Genere / Lingua / Categoria (dal backend).
   const [genreOptions, setGenreOptions] = useState([]);
@@ -111,8 +114,11 @@ function NegozioContent() {
   const changePlatform = (v) => { setPlatform(v); setPage(0); };
   const changePrice = (v) => { setPrice(v); setPage(0); };
   const changeSort = (v) => { setSort(v); setPage(0); };
-  const changeRange = (next) => { setRange(next); setPage(0); };
-  const resetRange = () => { setRange({ min: PRICE_MIN, max: PRICE_MAX }); setPage(0); };
+  // Trascinare la fascia di prezzo ordina automaticamente per prezzo crescente
+  // (dal minimo scelto in su): è il modo naturale di "sfogliare per budget".
+  // "Ripristina" riporta anche l'ordinamento al default dell'app.
+  const changeRange = (next) => { setRange(next); setSort("price,asc"); setPage(0); };
+  const resetRange = () => { setRange({ min: PRICE_MIN, max: PRICE_MAX }); setSort(DEFAULT_SORT); setPage(0); };
 
   // Genere/Lingua/Categoria (multi-select): spunta/togli un valore dall'array.
   const toggleValue = (setValues) => (opt) => {

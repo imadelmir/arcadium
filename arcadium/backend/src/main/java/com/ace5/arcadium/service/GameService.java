@@ -204,6 +204,12 @@ public class GameService {
      * {@code NULLS LAST} restano in fondo sia in A-Z sia in Z-A. {@code appId}
      * è il tie-breaker che rende la paginazione deterministica.
      *
+     * <p>Analogo trattamento per {@code price} (change request Negozio: fix
+     * filtro/ordinamento prezzo): la richiesta "Prezzo" ordina sulla colonna
+     * generata {@code effective_price} (V13, prezzo scontato) invece che sul
+     * listino {@code price}, coerente con ciò che la card mostra e con il
+     * filtro di fascia prezzo (che confronta lo stesso campo).
+     *
      * <p>Eccezione: con il filtro per genere attivo la query usa {@code DISTINCT}
      * e PostgreSQL vieta un {@code ORDER BY} con colonne non presenti nella
      * {@code SELECT DISTINCT}: in quel solo caso si tiene l'ordinamento semplice
@@ -216,6 +222,8 @@ public class GameService {
             if (!hasJoinFilter && "name".equals(order.getProperty())) {
                 Sort.Order key = new Sort.Order(order.getDirection(), "nameSort").nullsLast();
                 piece = Sort.by(key).and(Sort.by(Sort.Direction.ASC, "appId"));
+            } else if ("price".equals(order.getProperty())) {
+                piece = Sort.by(order.getDirection(), "effectivePrice");
             } else {
                 piece = Sort.by(order.getDirection(), order.getProperty());
             }
