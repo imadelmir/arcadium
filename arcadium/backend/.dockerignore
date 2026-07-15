@@ -1,0 +1,8 @@
+# Fuori dal contesto di build del backend: non serve spedirli al daemon.
+target/
+.idea/
+*.iml
+.env
+.env.*
+*.http
+README.md

@@ -1,0 +1,9 @@
+# Non spedire al build: si reinstallano/rigenerano dentro l'immagine.
+node_modules/
+.next/
+.idea/
+.vscode/
+.env
+.env.*
+README.md
+npm-debug.log*

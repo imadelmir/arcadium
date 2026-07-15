@@ -1,0 +1,117 @@
+# =============================================================================
+# Arcadium — ACE5 · Milestone M6 · Task T6
+# Ambiente demo completo: db, backend e frontend in tre container separati,
+# piu' un servizio ETL "one-shot" (profile "etl") per il caricamento iniziale.
+#
+# Avvio della demo (dalla root del progetto):
+#   1) cp .env.demo.example .env        # imposta DB_PASSWORD e JWT_SECRET
+#   2) docker compose --profile etl run --rm etl   # UNA volta, popola il DB
+#   3) docker compose up -d --build     # avvia lo stack (catalogo gia' pieno)
+#
+# Il punto 2 si fa una sola volta (es. da casa prima della demo): i dati vivono
+# nel volume "arcadium-pgdata" e restano tra un `up` e l'altro. Il giorno della
+# demo bastano `up -d` e il browser su http://localhost:3000.
+#
+# Sequenza di dipendenze:
+#   db (healthy) -> backend (Flyway V1..V7 su DB nuovo, poi app) -> frontend.
+#   L'ETL dipende dal backend healthy: cosi' lo schema esiste gia' quando carica.
+#
+# Le credenziali NON sono versionate: arrivano dal file .env (vedi
+# .env.demo.example). Un solo DB_PASSWORD per db, backend ed ETL.
+# =============================================================================
+
+services:
+  # ---- Database ----------------------------------------------------------
+  db:
+    image: postgres:16
+    container_name: arcadium-db
+    environment:
+      POSTGRES_DB: arcadium
+      POSTGRES_USER: arcadium
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?serve DB_PASSWORD nel file .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - arcadium-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arcadium -d arcadium"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ---- Backend (Spring Boot) --------------------------------------------
+  backend:
+    build:
+      context: ./backend
+    container_name: arcadium-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Connessione al DB: nella rete di compose l'host e' "db", non localhost.
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: arcadium
+      DB_USER: arcadium
+      DB_PASSWORD: ${DB_PASSWORD:?serve DB_PASSWORD nel file .env}
+      SERVER_PORT: "8080"
+      # Sicurezza: segreto JWT obbligatorio (>=32 caratteri) da .env.
+      JWT_SECRET: ${JWT_SECRET:?serve JWT_SECRET nel file .env (>=32 caratteri)}
+      # Il frontend gira su localhost:3000 (lato browser): CORS e link reset.
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      FRONTEND_BASE_URL: http://localhost:3000
+      # SOLO demo: espone il token di reset nella risposta (niente server email).
+      PASSWORD_RESET_EXPOSE_TOKEN: "true"
+      # Percorsi delle migrazioni montate qui sotto (Flyway filesystem:).
+      ARCADIUM_DB_MIGRATIONS: /app/database/migrations
+      ARCADIUM_DB_SEED: /app/database/seed
+    volumes:
+      # Le STESSE migrazioni versionate di M2/M3, in sola lettura.
+      - ./database:/app/database:ro
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  # ---- Frontend (Next.js) -----------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Il browser chiama il backend sulla porta pubblicata dall'host.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    container_name: arcadium-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  # ---- ETL (one-shot, solo con --profile etl) ---------------------------
+  etl:
+    build:
+      context: ./etl
+    container_name: arcadium-etl
+    profiles: ["etl"]          # non parte con `up`; solo on-demand con `run`.
+    depends_on:
+      backend:
+        condition: service_healthy   # schema gia' creato da Flyway del backend.
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: arcadium
+      DB_USER: arcadium
+      DB_PASSWORD: ${DB_PASSWORD:?serve DB_PASSWORD nel file .env}
+      DATASET_FILE: ${DATASET_FILE:-steam_games.json}
+    volumes:
+      # Dataset di input (non versionato) e cartella dei log/report.
+      - ./etl/data:/app/data:ro
+      - ./etl/logs:/app/logs
+    restart: "no"
+
+volumes:
+  arcadium-pgdata:

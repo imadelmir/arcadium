@@ -1,0 +1,12 @@
+# Il dataset e i log sono montati a runtime: non vanno nell'immagine.
+data/
+logs/
+tests/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+config/.env
+verify_*.py
+measure_transform.py
+README.md
