@@ -103,3 +103,13 @@
   font-size: 13px;
   color: var(--color-text-muted);
 }
+/* Avviso di errore nel cambio stato (M6): stesso stile della Libreria, per
+   non lasciare un rollback silenzioso quando il PATCH fallisce. */
+.statusError {
+  padding: var(--space-3) var(--space-4);
+  font-size: 14px;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  border-radius: var(--radius-md);
+}

@@ -26,6 +26,9 @@ export default function BacklogPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // M6: come in Libreria, se il PATCH fallisce non basta ripristinare in
+  // silenzio — l'utente va avvisato.
+  const [statusError, setStatusError] = useState(false);
 
   const [draggingId, setDraggingId] = useState(null);
   const [overStatus, setOverStatus] = useState(null);
@@ -50,9 +53,12 @@ export default function BacklogPage() {
     return groups;
   }, [items]);
 
-  // Cambio stato reale: aggiorna la UI e chiama PATCH; se fallisce, ripristina.
+  // Cambio stato reale, guidato dalla risposta del server (stesso pattern della
+  // Libreria): update ottimistico, riconciliazione con la voce persistita, e in
+  // caso di errore ripristino + AVVISO (niente piu' rollback silenzioso).
   async function moveGame(appId, nextCode) {
     const backup = items;
+    setStatusError(false);
     setItems((prev) =>
       prev.map((it) =>
         it.game.appId === appId
@@ -61,9 +67,22 @@ export default function BacklogPage() {
       )
     );
     try {
-      await updateBacklog(appId, { status: nextCode });
+      const updated = await updateBacklog(appId, { status: nextCode });
+      // Riconcilia con lo stato reale del server (code + etichette).
+      setItems((prev) =>
+        prev.map((it) =>
+          it.game.appId === appId
+            ? {
+                ...it,
+                status: updated.status,
+                playtimeMinutes: updated.playtimeMinutes ?? it.playtimeMinutes,
+              }
+            : it
+        )
+      );
     } catch {
-      setItems(backup); // rollback in caso di errore
+      setItems(backup); // ripristino
+      setStatusError(true); // e avviso all'utente
     }
   }
 
@@ -80,6 +99,12 @@ export default function BacklogPage() {
       <header className={styles.head}>
         <h1 className={styles.title}>{t("nav.backlog")}</h1>
       </header>
+
+      {statusError && (
+        <div className={styles.statusError} role="alert">
+          {t("backlog.statusError")}
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: "grid", placeItems: "center", minHeight: 200 }}>
