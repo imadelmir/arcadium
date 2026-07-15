@@ -50,8 +50,10 @@ public final class GameSpecifications {
      * @param category nomi di categoria selezionati (OR fra loro), nullable/vuoto = nessun filtro
      * @param platform piattaforma richiesta, nullable
      * @param status   stato commerciale richiesto, nullable
-     * @param minPrice prezzo minimo incluso (price &gt;= minPrice), nullable
-     * @param maxPrice prezzo massimo incluso (price &lt;= maxPrice), nullable
+     * @param minPrice prezzo minimo incluso, confrontato con il prezzo EFFETTIVO
+     *                 (scontato, V13): effectivePrice &gt;= minPrice, nullable
+     * @param maxPrice prezzo massimo incluso, confrontato con il prezzo EFFETTIVO
+     *                 (scontato, V13): effectivePrice &lt;= maxPrice, nullable
      * @param europeanOnly se {@code TRUE}, limita ai titoli che iniziano con una
      *                     lettera europea (colonna generata name_starts_latin,
      *                     V8); {@code null}/false non aggiunge alcun predicato
@@ -112,20 +114,26 @@ public final class GameSpecifications {
             }
 
             // --- Filtro per stato commerciale (price/discount) ---
+            // FREE/PAID guardano il prezzo EFFETTIVO (V13): un gioco scontato
+            // al 100% e' "Gratis" adesso, non "A pagamento" sul listino.
             if (status != null) {
                 switch (status) {
-                    case FREE -> predicates.add(cb.equal(root.<BigDecimal>get("price"), BigDecimal.ZERO));
-                    case PAID -> predicates.add(cb.gt(root.<BigDecimal>get("price"), 0));
+                    case FREE -> predicates.add(cb.equal(root.<BigDecimal>get("effectivePrice"), BigDecimal.ZERO));
+                    case PAID -> predicates.add(cb.gt(root.<BigDecimal>get("effectivePrice"), 0));
                     case DISCOUNTED -> predicates.add(cb.gt(root.<Short>get("discount"), 0));
                 }
             }
 
-            // --- Fascia di prezzo (change request Negozio): price >= min, price <= max ---
+            // --- Fascia di prezzo (change request Negozio): confronta il prezzo
+            // EFFETTIVO (V13, dopo lo sconto) — lo stesso che la card mostra —
+            // non il prezzo di listino. Corregge il bug per cui un gioco
+            // scontato poteva risultare dentro la fascia sui dati grezzi ma
+            // apparire fuori range sullo schermo.
             if (minPrice != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.<BigDecimal>get("price"), minPrice));
+                predicates.add(cb.greaterThanOrEqualTo(root.<BigDecimal>get("effectivePrice"), minPrice));
             }
             if (maxPrice != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.<BigDecimal>get("price"), maxPrice));
+                predicates.add(cb.lessThanOrEqualTo(root.<BigDecimal>get("effectivePrice"), maxPrice));
             }
 
             // --- Vetrina Negozio: solo titoli che iniziano con lettera europea ---

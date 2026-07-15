@@ -68,6 +68,15 @@ public class Game {
     private Short requiredAge;                // SMALLINT -> Short
     private BigDecimal price;                 // NUMERIC(10,2)
     private Short discount;                   // SMALLINT -> Short
+
+    // Colonna generata dal DB (V13, change request Negozio: fix filtro
+    // prezzo): round(price * (100-discount) / 100, 2) — il prezzo che la
+    // card mostra davvero, non il listino. Fascia di prezzo, stato
+    // Gratis/A-pagamento e ordinamento "Prezzo" si basano su questo campo,
+    // non su price. SOLA LETTURA: la calcola PostgreSQL.
+    @Column(name = "effective_price", insertable = false, updatable = false)
+    private BigDecimal effectivePrice;
+
     private Integer dlcCount;                 // INTEGER
 
     private String aboutTheGame;             // TEXT
@@ -179,6 +188,7 @@ public class Game {
     public Short getRequiredAge() { return requiredAge; }
     public BigDecimal getPrice() { return price; }
     public Short getDiscount() { return discount; }
+    public BigDecimal getEffectivePrice() { return effectivePrice; }
     public Integer getDlcCount() { return dlcCount; }
     public String getAboutTheGame() { return aboutTheGame; }
     public String getReviews() { return reviews; }
