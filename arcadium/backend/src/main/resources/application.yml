@@ -121,3 +121,24 @@ springdoc:
 # --- HTTP server ---
 server:
   port: ${SERVER_PORT:8080}
+
+
+# =============================================================================
+# Profilo "prod" (jar / ambiente demo) — solo override di Flyway.
+# -----------------------------------------------------------------------------
+# Nel jar impacchettato i percorsi "filesystem:../database/..." non esistono
+# piu': qui Flyway legge le STESSE migrazioni e seed dal CLASSPATH, dove la
+# build Maven (maven-resources-plugin) li ha copiati sotto db/migration e
+# db/seed. Tutte le altre chiavi flyway (enabled, baseline, naming) ereditano
+# dalla configurazione di default qui sopra.
+#
+# Attivazione: SPRING_PROFILES_ACTIVE=prod  (oppure --spring.profiles.active=prod).
+# In sviluppo da IDE NON si attiva: resta il default filesystem.
+# =============================================================================
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed

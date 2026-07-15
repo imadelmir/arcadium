@@ -146,6 +146,49 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <!-- Copia le migrazioni e i seed del DB (sorgente in ../database) nel
+                 classpath (target/classes/db/...) durante la build. Serve al jar
+                 impacchettato: nel profilo "prod" Flyway le legge via
+                 classpath:db/migration e classpath:db/seed, perche' nel jar i
+                 percorsi filesystem "../database/..." non esistono piu'.
+                 In sviluppo NON incide: il profilo default continua a leggere da
+                 filesystem, quindi la copia e' solo un di piu' innocuo. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-db-scripts-to-classpath</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/db</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../database/migrations</directory>
+                                    <targetPath>migration</targetPath>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>**/*.sql</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/../database/seed</directory>
+                                    <targetPath>seed</targetPath>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>**/*.sql</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
