@@ -1,5 +1,7 @@
 package com.ace5.arcadium.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -12,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ace5.arcadium.dto.BacklogItemResponse;
 import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.dto.UserResponse;
+import com.ace5.arcadium.dto.UserSettingsRequest;
 import com.ace5.arcadium.dto.UserSummaryResponse;
 import com.ace5.arcadium.dto.WishlistItemResponse;
 import com.ace5.arcadium.entity.AppUser;
@@ -53,25 +57,79 @@ public class UserService {
 
     /**
      * Cerca utenti per sottostringa su username o nome visualizzato. Con {@code q}
-     * vuoto elenca tutti gli utenti (paginati). Ordinamento fisso per username.
+     * vuoto elenca tutti gli utenti pubblici (paginati). Ordinamento fisso per
+     * username.
      *
-     * @param q        sottostringa da cercare (nullable/vuoto = tutti)
-     * @param pageable pagina e dimensione richieste (l'ordinamento e' imposto)
+     * <p>Change request privacy — visibilita' reciproca:
+     * <ul>
+     *   <li>chi ha il profilo PRIVATO non puo' cercare: 403;</li>
+     *   <li>i risultati contengono solo profili PUBBLICI (un utente privato non
+     *       e' cercabile) ed escludono il richiedente stesso.</li>
+     * </ul>
+     *
+     * @param requesterId id dell'utente autenticato che effettua la ricerca
+     * @param q           sottostringa da cercare (nullable/vuoto = tutti i pubblici)
+     * @param pageable    pagina e dimensione richieste (l'ordinamento e' imposto)
      * @return pagina di viste pubbliche degli utenti
+     * @throws ApiException 403 se il richiedente ha il profilo privato
      */
     @Transactional(readOnly = true)
-    public PageResponse<UserSummaryResponse> search(String q, Pageable pageable) {
+    public PageResponse<UserSummaryResponse> search(Long requesterId, String q, Pageable pageable) {
+        AppUser requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND, "error.user.notFound", requesterId));
+        if (!Boolean.TRUE.equals(requester.getIsProfilePublic())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "error.user.search.private");
+        }
+
         int size = Math.min(Math.max(pageable.getPageSize(), 1), MAX_PAGE_SIZE);
         Pageable safe = PageRequest.of(pageable.getPageNumber(), size, SEARCH_SORT);
 
         Page<AppUser> page = (q == null || q.isBlank())
-                ? userRepository.findAll(safe)
-                : userRepository.search(q.trim(), safe);
+                ? userRepository.findByIsProfilePublicTrueAndIdNot(requesterId, safe)
+                : userRepository.searchPublic(q.trim(), requesterId, safe);
 
         List<UserSummaryResponse> content = page.getContent().stream()
                 .map(UserSummaryResponse::from)
                 .toList();
         return PageResponse.of(page, content);
+    }
+
+    /**
+     * Aggiorna le impostazioni dell'utente autenticato (change request privacy).
+     * Per ora l'unica impostazione e' la visibilita' del profilo. PATCH parziale:
+     * i campi null nella richiesta non vengono toccati.
+     *
+     * @param userId  id dell'utente autenticato
+     * @param request nuove impostazioni (campi opzionali)
+     * @return la vista aggiornata dell'utente
+     * @throws ApiException 404 se l'utente non esiste
+     */
+    @Transactional
+    public UserResponse updateSettings(Long userId, UserSettingsRequest request) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND, "error.user.notFound", userId));
+
+        if (request.profilePublic() != null
+                && !request.profilePublic().equals(Boolean.TRUE.equals(user.getIsProfilePublic()))) {
+            // La visibilita' cambia DAVVERO (salvare lo stesso valore non conta):
+            // change request cooldown — non prima di 48h dall'ultimo cambio.
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime changedAt = user.getProfileVisibilityChangedAt();
+            if (changedAt != null) {
+                LocalDateTime unlockAt = changedAt.plus(UserResponse.PROFILE_VISIBILITY_COOLDOWN);
+                if (unlockAt.isAfter(now)) {
+                    long hoursLeft = Math.max(1L,
+                            (long) Math.ceil(Duration.between(now, unlockAt).toMinutes() / 60.0));
+                    throw new ApiException(HttpStatus.TOO_MANY_REQUESTS,
+                            "error.profile.visibility.cooldown", hoursLeft);
+                }
+            }
+            user.setIsProfilePublic(request.profilePublic());
+            user.setProfileVisibilityChangedAt(now);
+        }
+        return UserResponse.from(user);
     }
 
     /**

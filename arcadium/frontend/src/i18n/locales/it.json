@@ -266,7 +266,10 @@
     "backlogTitle": "Libreria",
     "emptyWishlist": "Nessun gioco nella wishlist.",
     "emptyBacklog": "Nessun gioco nella libreria.",
-    "privateNotice": "Questo profilo è privato."
+    "privateNotice": "Questo profilo è privato.",
+    "searchDisabledTitle": "Ricerca non disponibile",
+    "searchDisabledText": "Il tuo profilo è privato: rendilo pubblico per cercare altri utenti ed essere trovato.",
+    "searchDisabledCta": "Vai alle impostazioni"
   },
   "auth": {
     "fields": {
@@ -359,5 +362,18 @@
   },
   "language": {
     "label": "Lingua"
+  },
+  "settings": {
+    "privacy": {
+      "title": "Privacy del profilo",
+      "description": "Con il profilo pubblico puoi cercare altri utenti e comparire nelle loro ricerche. Con il profilo privato non puoi cercare nessuno e non sei cercabile.",
+      "public": "Pubblico",
+      "private": "Privato",
+      "publicHint": "Sei cercabile e puoi cercare gli altri.",
+      "privateHint": "Non sei cercabile e non puoi cercare gli altri.",
+      "saved": "Impostazione salvata.",
+      "error": "Impossibile salvare l'impostazione. Riprova.",
+      "locked": "Hai cambiato la visibilità di recente. Potrai modificarla di nuovo il {{time}}."
+    }
   }
 }

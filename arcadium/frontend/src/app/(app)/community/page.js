@@ -10,6 +10,7 @@ import { Search, Lock } from "lucide-react";
 
 import { Input, Avatar, Spinner } from "@/components";
 import { searchUsers } from "@/lib/api/users";
+import { ApiError } from "@/lib/api/client";
 import styles from "./community.module.css";
 
 export default function CommunityPage() {
@@ -19,6 +20,10 @@ export default function CommunityPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // Change request privacy: il backend risponde 403 se chi cerca ha il profilo
+  // privato. In quel caso la ricerca e' disattivata e mostriamo un invito a
+  // rendere pubblico il profilo dalle Impostazioni.
+  const [searchDisabled, setSearchDisabled] = useState(false);
 
   // Debounce della ricerca (aspetta che l'utente smetta di digitare).
   const [qDebounced, setQDebounced] = useState("");
@@ -36,11 +41,15 @@ export default function CommunityPage() {
     const carica = async () => {
       setLoading(true);
       setError(false);
+      setSearchDisabled(false);
       try {
         const res = await searchUsers({ q: qDebounced.trim() || undefined, page: 0, size: 40 });
         if (attivo) setUsers(res.content);
-      } catch {
-        if (attivo) setError(true);
+      } catch (err) {
+        if (!attivo) return;
+        // 403 = profilo privato: ricerca non consentita (non un errore di rete).
+        if (err instanceof ApiError && err.status === 403) setSearchDisabled(true);
+        else setError(true);
       } finally {
         if (attivo) setLoading(false);
       }
@@ -56,20 +65,31 @@ export default function CommunityPage() {
         <p className={styles.subtitle}>{t("community.subtitle")}</p>
       </header>
 
-      <div className={styles.searchRow}>
-        <Input
-          name="q"
-          placeholder={t("community.searchPlaceholder")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          iconLeft={<Search size={16} />}
-          aria-label={t("community.searchPlaceholder")}
-          autoComplete="off"
-        />
-      </div>
+      {!searchDisabled && (
+        <div className={styles.searchRow}>
+          <Input
+            name="q"
+            placeholder={t("community.searchPlaceholder")}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            iconLeft={<Search size={16} />}
+            aria-label={t("community.searchPlaceholder")}
+            autoComplete="off"
+          />
+        </div>
+      )}
 
       {loading ? (
         <div className={styles.state}><Spinner size="lg" /></div>
+      ) : searchDisabled ? (
+        <div className={styles.state}>
+          <Lock size={28} aria-hidden="true" />
+          <p className={styles.disabledTitle}>{t("community.searchDisabledTitle")}</p>
+          <p>{t("community.searchDisabledText")}</p>
+          <Link href="/impostazioni" className={styles.disabledCta}>
+            {t("community.searchDisabledCta")}
+          </Link>
+        </div>
       ) : error ? (
         <div className={styles.state}>{t("errors.network")}</div>
       ) : users.length === 0 ? (

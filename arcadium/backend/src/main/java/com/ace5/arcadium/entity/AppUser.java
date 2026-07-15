@@ -48,6 +48,8 @@ public class AppUser {
 
     private Boolean isProfilePublic;          // BOOLEAN NOT NULL DEFAULT TRUE
 
+    private LocalDateTime profileVisibilityChangedAt;  // TIMESTAMP, nullable — ultimo cambio di is_profile_public (cooldown 48h, V11)
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;          // TIMESTAMP NOT NULL DEFAULT now()
@@ -87,6 +89,9 @@ public class AppUser {
 
     public Boolean getIsProfilePublic() { return isProfilePublic; }
     public void setIsProfilePublic(Boolean isProfilePublic) { this.isProfilePublic = isProfilePublic; }
+
+    public LocalDateTime getProfileVisibilityChangedAt() { return profileVisibilityChangedAt; }
+    public void setProfileVisibilityChangedAt(LocalDateTime profileVisibilityChangedAt) { this.profileVisibilityChangedAt = profileVisibilityChangedAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
