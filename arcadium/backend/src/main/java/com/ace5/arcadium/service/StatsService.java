@@ -1,5 +1,7 @@
 package com.ace5.arcadium.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ace5.arcadium.dto.UserStatsResponse;
+import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.repository.BacklogRepository;
 import com.ace5.arcadium.repository.BacklogStatusRepository;
+import com.ace5.arcadium.repository.PlaytimeEntryRepository;
 import com.ace5.arcadium.repository.WishlistRepository;
 
 /**
@@ -31,6 +35,13 @@ import com.ace5.arcadium.repository.WishlistRepository;
  * (dalla lookup {@code backlog_status}) cosi' che TUTTI gli stati compaiano —
  * anche quelli a zero — nell'ordine di {@code sort_order}, dando al frontend
  * (M5-T12) un insieme di sezioni stabile per il grafico.
+ *
+ * <p><b>Feature M6 — ore per mese e "Steam vince".</b> Il totale ore proviene dal
+ * sync Steam ({@code backlog.playtime_minutes}) se l'account e' collegato,
+ * altrimenti dalla somma delle voci del registro manuale ({@code playtime_entry}).
+ * Il grafico "ore per mese" e' invece SEMPRE dal registro manuale (Steam non
+ * espone lo storico mensile) e viene sempre restituito con 12 voci in ordine
+ * cronologico, anche a zero, per dare al grafico un asse stabile.
  */
 @Service
 public class StatsService {
@@ -47,16 +58,25 @@ public class StatsService {
     /** Fattore di arrotondamento del tasso di completamento (4 decimali). */
     private static final double RATE_SCALE = 10_000d;
 
+    /** Quanti mesi mostra il grafico "ore per mese" (mese corrente + 11 precedenti). */
+    private static final int MONTHS_WINDOW = 12;
+
     private final BacklogRepository backlogRepository;
     private final WishlistRepository wishlistRepository;
     private final BacklogStatusRepository statusRepository;
+    private final PlaytimeEntryRepository playtimeRepository;
+    private final AppUserRepository userRepository;
 
     public StatsService(BacklogRepository backlogRepository,
                         WishlistRepository wishlistRepository,
-                        BacklogStatusRepository statusRepository) {
+                        BacklogStatusRepository statusRepository,
+                        PlaytimeEntryRepository playtimeRepository,
+                        AppUserRepository userRepository) {
         this.backlogRepository = backlogRepository;
         this.wishlistRepository = wishlistRepository;
         this.statusRepository = statusRepository;
+        this.playtimeRepository = playtimeRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -87,7 +107,13 @@ public class StatsService {
                                 countByStatus.getOrDefault(status.getCode(), 0L)))
                         .toList();
 
-        long playtimeMinutes = backlogRepository.sumPlaytimeMinutes(userId);
+        // "Steam vince": se l'account Steam e' collegato il totale ore e' quello
+        // sincronizzato (backlog.playtime_minutes); altrimenti la somma delle voci
+        // del registro manuale.
+        long playtimeMinutes = userRepository.isSteamConnected(userId)
+                ? backlogRepository.sumPlaytimeMinutes(userId)
+                : playtimeRepository.sumMinutesByUser(userId);
+
         long wishlistSize = wishlistRepository.countByUser(userId);
         long distinctGenres = backlogRepository.countDistinctGenres(userId);
 
@@ -98,6 +124,8 @@ public class StatsService {
 
         double completionRate = completionRate(finished, gamesOwned);
 
+        List<UserStatsResponse.MonthlyPlaytime> monthly = monthlyPlaytime(userId);
+
         return new UserStatsResponse(
                 gamesOwned,
                 wishlistSize,
@@ -106,7 +134,41 @@ public class StatsService {
                 distinctGenres,
                 completionRate,
                 byStatus,
-                topGenres);
+                topGenres,
+                monthly);
+    }
+
+    /**
+     * Serie "ore per mese" degli ultimi {@link #MONTHS_WINDOW} mesi, dal registro
+     * manuale. Sempre 12 voci in ordine cronologico (dal mese piu' vecchio al
+     * corrente), riempite a zero dove non ci sono sessioni: cosi' il grafico ad
+     * area ha un asse stabile, come {@code byStatus} per gli stati.
+     */
+    private List<UserStatsResponse.MonthlyPlaytime> monthlyPlaytime(Long userId) {
+        LocalDate fromDate = LocalDate.now().withDayOfMonth(1).minusMonths(MONTHS_WINDOW - 1L);
+
+        // Minuti aggregati dal DB, indicizzati per "bucket" anno/mese.
+        Map<Integer, Long> minutesByBucket = new HashMap<>();
+        for (PlaytimeEntryRepository.MonthlyMinutes row : playtimeRepository.monthlyMinutes(userId, fromDate)) {
+            minutesByBucket.put(bucket(row.getYr(), row.getMo()), row.getMinutes());
+        }
+
+        List<UserStatsResponse.MonthlyPlaytime> series = new ArrayList<>(MONTHS_WINDOW);
+        LocalDate cursor = fromDate;
+        for (int i = 0; i < MONTHS_WINDOW; i++) {
+            int year = cursor.getYear();
+            int month = cursor.getMonthValue();
+            long minutes = minutesByBucket.getOrDefault(bucket(year, month), 0L);
+            series.add(new UserStatsResponse.MonthlyPlaytime(
+                    year, month, minutes, minutes / MINUTES_PER_HOUR));
+            cursor = cursor.plusMonths(1);
+        }
+        return series;
+    }
+
+    /** Chiave stabile anno/mese per la mappa di aggregazione (mese 1-12). */
+    private static int bucket(int year, int month) {
+        return year * 12 + (month - 1);
     }
 
     /**

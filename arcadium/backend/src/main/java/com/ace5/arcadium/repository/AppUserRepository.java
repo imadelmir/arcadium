@@ -45,6 +45,19 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     boolean existsByEmail(String email);
 
     /**
+     * L'utente ha un account Steam collegato? (feature "registro ore", M6).
+     * Quando true, il totale ore delle statistiche proviene dal sync Steam
+     * ({@code backlog.playtime_minutes}) e non dalle voci manuali. Coerente col
+     * disconnect, che azzera {@code steamId} (null); esclude anche un eventuale
+     * valore vuoto, come fa il sync stesso.
+     *
+     * @param id id dell'utente
+     * @return true se steamId e' valorizzato (non null e non vuoto)
+     */
+    @Query("select (count(u) > 0) from AppUser u where u.id = :id and u.steamId is not null and u.steamId <> ''")
+    boolean isSteamConnected(@Param("id") Long id);
+
+    /**
      * Elenco degli utenti PUBBLICI, escluso il richiedente (change request
      * privacy): usato quando la ricerca e' senza testo. Gli utenti con profilo
      * privato non compaiono (non sono cercabili).

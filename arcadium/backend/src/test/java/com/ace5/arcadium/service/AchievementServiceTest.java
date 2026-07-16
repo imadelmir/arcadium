@@ -184,7 +184,7 @@ class AchievementServiceTest {
                 new UserStatsResponse.StatusBreakdown("finito", "Finito", "Completed", finished),
                 new UserStatsResponse.StatusBreakdown("abbandonato", "Abbandonato", "Abandoned", abandoned));
         return new UserStatsResponse(owned, wishlist, playtimeHours * 60, playtimeHours,
-                distinctGenres, 0.0, byStatus, List.of());
+                distinctGenres, 0.0, byStatus, List.of(), List.of());
     }
 
     private static Achievement achievement(long id, String code, String metric, int threshold) {

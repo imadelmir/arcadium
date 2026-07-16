@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,19 +24,23 @@ import org.springframework.data.domain.Pageable;
 
 import com.ace5.arcadium.dto.UserStatsResponse;
 import com.ace5.arcadium.entity.BacklogStatus;
+import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.repository.BacklogRepository;
 import com.ace5.arcadium.repository.BacklogStatusRepository;
+import com.ace5.arcadium.repository.PlaytimeEntryRepository;
 import com.ace5.arcadium.repository.WishlistRepository;
 
 /**
- * Test unitari del {@link StatsService} (M4-T10).
+ * Test unitari del {@link StatsService} (M4-T10, esteso in M6).
  *
  * <p>Verificano la logica di aggregazione senza database: i repository sono
  * mockati (Mockito) e restituiscono valori aggregati finti. Si controlla che il
  * service componga correttamente le statistiche a partire da quei valori:
  * conteggio del posseduto dalla ripartizione, riempimento a zero degli stati
  * mancanti nell'ordine del seed, conversione minuti->ore, tasso di completamento
- * (senza divisione per zero) e mappatura dei top generi.
+ * (senza divisione per zero), mappatura dei top generi e — feature M6 — la
+ * regola del totale ore ("Steam vince") e la serie "ore per mese" (sempre 12
+ * bucket in ordine, riempiti a zero).
  *
  * <p>Il comportamento sulle query (JPQL, fetch, join) e' invece verificato
  * empiricamente sull'istanza reale, come per gli altri endpoint (vedi la sezione
@@ -55,12 +60,19 @@ class StatsServiceTest {
     @Mock
     private BacklogStatusRepository statusRepository;
 
+    @Mock
+    private PlaytimeEntryRepository playtimeRepository;
+
+    @Mock
+    private AppUserRepository userRepository;
+
     @InjectMocks
     private StatsService statsService;
 
     /**
-     * Default "utente con libreria vuota": ogni test sovrascrive solo cio' che
-     * gli serve. lenient() evita UnnecessaryStubbingException sui default non usati.
+     * Default "utente con libreria vuota, Steam NON collegato": ogni test
+     * sovrascrive solo cio' che gli serve. lenient() evita
+     * UnnecessaryStubbingException sui default non usati.
      */
     @BeforeEach
     void setUp() {
@@ -70,6 +82,10 @@ class StatsServiceTest {
         lenient().when(backlogRepository.topGenres(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
         lenient().when(wishlistRepository.countByUser(USER_ID)).thenReturn(0L);
         lenient().when(statusRepository.findAllByOrderBySortOrderAsc()).thenReturn(fourStatuses());
+        // feature M6: Steam scollegato -> totale dal registro manuale (0 di default)
+        lenient().when(userRepository.isSteamConnected(USER_ID)).thenReturn(false);
+        lenient().when(playtimeRepository.sumMinutesByUser(USER_ID)).thenReturn(0L);
+        lenient().when(playtimeRepository.monthlyMinutes(eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
     }
 
     @Test
@@ -94,7 +110,9 @@ class StatsServiceTest {
     }
 
     @Test
-    void playtimeIsConvertedToWholeHoursAndCompletionRateIsComputed() {
+    void steamConnectedTotalComesFromSteamPlaytimeAndCompletionRateIsComputed() {
+        // "Steam vince": collegato -> il totale ore e' quello sincronizzato (backlog).
+        when(userRepository.isSteamConnected(USER_ID)).thenReturn(true);
         when(backlogRepository.sumPlaytimeMinutes(USER_ID)).thenReturn(605L); // 10h e 5 min
         when(backlogRepository.countByStatus(USER_ID)).thenReturn(List.of(
                 statusCount("finito", 3),
@@ -105,6 +123,34 @@ class StatsServiceTest {
         assertThat(stats.playtimeMinutes()).isEqualTo(605);
         assertThat(stats.playtimeHours()).isEqualTo(10); // troncamento
         assertThat(stats.completionRate()).isCloseTo(0.6, within(1e-9));
+    }
+
+    @Test
+    void manualPlaytimeTotalIsUsedWhenSteamNotConnected() {
+        // Steam scollegato (default): il totale ore e' la somma delle voci manuali.
+        when(playtimeRepository.sumMinutesByUser(USER_ID)).thenReturn(605L); // 10h e 5 min
+
+        UserStatsResponse stats = statsService.getStats(USER_ID);
+
+        assertThat(stats.playtimeMinutes()).isEqualTo(605);
+        assertThat(stats.playtimeHours()).isEqualTo(10);
+    }
+
+    @Test
+    void monthlyBreakdownAlwaysHasTwelveOrderedBucketsFilledWithZeroByDefault() {
+        UserStatsResponse stats = statsService.getStats(USER_ID);
+
+        assertThat(stats.monthly()).hasSize(12);
+        assertThat(stats.monthly()).allSatisfy(m -> assertThat(m.minutes()).isZero());
+        // ordine cronologico (anno*12 + mese, crescente)
+        assertThat(stats.monthly())
+                .extracting(m -> m.year() * 12 + m.month())
+                .isSorted();
+        // l'ultimo bucket e' il mese corrente
+        LocalDate now = LocalDate.now();
+        UserStatsResponse.MonthlyPlaytime last = stats.monthly().get(11);
+        assertThat(last.year()).isEqualTo(now.getYear());
+        assertThat(last.month()).isEqualTo(now.getMonthValue());
     }
 
     @Test
