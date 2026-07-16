@@ -15,6 +15,7 @@
     "search": "Cerca giochi, generi, sviluppatori…",
     "loading": "Attendere…",
     "all": "Tutti",
+    "myProfile": "Il mio profilo",
     "logout": "Esci"
   },
   "social": {
@@ -94,7 +95,9 @@
       "minPrice": "Prezzo minimo",
       "maxPrice": "Prezzo massimo",
       "reset": "Reimposta",
-      "category": "Categoria"
+      "category": "Categoria",
+      "searchInList": "Cerca nell'elenco…",
+      "clearSelection": "Cancella selezione"
     },
     "sort": {
       "label": "Ordina",

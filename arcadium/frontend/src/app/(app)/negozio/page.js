@@ -172,14 +172,17 @@ function NegozioContent() {
       <FilterDropdown label={label} active={values.length > 0}>
         <p className={styles.panelTitle}>{t(`store.filters.${labelKey}`)}</p>
 
-        <input
-          type="search"
-          className={styles.panelSearch}
-          placeholder={t("store.filters.searchInList")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label={t(`store.filters.${labelKey}`)}
-        />
+        <div className={styles.panelSearchWrap}>
+          <Search size={14} className={styles.panelSearchIcon} aria-hidden="true" />
+          <input
+            type="search"
+            className={styles.panelSearch}
+            placeholder={t("store.filters.searchInList")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label={t(`store.filters.${labelKey}`)}
+          />
+        </div>
 
         {values.length > 0 && (
           <button type="button" className={styles.resetBtn} onClick={onClear}>
@@ -187,7 +190,7 @@ function NegozioContent() {
           </button>
         )}
 
-        <div style={{ maxHeight: "16rem", overflowY: "auto", marginTop: "0.5rem" }}>
+        <div className={styles.optionsList}>
           {filteredOptions.length === 0 ? (
             <p className={styles.panelTitle}>{t("store.noResults")}</p>
           ) : (
