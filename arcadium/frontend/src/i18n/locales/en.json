@@ -182,7 +182,18 @@
     "moveAria": "Move game",
     "emptyColumn": "No games",
     "hint": "Drag a game to another section to change its status, or use the menu on the row.",
-    "statusError": "Couldn't save the new status. Please try again."
+    "statusError": "Couldn't save the new status. Please try again.",
+    "playtime": {
+      "toggleAria": "Show or hide playtime",
+      "hoursLabel": "Hours",
+      "dateAria": "Session date",
+      "add": "Add",
+      "empty": "No hours logged yet",
+      "total": "Total",
+      "deleteAria": "Delete this entry",
+      "error": "Couldn't save. Try again.",
+      "steamNote": "If you enable Steam sync, playtime is taken from Steam and can't be edited manually until you turn off sync."
+    }
   },
   "status": {
     "mai_giocato": "Never played",
@@ -283,7 +294,7 @@
       "hidePassword": "Hide password"
     },
     "login": {
-      "title": "Welcome",
+      "title": "Welcome back",
       "subtitle": "Sign in to your Arcadium account.",
       "badge": "Sign-in form",
       "submit": "Sign in",

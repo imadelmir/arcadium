@@ -182,7 +182,18 @@
     "moveAria": "Sposta gioco",
     "emptyColumn": "Nessun gioco",
     "hint": "Trascina un gioco in un'altra sezione per cambiarne lo stato, oppure usa il menu sulla riga.",
-    "statusError": "Impossibile salvare il nuovo stato. Riprova."
+    "statusError": "Impossibile salvare il nuovo stato. Riprova.",
+    "playtime": {
+      "toggleAria": "Mostra o nascondi le ore giocate",
+      "hoursLabel": "Ore",
+      "dateAria": "Data della sessione",
+      "add": "Aggiungi",
+      "empty": "Nessuna ora registrata",
+      "total": "Totale",
+      "deleteAria": "Elimina questa voce",
+      "error": "Impossibile salvare. Riprova.",
+      "steamNote": "Se attivi la sincronizzazione con Steam, le ore di gioco verranno prese da Steam e non potrai modificarle manualmente finché non disattivi la sincronizzazione."
+    }
   },
   "status": {
     "mai_giocato": "Mai giocato",
@@ -283,7 +294,7 @@
       "hidePassword": "Nascondi password"
     },
     "login": {
-      "title": "Benvenuto",
+      "title": "Bentornato",
       "subtitle": "Accedi al tuo account Arcadium.",
       "badge": "Form di accesso",
       "submit": "Accedi",
