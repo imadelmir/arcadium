@@ -3,7 +3,12 @@
    Tema oro ovunque, glow sui componenti, animazioni e transizioni.
    ========================================================================== */
 
-.page { padding: var(--space-5) 0 var(--space-6); max-width: 1600px; }
+.page {
+  padding: 0 0 var(--space-6);
+  /* Piena larghezza, come Negozio e le altre pagine: prima un max-width la
+     teneva più stretta del resto dell'app. */
+  max-width: none;
+}
 
 /* -------------------------------- HERO -------------------------------- */
 .hero {

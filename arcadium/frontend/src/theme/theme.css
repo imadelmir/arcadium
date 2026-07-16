@@ -70,7 +70,7 @@
 
   /* --- Layout sizes (used by the sidebar/header in M5 - T4) --- */
   --sidebar-width: 270px;
-  --header-height: 64px;
+  --header-height: 52px;
 
   /* --- Shadows --- */
   --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);

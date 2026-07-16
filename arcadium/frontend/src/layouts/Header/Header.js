@@ -1,22 +1,24 @@
 "use client";
 
 // =============================================================================
-// Header dell'app: barra di ricerca con SUGGERIMENTI live, pulsanti social,
-// campanello notifiche (presto disponibile - M4-T13), switch lingua e menu
-// utente (profilo + logout).
+// Header dell'app: barra di AZIONI allineata a destra.
+//
+// Change request Negozio: la barra di ricerca dell'header è stata RIMOSSA — la
+// ricerca vive nella pagina Negozio (una sola barra, sotto il titolo). Con la
+// navigazione già affidata alla sidebar a sinistra, l'header segue lo schema
+// degli store/piattaforme moderni: un cluster di azioni a destra —
+// community (Discord/Twitch) + campanello notifiche, poi lingua, poi profilo.
+// Il campanello vive dentro SocialLinks, insieme ai social.
 // =============================================================================
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { LanguageSwitcher, Avatar, SocialLinks } from "@/components";
 import { useAuth } from "@/context/AuthProvider";
-import { listGames } from "@/lib/api/games";
-import { formatPrice } from "@/lib/format";
 import styles from "./Header.module.css";
-import suggest from "./HeaderSuggestions.module.css";
 
 export function Header() {
   const { t, i18n } = useTranslation();
@@ -25,15 +27,6 @@ export function Header() {
 
   // Menu utente aperto/chiuso.
   const [menuAperto, setMenuAperto] = useState(false);
-  // Testo digitato nella barra.
-  // (M6-T4: rimossi lo stato `notifOpen` e l'icona Bell, mai usati: il campanello
-  //  vive dentro SocialLinks. Erano codice morto.)
-  const [ricerca, setRicerca] = useState("");
-
-  // Suggerimenti di ricerca.
-  const [suggerimenti, setSuggerimenti] = useState([]);
-  const [aperto, setAperto] = useState(false);
-  const boxRef = useRef(null);
 
   // Nome mostrato: displayName se c'è, altrimenti username; fallback neutro.
   const nome = user?.displayName || user?.username || "Utente";
@@ -45,112 +38,21 @@ export function Header() {
     router.push("/login");
   }
 
-  // Invio della ricerca: va al Negozio con ?q=... e chiude i suggerimenti.
-  function cerca(e) {
-    e.preventDefault();
-    const q = ricerca.trim();
-    setAperto(false);
-    router.push(q ? `/negozio?q=${encodeURIComponent(q)}` : "/negozio");
-  }
-
-  // Chiede i suggerimenti al backend mentre si digita (debounce 150ms).
-  // M6-T4: quando la barra e' vuota non azzeriamo piu' lo stato dentro l'effetto
-  // (setState sincrono). La tendina e' nascosta da `mostraSuggerimenti`, che deriva
-  // dal testo digitato: stesso comportamento a schermo, un render in meno.
-  useEffect(() => {
-    const q = ricerca.trim();
-    if (q.length < 1) return;
-    const id = setTimeout(() => {
-      listGames({ q, page: 0, size: 6 })
-        .then((res) => {
-          setSuggerimenti(res.content);
-          setAperto(true);
-        })
-        .catch(() => {
-          setSuggerimenti([]);
-          setAperto(false);
-        });
-    }, 150);
-    return () => clearTimeout(id);
-  }, [ricerca]);
-
-  // Chiude la tendina dei suggerimenti quando si clicca fuori dalla barra.
-  useEffect(() => {
-    function onClickFuori(e) {
-      if (boxRef.current && !boxRef.current.contains(e.target)) setAperto(false);
-    }
-    document.addEventListener("mousedown", onClickFuori);
-    return () => document.removeEventListener("mousedown", onClickFuori);
-  }, []);
-
-  // La tendina si vede solo se e' aperta E c'e' del testo: cosi' svuotare la barra
-  // la nasconde senza bisogno di azzerare lo stato dentro l'effetto.
-  const mostraSuggerimenti = aperto && ricerca.trim().length > 0;
-
-  // Va al dettaglio di un gioco suggerito e pulisce la barra.
-  function vaiAlGioco(appId) {
-    setAperto(false);
-    setRicerca("");
-    router.push(`/gioco/${appId}`);
-  }
-
   return (
     <header className={styles.header}>
-      {/* Barra di ricerca con tendina suggerimenti ancorata dentro */}
-      <form className={styles.searchBox} onSubmit={cerca} role="search" ref={boxRef}>
-        <Search size={18} className={styles.searchIcon} />
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder={t("common.search")}
-          aria-label={t("common.search")}
-          value={ricerca}
-          onChange={(e) => setRicerca(e.target.value)}
-          onFocus={() => suggerimenti.length > 0 && setAperto(true)}
-          autoComplete="off"
-        />
-
-        {mostraSuggerimenti && (
-          <ul className={suggest.suggestList}>
-            {suggerimenti.length === 0 ? (
-              <li className={suggest.suggestEmpty}>{t("store.noResults")}</li>
-            ) : (
-              suggerimenti.map((g) => {
-                const p = formatPrice(g.price, g.discount, i18n.language);
-                return (
-                  <li key={g.appId}>
-                    <button
-                      type="button"
-                      className={suggest.suggestItem}
-                      onClick={() => vaiAlGioco(g.appId)}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element -- copertine remote dalla CDN Steam: next/image richiederebbe images.remotePatterns e un ottimizzatore server-side per centinaia di immagini a pagina. Scelta consapevole (M6-T4). */}
-                      <img className={suggest.suggestThumb} src={g.headerImage} alt="" loading="lazy" />
-                      <span className={suggest.suggestText}>
-                        <span className={suggest.suggestName}>{g.name}</span>
-                        <span className={suggest.suggestGenre}>
-                          {p.isFree ? t("store.free") : p.final}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })
-            )}
-          </ul>
-        )}
-      </form>
-
-      {/* Pulsanti social (Discord / Twitch) */}
-      <SocialLinks />
-
-      
-
-      {/* Azioni a destra: switch lingua + menu utente */}
+      {/* Cluster di azioni allineato a destra. Ordine ispirato agli store
+          moderni con sidebar di navigazione: community + notifiche, lingua,
+          separatore, profilo. */}
       <div className={styles.actions}>
+        {/* Discord / Twitch / campanello notifiche */}
+        <SocialLinks />
+
         <LanguageSwitcher />
 
-        <div style={{ position: "relative" }}>
+        {/* Separatore sottile fra le azioni "di sistema" e il profilo */}
+        <span className={styles.divider} aria-hidden="true" />
+
+        <div className={styles.userWrap}>
           <button
             type="button"
             className={styles.user}

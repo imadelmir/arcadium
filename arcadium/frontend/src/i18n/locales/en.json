@@ -93,7 +93,8 @@
       "priceRange": "Price range",
       "minPrice": "Minimum price",
       "maxPrice": "Maximum price",
-      "reset": "Reset"
+      "reset": "Reset",
+      "category": "Category"
     },
     "sort": {
       "label": "Sort",

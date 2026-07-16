@@ -93,7 +93,8 @@
       "priceRange": "Fascia di prezzo",
       "minPrice": "Prezzo minimo",
       "maxPrice": "Prezzo massimo",
-      "reset": "Reimposta"
+      "reset": "Reimposta",
+      "category": "Categoria"
     },
     "sort": {
       "label": "Ordina",
