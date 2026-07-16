@@ -2,13 +2,16 @@
 
 // HoursAreaChart.js
 // -----------------------------------------------------------------------------
-// Grafico ad area (basato su una linea) delle ore giocate negli ultimi 12 mesi.
-// Usa Recharts. È un client component perché Recharts misura la larghezza del
-// contenitore dopo il mount (ResponsiveContainer).
+// Grafico ad area delle ore giocate negli ultimi 12 mesi. Usa Recharts; è un
+// client component perché Recharts misura la larghezza del contenitore dopo il
+// mount (ResponsiveContainer).
 //
-//   <HoursAreaChart data={mockStats.monthlyHours} />
+//   <HoursAreaChart data={stats.monthly} />
 //
-// data: array di { m: indiceMese(0-11), hours: numero }
+// data: la serie `monthly` di GET /api/stats/me, ossia un array di
+//       { year, month(1-12), minutes, hours } — sempre 12 voci in ordine
+//       cronologico (M6). Le ore provengono dal registro manuale; quando Steam
+//       è collegato il TOTALE passa a Steam, ma lo storico mensile resta questo.
 
 import { useTranslation } from "react-i18next";
 import {
@@ -21,19 +24,19 @@ import {
   Tooltip,
 } from "recharts";
 
-import { CHART } from "./mockStats";
+import { CHART } from "./chartColors";
 import styles from "./charts.module.css";
 
 export function HoursAreaChart({ data }) {
   const { t } = useTranslation();
 
-  // Etichette dei mesi tradotte (array IT/EN preso dall'i18n).
+  // Etichette dei mesi tradotte (array IT/EN preso dall'i18n): 12 abbreviazioni.
   const months = t("stats.months", { returnObjects: true });
 
-  // Prepariamo i dati con l'etichetta del mese già tradotta per l'asse X.
-  const chartData = data.map((d) => ({
-    ...d,
-    label: months[d.m] ?? "",
+  // Il backend dà il mese come 1-12; l'array dei nomi è indicizzato 0-11.
+  const chartData = (data ?? []).map((d) => ({
+    hours: d.hours,
+    label: months[(d.month ?? 1) - 1] ?? "",
   }));
 
   return (
@@ -63,6 +66,7 @@ export function HoursAreaChart({ data }) {
             tickLine={false}
             axisLine={false}
             width={40}
+            allowDecimals={false}
           />
 
           {/* Tooltip con aspetto personalizzato (vedi funzione sotto) */}
