@@ -2,7 +2,7 @@
 
 // Pagina di accesso (M5 - T5) — COLLEGATA al backend (M5-T13)
 // -----------------------------------------------------------------------------
-// Stessa scheda "Bentornato" del mockup, ma ora l'accesso è reale:
+// Stessa scheda "Benvenuto" del mockup, ma ora l'accesso è reale:
 // - il backend autentica per USERNAME + password (DTO LoginRequest);
 // - useAuth().login() chiama /api/auth/login, salva il token e l'utente;
 // - al successo si va al negozio; in caso di errore si mostra il banner.
@@ -83,7 +83,6 @@ export default function LoginPage() {
               name="username"
               type="text"
               label={t("auth.fields.username")}
-              placeholder="luca"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               error={errors.username}
@@ -95,7 +94,6 @@ export default function LoginPage() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 label={t("auth.fields.password")}
-                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 error={errors.password}

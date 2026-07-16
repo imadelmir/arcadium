@@ -124,7 +124,6 @@ export default function RegisterPage() {
             name="password"
             type={showPassword ? "text" : "password"}
             label={t("auth.fields.password")}
-            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
@@ -148,7 +147,6 @@ export default function RegisterPage() {
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
           label={t("auth.fields.confirmPassword")}
-          placeholder="••••••••"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           error={errors.confirm}
