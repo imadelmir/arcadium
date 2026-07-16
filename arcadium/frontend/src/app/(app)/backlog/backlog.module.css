@@ -11,10 +11,12 @@
   flex-direction: column;
 }
 .title {
-  font-size: 30px;
+  font-size: 32px;
+  line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text);
+  margin: 0;
 }
 
 /* Sezioni impilate */

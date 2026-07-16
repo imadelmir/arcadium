@@ -65,7 +65,9 @@ export default function WishlistPage() {
     <section className={styles.page}>
       <header className={styles.head}>
         <h1 className={styles.title}>{t("nav.wishlist")}</h1>
+      </header>
 
+      <div className={styles.toolbar}>
         <div className={styles.sort}>
           <Select
             label={t("wishlist.sortLabel")}
@@ -77,7 +79,7 @@ export default function WishlistPage() {
             <option value="name">{t("wishlist.sort.name")}</option>
           </Select>
         </div>
-      </header>
+      </div>
 
       {loading ? (
         <div className={styles.empty}><Spinner size="lg" /></div>

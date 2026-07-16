@@ -6,18 +6,23 @@
   gap: var(--space-4);
 }
 
-/* Intestazione: titolo a sinistra, ordinamento a destra */
+/* Intestazione: solo il titolo (stesso schema di Negozio: titolo da solo,
+   controlli nella riga sotto — niente più "Ordina" che spinge il titolo giù). */
 .head {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
 }
 .title {
-  font-size: 55 px;
+  font-size: 32px;
+  line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text);
+  margin: 0;
+}
+/* Riga degli strumenti sotto il titolo: l'ordinamento ancorato a destra. */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 .sort {
   min-width: 190px;

@@ -7,8 +7,9 @@
    centrata. Il padding si adatta allo schermo con clamp(). */
 .page {
   width: 100%;
-  /* meno spazio in alto: il contenuto sale un po'; lati e fondo restano ampi */
-  padding: clamp(16px, 2vw, 24px) clamp(24px, 3vw, 48px) clamp(32px, 3vw, 48px);
+  /* top a 0: il titolo parte alla stessa altezza delle altre pagine
+     (coerenza); lo spazio in alto lo dà il main. Lati e fondo ampi. */
+  padding: 0 clamp(24px, 3vw, 48px) clamp(32px, 3vw, 48px);
   animation: fadeIn 0.5s ease both;
 }
 
@@ -19,10 +20,12 @@
 }
 
 .title {
-  font-size: 32px; /* misura standard, come le altre pagine (es. Wishlist) */
-  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  color: var(--color-text);
+  margin: 0;
 }
 
 /* --- 1. Griglia KPI -------------------------------------------------------- */

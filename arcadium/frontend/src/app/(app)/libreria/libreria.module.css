@@ -4,10 +4,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  /* Riduce la larghezza del contenuto così non si allarga a dismisura sugli
-     schermi grandi: la barra dei filtri e la riga dei giochi restano allineate
-     e coincidono in larghezza (change request Libreria, punto 2). */
-  max-width: 1500px;
+  /* Piena larghezza, come Negozio e le altre pagine: prima un max-width la
+     teneva più stretta del resto dell'app. */
+  max-width: none;
 }
 
 .head {
@@ -18,9 +17,12 @@
 /* Titolo pagina (blocco riscritto: prima era annidato per errore e non si
    applicava). */
 .title {
-  font-size: 55px;
+  font-size: 32px;
+  line-height: 1.15;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--color-text);
+  margin: 0;
 }
 .subtitle {
   font-size: 14px;

@@ -14,7 +14,7 @@ export default function AppLayout({ children }) {
       <Sidebar />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Header />
-        <main style={{ flex: 1, padding: "24px 32px" }}>
+        <main style={{ flex: 1, padding: "6px 32px 24px" }}>
           <RequireAuth>{children}</RequireAuth>
         </main>
       </div>
