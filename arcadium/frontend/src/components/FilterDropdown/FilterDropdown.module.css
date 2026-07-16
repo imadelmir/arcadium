@@ -31,6 +31,11 @@
   border-color: rgba(255, 255, 255, 0.16);
 }
 
+.trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
 /* Pillola aperta o con filtro attivo: accento violet */
 .trigger[data-open="true"],
 .trigger[data-active="true"] {
@@ -63,40 +68,50 @@
   border-radius: var(--radius-pill);
 }
 
-/* --- Pannello a tendina in stile glass --- */
+/* --- Pannello a tendina: superficie SOLIDA e nitida ---
+   Niente vetro/blur qui: il pannello ospita testo e opzioni da leggere, e
+   deve restare leggibile sopra le card del catalogo. Il "glass" resta solo
+   sulla pillola (trigger) chiusa. */
 .panel {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   z-index: 40;
-  min-width: 220px;
-  padding: var(--space-3);
+  min-width: 240px;
+  max-width: 320px;
+  padding: var(--space-4);
 
-  /* Vetro più marcato per il pannello, così stacca dallo sfondo */
-  background: rgba(18, 24, 41, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
-  /* Piccola animazione di comparsa */
-  animation: filterPanelIn 120ms ease;
+  /* Piccola animazione di comparsa: dissolvenza + leggero scale-in */
+  transform-origin: top left;
+  animation: filterPanelIn 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Variante ancorata a destra (per il menu "Ordina") */
 .panelRight {
   left: auto;
   right: 0;
+  transform-origin: top right;
 }
 
 @keyframes filterPanelIn {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-4px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Rispetta la preferenza di sistema per meno animazioni */
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
   }
 }

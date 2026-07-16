@@ -99,22 +99,27 @@
 }
 
 /* --- Contenuto dei pannelli a tendina --- */
-/* Titoletto del pannello (es. "PREZZO") */
+/* Titoletto del pannello (es. "PREZZO"), con un filo di divider sotto per
+   separarlo dalle opzioni (gerarchia visiva più chiara sulla superficie
+   solida del pannello). */
 .panelTitle {
   margin: 0 0 var(--space-2);
+  padding-bottom: var(--space-2);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-faint);
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* Riga opzione: checkbox/radio + etichetta, con hover morbido */
+/* Riga opzione: checkbox/radio + etichetta, con hover morbido e uno sfondo
+   soft quando selezionata (coerenza con l'accento violet del brand). */
 .option {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 7px 8px;
+  gap: var(--space-3);
+  padding: 8px;
   font-size: 14px;
   color: var(--color-text);
   border-radius: var(--radius-sm);
@@ -126,31 +131,126 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.option:has(.optionInput:checked) {
+  background: var(--color-primary-soft);
+}
+
+/* Checkbox/radio custom (al posto del controllo nativo del browser, spesso
+   incoerente fra sistemi operativi): quadrato/cerchio pieno in tinta brand
+   con spunta bianca disegnata via pseudo-elemento. */
 .optionInput {
-  width: 15px;
-  height: 15px;
-  accent-color: var(--color-primary); /* checkbox/radio in tinta brand */
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  position: relative;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
   cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.optionInput[type="checkbox"] {
+  border-radius: 5px;
+}
+
+.optionInput[type="radio"] {
+  border-radius: 50%;
+}
+
+.optionInput:hover {
+  border-color: var(--color-primary);
+}
+
+.optionInput:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.optionInput[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.optionInput[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.optionInput:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
 /* Mini barra di ricerca dentro i pannelli Genere/Lingua/Categoria (change
-   request Negozio: filtra la lista mostrata senza chiamare il backend). */
+   request Negozio: filtra la lista mostrata senza chiamare il backend).
+   Racchiusa in .panelSearchWrap per ospitare l'icona a sinistra. */
+.panelSearchWrap {
+  position: relative;
+  margin-top: var(--space-2);
+}
+
+.panelSearchIcon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-faint);
+  pointer-events: none;
+}
+
 .panelSearch {
   width: 100%;
-  margin-top: var(--space-2);
-  padding: 6px 10px;
+  padding: 6px 10px 6px 28px;
   font-size: 13px;
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 .panelSearch::placeholder {
   color: var(--color-text-faint);
 }
 .panelSearch:focus {
   border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+/* Elenco scorrevole delle opzioni (Genere/Lingua/Categoria): altezza massima
+   fissa + scrollbar sottile in tinta tema al posto di quella di sistema. */
+.optionsList {
+  max-height: 16rem;
+  margin-top: var(--space-2);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+.optionsList::-webkit-scrollbar {
+  width: 6px;
+}
+.optionsList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.optionsList::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+}
+.optionsList::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-faint);
 }
 
 /* --- Blocco "Fascia di prezzo" dentro il pannello Prezzo (slider + reset) --- */
