@@ -1,0 +1,61 @@
+package com.ace5.arcadium.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.ace5.arcadium.entity.PlaytimeEntry;
+
+/**
+ * Accesso alle sessioni di gioco dichiarate manualmente ({@link PlaytimeEntry}).
+ *
+ * <p>Tutte le query sono "scoped" all'utente autenticato (mai un parametro dal
+ * client), coerente con backlog/wishlist/stats. Le aggregazioni sono fatte nel
+ * DB (SUM/GROUP BY), non caricando le righe in memoria, come per le statistiche
+ * (M4-T10).
+ */
+public interface PlaytimeEntryRepository extends JpaRepository<PlaytimeEntry, Long> {
+
+    /** Voci di un gioco per l'utente, dalla piu' recente (per la lista nella card backlog). */
+    List<PlaytimeEntry> findByUser_IdAndGame_AppIdOrderByPlayedOnDescIdDesc(Long userId, Long appId);
+
+    /** Totale manuale (minuti) su tutta la libreria dell'utente. 0 se nessuna voce. */
+    @Query("SELECT COALESCE(SUM(p.minutes), 0) FROM PlaytimeEntry p WHERE p.user.id = :userId")
+    long sumMinutesByUser(@Param("userId") Long userId);
+
+    /** Totale manuale (minuti) su un singolo gioco dell'utente. 0 se nessuna voce. */
+    @Query("""
+            SELECT COALESCE(SUM(p.minutes), 0)
+            FROM PlaytimeEntry p
+            WHERE p.user.id = :userId AND p.game.appId = :appId
+            """)
+    long sumMinutesByUserAndGame(@Param("userId") Long userId, @Param("appId") Long appId);
+
+    /**
+     * Minuti totali per (anno, mese) dell'utente, dalla data indicata in poi.
+     * Alimenta il grafico "ore per mese" (ultimi 12 mesi). Query nativa per
+     * usare EXTRACT sul tipo DATE; proiezione mappata per alias di colonna.
+     */
+    @Query(value = """
+            SELECT EXTRACT(YEAR  FROM played_on)::int AS yr,
+                   EXTRACT(MONTH FROM played_on)::int AS mo,
+                   SUM(minutes)                       AS minutes
+            FROM playtime_entry
+            WHERE user_id = :userId
+              AND played_on >= :fromDate
+            GROUP BY yr, mo
+            ORDER BY yr, mo
+            """, nativeQuery = true)
+    List<MonthlyMinutes> monthlyMinutes(@Param("userId") Long userId,
+                                        @Param("fromDate") LocalDate fromDate);
+
+    /** Proiezione riga aggregata mensile (alias -> getter). */
+    interface MonthlyMinutes {
+        int getYr();
+        int getMo();
+        long getMinutes();
+    }
+}
