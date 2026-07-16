@@ -283,7 +283,7 @@
       "hidePassword": "Hide password"
     },
     "login": {
-      "title": "Welcome back",
+      "title": "Welcome",
       "subtitle": "Sign in to your Arcadium account.",
       "badge": "Sign-in form",
       "submit": "Sign in",
