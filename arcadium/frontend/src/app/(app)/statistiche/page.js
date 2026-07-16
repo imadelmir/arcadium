@@ -4,9 +4,8 @@
 // -----------------------------------------------------------------------------
 // Legge le statistiche reali da GET /api/stats/me e mostra:
 //   1. 4 card KPI (giochi posseduti, ore, completamento, generi distinti);
-//   2. due grafici: giochi per genere (donut) e per stato (barre).
-// I dati che il backend NON fornisce (storico ore mensile, classifica giochi,
-// achievement, delta rispetto al mese) sono stati rimossi per restare onesti.
+//   2. tre grafici: giochi per genere (donut), per stato (barre) e ore giocate
+//      per mese (area, feature M6, dalla serie `monthly` del registro manuale).
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +17,7 @@ import { KpiCard } from "./KpiCard";
 import { Reveal } from "./Reveal";
 import { GenreDonut } from "./GenreDonut";
 import { StatusBars } from "./StatusBars";
+import { HoursAreaChart } from "./HoursAreaChart";
 import styles from "./statistiche.module.css";
 
 export default function StatistichePage() {
@@ -116,7 +116,7 @@ export default function StatistichePage() {
         />
       </section>
 
-      {/* --- 2. Grafici (generi + stati) --- */}
+      {/* --- 2. Grafici (generi + stati + ore per mese) --- */}
       <section className={styles.charts}>
         <Card padding="lg">
           <div className={styles.chartHead}>
@@ -135,6 +135,18 @@ export default function StatistichePage() {
             <StatusBars data={statusData} />
           </Reveal>
         </Card>
+
+        {/* Ore per mese (M6): a tutta larghezza, dalla serie `monthly` reale */}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <Card padding="lg">
+            <div className={styles.chartHead}>
+              <h2 className={styles.chartTitle}>{t("stats.charts.hoursTitle")}</h2>
+            </div>
+            <Reveal minHeight={340}>
+              <HoursAreaChart data={stats.monthly ?? []} />
+            </Reveal>
+          </Card>
+        </div>
       </section>
     </div>
   );
