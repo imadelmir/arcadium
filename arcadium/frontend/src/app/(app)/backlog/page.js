@@ -3,26 +3,35 @@
 // Pagina "Backlog" (M5-T11) — COLLEGATA al backend (M5-T13).
 // Legge i giochi da GET /api/backlog, li raggruppa nei 4 stati del DB e permette
 // di cambiare stato davvero (PATCH /api/backlog/{appId}) via drag&drop o selettore.
+// M6: ogni voce porta anche le ore registrate a mano (manualPlaytimeMinutes).
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Spinner } from "@/components";
 import { BACKLOG_STATUSES } from "@/lib/constants";
+import { useAuth } from "@/context/AuthProvider";
 import { listBacklog, updateBacklog } from "@/lib/api/backlog";
 import { BacklogCard } from "./BacklogCard";
 import styles from "./backlog.module.css";
 
-// Somma minuti (ignora i null) -> ore intere per l'intestazione di sezione.
-function totalHours(items) {
-  const minutes = items.reduce((sum, it) => sum + (it.playtimeMinutes ?? 0), 0);
+// Somma minuti -> ore intere per l'intestazione di sezione. Se Steam e' collegato
+// conta il tempo Steam, altrimenti le ore registrate a mano (M6, "Steam vince").
+function totalHours(items, steamConnected) {
+  const minutes = items.reduce(
+    (sum, it) =>
+      sum + (steamConnected ? it.playtimeMinutes ?? 0 : it.manualPlaytimeMinutes ?? 0),
+    0
+  );
   return Math.round(minutes / 60).toLocaleString("it-IT");
 }
 
 export default function BacklogPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const steamConnected = Boolean(user?.steamId);
 
-  // Voci del backlog dal backend: { game, status:{code,...}, playtimeMinutes, ... }.
+  // Voci del backlog dal backend: { game, status, playtimeMinutes, manualPlaytimeMinutes, ... }.
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -36,9 +45,6 @@ export default function BacklogPage() {
   // Carica il backlog all'apertura.
   useEffect(() => {
     let attivo = true;
-    // M6-T4: niente setState sincrono qui dentro. `loading` parte gia' a true
-    // dalla useState e l'effetto gira una volta sola (deps []): il vecchio
-    // setLoading(true)/setError(false) provocava solo un render in piu'.
     listBacklog()
       .then((list) => attivo && setItems(list))
       .catch(() => attivo && setError(true))
@@ -139,7 +145,7 @@ export default function BacklogPage() {
                     <span className={styles.count}>{list.length}</span>
                   </span>
                   <span className={styles.groupMeta}>
-                    {totalHours(list)} {t("backlog.hoursUnit")}
+                    {totalHours(list, steamConnected)} {t("backlog.hoursUnit")}
                   </span>
                 </div>
 
@@ -153,6 +159,7 @@ export default function BacklogPage() {
                         game={it.game}
                         statusCode={it.status.code}
                         playtimeMinutes={it.playtimeMinutes}
+                        manualPlaytimeMinutes={it.manualPlaytimeMinutes}
                         onStatusChange={moveGame}
                         onDragStart={setDraggingId}
                         onDragEnd={() => {

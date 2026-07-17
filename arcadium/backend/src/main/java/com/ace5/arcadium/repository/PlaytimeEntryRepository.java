@@ -35,6 +35,20 @@ public interface PlaytimeEntryRepository extends JpaRepository<PlaytimeEntry, Lo
     long sumMinutesByUserAndGame(@Param("userId") Long userId, @Param("appId") Long appId);
 
     /**
+     * Somma dei minuti manuali PER GIOCO, per un utente (feature M6): la usano le
+     * liste backlog/libreria per mostrare le ore registrate a mano su ogni gioco
+     * con UNA sola query (niente N+1). Proiezione appId -> minuti; compaiono solo
+     * i giochi con almeno una voce.
+     */
+    @Query("""
+            SELECT p.game.appId AS appId, SUM(p.minutes) AS minutes
+            FROM PlaytimeEntry p
+            WHERE p.user.id = :userId
+            GROUP BY p.game.appId
+            """)
+    List<GameMinutes> sumMinutesByGameForUser(@Param("userId") Long userId);
+
+    /**
      * Minuti totali per (anno, mese) dell'utente, dalla data indicata in poi.
      * Alimenta il grafico "ore per mese" (ultimi 12 mesi). Query nativa per
      * usare EXTRACT sul tipo DATE; proiezione mappata per alias di colonna.
@@ -56,6 +70,12 @@ public interface PlaytimeEntryRepository extends JpaRepository<PlaytimeEntry, Lo
     interface MonthlyMinutes {
         int getYr();
         int getMo();
+        long getMinutes();
+    }
+
+    /** Proiezione: minuti manuali totali di un gioco (alias -> getter). */
+    interface GameMinutes {
+        Long getAppId();
         long getMinutes();
     }
 }

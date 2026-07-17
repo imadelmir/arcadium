@@ -15,7 +15,6 @@
     "search": "Search games, genres, developers…",
     "loading": "Please wait…",
     "all": "All",
-    "myProfile": "My profile",
     "logout": "Log out"
   },
   "social": {
@@ -95,9 +94,7 @@
       "minPrice": "Minimum price",
       "maxPrice": "Maximum price",
       "reset": "Reset",
-      "category": "Category",
-      "searchInList": "Search in list…",
-      "clearSelection": "Clear selection"
+      "category": "Category"
     },
     "sort": {
       "label": "Sort",
@@ -195,7 +192,9 @@
       "total": "Total",
       "deleteAria": "Delete this entry",
       "error": "Couldn't save. Try again.",
-      "steamNote": "If you enable Steam sync, playtime is taken from Steam and can't be edited manually until you turn off sync."
+      "steamNote": "If you enable Steam sync, playtime is taken from Steam and can't be edited manually until you turn off sync.",
+      "saved": "Hours saved",
+      "dayLimit": "Max 24 hours per day."
     }
   },
   "status": {

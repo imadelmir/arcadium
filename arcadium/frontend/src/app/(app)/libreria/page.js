@@ -142,6 +142,7 @@ export default function LibraryPage() {
                   game={it.game}
                   statusCode={it.status.code}
                   playtimeMinutes={it.playtimeMinutes}
+                  manualPlaytimeMinutes={it.manualPlaytimeMinutes}
                   onStatusChange={changeStatus}
                 />
               ))}

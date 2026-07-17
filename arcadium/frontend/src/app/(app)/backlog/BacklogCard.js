@@ -5,14 +5,18 @@
 // Riga di un gioco nel backlog: copertina, nome, ore giocate, selettore di stato
 // e — feature M6 — un pannello espandibile per registrare a mano le ore giocate
 // su QUESTO gioco (add/list/delete). Le voci sono datate e alimentano il grafico
-// "ore per mese" delle statistiche. Le ore sono quindi sempre legate a un gioco
-// della libreria.
+// "ore per mese" delle statistiche; le ore sono sempre legate a un gioco della
+// libreria.
 //
-// "Steam vince": se l'utente ha Steam collegato, il totale ore proviene da Steam
-// e l'inserimento manuale e' disabilitato (compare la nota); le voci gia' inserite
-// restano visibili come storico ma non modificabili.
+// Ore mostrate sulla riga: se Steam e' collegato -> totale Steam; altrimenti il
+// totale manuale del gioco (`manualPlaytimeMinutes` dal backend, aggiornato in
+// locale mentre il pannello e' aperto). Cosi' le ore restano visibili anche
+// senza aprire il pannello e dopo un cambio pagina.
+//
+// "Steam vince": con Steam collegato l'inserimento e' disabilitato (nota); le
+// voci gia' presenti restano come storico ma non modificabili.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GripVertical, Clock, ChevronDown } from "lucide-react";
 
@@ -22,11 +26,24 @@ import { useAuth } from "@/context/AuthProvider";
 import { listPlaytime, addPlaytime, deletePlaytime } from "@/lib/api/playtime";
 import styles from "./BacklogCard.module.css";
 
+// Opzioni durata: da 30 min a 24 h, a passi di 30 min (valore in MINUTI).
+const DURATION_OPTIONS = Array.from({ length: 48 }, (_, i) => (i + 1) * 30);
+const MAX_MINUTES_PER_DAY = 24 * 60;
+
 // Minuti -> ore leggibili (un decimale sotto le 10 ore, poi interi). null -> 0.
 function formatHours(minutes) {
   const hours = (minutes ?? 0) / 60;
   const value = hours >= 10 ? Math.round(hours) : Math.round(hours * 10) / 10;
   return value.toLocaleString("it-IT");
+}
+
+// Durata leggibile per le opzioni del selettore: "30 min", "1 h", "1 h 30 min".
+function formatDuration(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} h`;
+  return `${h} h ${m} min`;
 }
 
 // Data di oggi in formato YYYY-MM-DD, in ora LOCALE (niente slittamenti di fuso).
@@ -40,6 +57,7 @@ export function BacklogCard({
   game,          // il gioco (GameSummary)
   statusCode,    // codice stato corrente: "mai_giocato" | ...
   playtimeMinutes,
+  manualPlaytimeMinutes, // ore manuali totali del gioco (dal backend)
   onStatusChange, // (appId, nuovoCodice) -> cambia stato
   onDragStart,
   onDragEnd,
@@ -49,24 +67,35 @@ export function BacklogCard({
   const { user } = useAuth();
   const steamConnected = Boolean(user?.steamId);
 
-  // Pannello ore: caricamento pigro all'apertura.
   const [open, setOpen] = useState(false);
   const [entries, setEntries] = useState(null); // null = non ancora caricate
   const [loading, setLoading] = useState(false);
-  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("60"); // selezione durata (default 1 h)
   const [date, setDate] = useState(todayLocal());
   const [saving, setSaving] = useState(false);
   const [entryError, setEntryError] = useState(false);
+  const [dayLimit, setDayLimit] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Conferma "ore salvate" transitoria (come il salvataggio profilo).
+  useEffect(() => {
+    if (!saved) return;
+    const id = setTimeout(() => setSaved(false), 2500);
+    return () => clearTimeout(id);
+  }, [saved]);
 
   const loggedMinutes = (entries ?? []).reduce((sum, e) => sum + e.minutes, 0);
-  // Ore mostrate sulla riga: se Steam e' collegato -> valore Steam; altrimenti,
-  // una volta caricate le voci, il totale manuale di questo gioco.
-  const shownMinutes =
-    !steamConnected && entries !== null ? loggedMinutes : playtimeMinutes;
+  // Ore mostrate sulla riga: Steam -> valore Steam; altrimenti totale manuale
+  // (dal backend, oppure quello locale se il pannello e' gia' aperto).
+  const shownMinutes = steamConnected
+    ? playtimeMinutes
+    : entries !== null
+      ? loggedMinutes
+      : manualPlaytimeMinutes ?? 0;
 
   async function toggle() {
     const next = !open;
-    setOpen(next);
+    setOpen(next); // secondo click -> chiude
     if (next && entries === null) {
       setLoading(true);
       try {
@@ -82,14 +111,25 @@ export function BacklogCard({
 
   async function handleAdd(event) {
     event.preventDefault();
-    const minutes = Math.round(parseFloat(hours) * 60);
-    if (!minutes || minutes <= 0) return;
+    const newMinutes = Number(minutes);
+    if (!newMinutes) return;
+
+    // Cap realistico: max 24 h nello stesso giorno su questo gioco.
+    const sameDay = (entries ?? [])
+      .filter((e) => e.playedOn === date)
+      .reduce((sum, e) => sum + e.minutes, 0);
+    if (sameDay + newMinutes > MAX_MINUTES_PER_DAY) {
+      setDayLimit(true);
+      return;
+    }
+
     setSaving(true);
     setEntryError(false);
+    setDayLimit(false);
     try {
-      const created = await addPlaytime(game.appId, { minutes, playedOn: date });
+      const created = await addPlaytime(game.appId, { minutes: newMinutes, playedOn: date });
       setEntries((prev) => [created, ...(prev ?? [])]);
-      setHours("");
+      setSaved(true);
     } catch {
       setEntryError(true);
     } finally {
@@ -109,7 +149,6 @@ export function BacklogCard({
   }
 
   function formatDate(iso) {
-    // iso = "YYYY-MM-DD" -> parse come data LOCALE per evitare slittamenti.
     return new Date(`${iso}T00:00:00`).toLocaleDateString(i18n.language, {
       day: "2-digit",
       month: "short",
@@ -131,23 +170,20 @@ export function BacklogCard({
         }}
         onDragEnd={onDragEnd}
       >
-        {/* Maniglia trascinamento */}
         <span className={styles.grip} aria-hidden="true">
           <GripVertical size={16} />
         </span>
 
-        {/* Copertina */}
         <span className={styles.cover}>
           <GameImage src={game.headerImage} alt={game.name} />
         </span>
 
-        {/* Nome */}
         <div className={styles.main}>
           <h3 className={styles.name}>{game.name}</h3>
           <div className={styles.bar} />
         </div>
 
-        {/* Ore giocate: pulsante che apre/chiude il pannello ore */}
+        {/* Ore giocate: pulsante che apre/chiude il pannello (secondo click chiude) */}
         <button
           type="button"
           className={styles.hoursBtn}
@@ -163,7 +199,6 @@ export function BacklogCard({
           <ChevronDown size={14} className={styles.chev} aria-hidden="true" />
         </button>
 
-        {/* Selettore stato: elenca i 4 stati del DB, etichette tradotte */}
         <label className={styles.moveLabel}>
           <span className={styles.srOnly}>
             {t("backlog.moveAria")} — {game.name}
@@ -189,34 +224,40 @@ export function BacklogCard({
             <p className={styles.steamNote}>{t("backlog.playtime.steamNote")}</p>
           ) : (
             <form className={styles.addRow} onSubmit={handleAdd}>
-              <input
-                type="number"
-                min="0.1"
-                step="0.5"
-                inputMode="decimal"
+              <select
                 className={`${styles.addInput} ${styles.addHours}`}
-                placeholder={t("backlog.playtime.hoursLabel")}
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-              />
+                aria-label={t("backlog.playtime.hoursLabel")}
+                value={minutes}
+                onChange={(e) => {
+                  setMinutes(e.target.value);
+                  setDayLimit(false);
+                }}
+              >
+                {DURATION_OPTIONS.map((m) => (
+                  <option key={m} value={m}>
+                    {formatDuration(m)}
+                  </option>
+                ))}
+              </select>
               <input
                 type="date"
                 max={todayLocal()}
                 className={styles.addInput}
                 aria-label={t("backlog.playtime.dateAria")}
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  setDate(e.target.value);
+                  setDayLimit(false);
+                }}
               />
-              <button
-                type="submit"
-                className={styles.addBtn}
-                disabled={saving || !hours}
-              >
+              <button type="submit" className={styles.addBtn} disabled={saving}>
                 {t("backlog.playtime.add")}
               </button>
             </form>
           )}
 
+          {saved && <p className={styles.saved}>{t("backlog.playtime.saved")}</p>}
+          {dayLimit && <p className={styles.addError}>{t("backlog.playtime.dayLimit")}</p>}
           {entryError && <p className={styles.addError}>{t("backlog.playtime.error")}</p>}
 
           {loading ? (

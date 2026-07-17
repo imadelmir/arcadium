@@ -4,12 +4,17 @@
 // Card di un gioco posseduto: copertina, stato (StatusBadge coerente col DB),
 // ore giocate e selettore per cambiare stato (PATCH reale). Il backend non
 // fornisce gli achievement, quindi l'anello di completamento è stato rimosso.
+//
+// M6: le ore mostrate seguono la regola "Steam vince" — se l'utente ha Steam
+// collegato si usa il tempo Steam (playtimeMinutes), altrimenti le ore registrate
+// a mano su quel gioco (manualPlaytimeMinutes). L'inserimento avviene nel Backlog.
 
 import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 
 import { GameImage, StatusBadge } from "@/components";
 import { BACKLOG_STATUSES } from "@/lib/constants";
+import { useAuth } from "@/context/AuthProvider";
 import styles from "./LibraryCard.module.css";
 
 // Minuti -> ore leggibili (un decimale sotto le 10 ore, poi interi). null -> 0.
@@ -19,8 +24,19 @@ function formatHours(minutes) {
   return value.toLocaleString("it-IT");
 }
 
-export function LibraryCard({ game, statusCode, playtimeMinutes, onStatusChange }) {
+export function LibraryCard({
+  game,
+  statusCode,
+  playtimeMinutes,
+  manualPlaytimeMinutes,
+  onStatusChange,
+}) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const steamConnected = Boolean(user?.steamId);
+
+  // Steam collegato -> tempo Steam; altrimenti totale manuale del gioco.
+  const shownMinutes = steamConnected ? playtimeMinutes : manualPlaytimeMinutes ?? 0;
 
   return (
     <article className={styles.card} data-status={statusCode}>
@@ -55,7 +71,7 @@ export function LibraryCard({ game, statusCode, playtimeMinutes, onStatusChange 
           {/* Ore giocate */}
           <span className={styles.hours}>
             <Clock size={15} aria-hidden="true" />
-            <strong>{formatHours(playtimeMinutes)}</strong>{" "}
+            <strong>{formatHours(shownMinutes)}</strong>{" "}
             {t("library.hoursUnit")}
           </span>
         </div>

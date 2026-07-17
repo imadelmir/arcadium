@@ -175,7 +175,6 @@
 /* =========================================================================== */
 .card { display: block; }
 
-/* Il blocco "ore" diventa un pulsante che apre/chiude il pannello */
 .hoursBtn {
   display: inline-flex;
   align-items: center;
@@ -227,10 +226,10 @@
   background: rgba(6, 8, 20, 0.55);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color-scheme: dark; /* date picker in tema scuro */
+  color-scheme: dark;
 }
 .addInput:focus-visible { outline: none; box-shadow: var(--ring); }
-.addHours { width: 92px; }
+.addHours { min-width: 128px; }
 
 .addBtn {
   padding: 6px 14px;
@@ -291,6 +290,10 @@
 }
 .empty { margin: var(--space-2) 0 0; font-size: 13px; color: var(--color-text-faint); }
 .addError { margin: var(--space-2) 0 0; font-size: 12px; color: #f06b6b; }
+
+/* Conferma "ore salvate" (verde), come il salvataggio profilo */
+.saved { margin: var(--space-2) 0 0; font-size: 12.5px; font-weight: 600; color: #4ade80; }
+
 .steamNote { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--color-text-muted); }
 
 @media (max-width: 640px) {
