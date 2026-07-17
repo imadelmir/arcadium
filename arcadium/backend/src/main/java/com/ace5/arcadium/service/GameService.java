@@ -21,9 +21,13 @@ import com.ace5.arcadium.dto.GameDetailResponse;
 import com.ace5.arcadium.dto.GamePlatform;
 import com.ace5.arcadium.dto.GameSummaryResponse;
 import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.entity.BacklogId;
 import com.ace5.arcadium.entity.Game;
+import com.ace5.arcadium.entity.WishlistId;
 import com.ace5.arcadium.exception.ApiException;
+import com.ace5.arcadium.repository.BacklogRepository;
 import com.ace5.arcadium.repository.GameRepository;
+import com.ace5.arcadium.repository.WishlistRepository;
 import com.ace5.arcadium.repository.spec.GameSpecifications;
 
 /**
@@ -62,9 +66,15 @@ public class GameService {
             "peakCcu", "positive", "recommendations", "appId");
 
     private final GameRepository gameRepository;
+    private final WishlistRepository wishlistRepository;
+    private final BacklogRepository backlogRepository;
 
-    public GameService(GameRepository gameRepository) {
+    public GameService(GameRepository gameRepository,
+                       WishlistRepository wishlistRepository,
+                       BacklogRepository backlogRepository) {
         this.gameRepository = gameRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.backlogRepository = backlogRepository;
     }
 
     /**
@@ -105,15 +115,26 @@ public class GameService {
      * LazyInitializationException che si avrebbe con open-in-view disattivato.
      * Se il gioco non esiste, si risponde 404 con messaggio localizzato.
      *
-     * @param appId chiave naturale del gioco
-     * @return vista completa del gioco
+     * <p>Insieme al dettaglio si calcola la membership dell'utente autenticato:
+     * se il gioco è nella sua wishlist e/o nel suo backlog (M6-T4). Sono due
+     * controlli di esistenza sulla chiave composta (userId, appId), indicizzata,
+     * quindi lookup puntuali. Prima il frontend, per sapere lo stato dei pulsanti
+     * "Aggiungi a wishlist/backlog", scaricava le collezioni INTERE dell'utente a
+     * ogni apertura del dettaglio e le confrontava lato client: ora la membership
+     * arriva con il dettaglio e quelle due chiamate spariscono.
+     *
+     * @param appId  chiave naturale del gioco
+     * @param userId id dell'utente autenticato che richiede il dettaglio
+     * @return vista completa del gioco, con i flag di membership per l'utente
      */
     @Transactional(readOnly = true)
-    public GameDetailResponse getByAppId(Long appId) {
+    public GameDetailResponse getByAppId(Long appId, Long userId) {
         Game game = gameRepository.findById(appId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND, "error.game.notFound", appId));
-        return GameDetailResponse.from(game);
+        boolean inWishlist = wishlistRepository.existsById(new WishlistId(userId, appId));
+        boolean inBacklog = backlogRepository.existsById(new BacklogId(userId, appId));
+        return GameDetailResponse.from(game, inWishlist, inBacklog);
     }
 
     /**

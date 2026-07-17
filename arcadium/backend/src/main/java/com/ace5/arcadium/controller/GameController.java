@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import com.ace5.arcadium.dto.CatalogQuery;
 import com.ace5.arcadium.dto.GameDetailResponse;
 import com.ace5.arcadium.dto.GameSummaryResponse;
 import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.security.AppUserPrincipal;
 import com.ace5.arcadium.service.GameService;
 
 /**
@@ -88,9 +90,14 @@ public class GameController {
      * (M4-T6). Spring converte il segmento di path in Long. Restituisce 200 con
      * la vista completa, oppure 404 localizzato se l'appId non esiste (gestito
      * nel service tramite ApiException).
+     *
+     * <p>L'endpoint è autenticato (SecurityConfig: {@code anyRequest().authenticated()}),
+     * quindi il principal è sempre presente: il suo id serve a valorizzare i flag
+     * {@code inWishlist}/{@code inBacklog} del dettaglio (M6-T4).
      */
     @GetMapping("/{appId}")
-    public GameDetailResponse detail(@PathVariable Long appId) {
-        return gameService.getByAppId(appId);
+    public GameDetailResponse detail(@PathVariable Long appId,
+                                     @AuthenticationPrincipal AppUserPrincipal principal) {
+        return gameService.getByAppId(appId, principal.getId());
     }
 }
