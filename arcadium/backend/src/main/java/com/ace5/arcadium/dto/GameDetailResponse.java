@@ -66,7 +66,9 @@ public record GameDetailResponse(
         List<Lookup> publishers,
         List<Lookup> supportedLanguages,
         List<Lookup> audioLanguages,
-        List<String> screenshots
+        List<String> screenshots,
+        boolean inWishlist,
+        boolean inBacklog
 ) {
 
     /**
@@ -82,8 +84,14 @@ public record GameDetailResponse(
      * <p>Da invocare DENTRO la transazione del service: qui si leggono le
      * collezioni LAZY del gioco (una query aggiuntiva per collezione, accettabile
      * trattandosi di un singolo gioco).
+     *
+     * <p>I flag {@code inWishlist}/{@code inBacklog} indicano se il gioco è nella
+     * wishlist e/o nel backlog dell'utente autenticato che richiede il dettaglio
+     * (M6-T4). Li calcola il service con un controllo di esistenza sulla chiave
+     * composta, così il frontend riceve la membership insieme al dettaglio e non
+     * deve più scaricare le collezioni intere solo per confrontarle.
      */
-    public static GameDetailResponse from(Game game) {
+    public static GameDetailResponse from(Game game, boolean inWishlist, boolean inBacklog) {
         return new GameDetailResponse(
                 game.getAppId(),
                 game.getName(),
@@ -119,7 +127,9 @@ public record GameDetailResponse(
                 mapLookup(game.getPublishers(), Publisher::getId, Publisher::getName),
                 mapLookup(game.getSupportedLanguages(), Language::getId, Language::getName),
                 mapLookup(game.getAudioLanguages(), Language::getId, Language::getName),
-                List.copyOf(game.getScreenshots()));
+                List.copyOf(game.getScreenshots()),
+                inWishlist,
+                inBacklog);
     }
 
     /**

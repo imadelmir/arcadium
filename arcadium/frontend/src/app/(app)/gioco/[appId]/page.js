@@ -11,7 +11,8 @@
 //   - genres/tags/categories/developers/publishers sono array di { id, name }:
 //     qui estraggo solo i nomi;
 //   - le piattaforme arrivano come booleani windows/mac/linux;
-//   - il prezzo è in centesimi: lo formatta formatPrice (lib/format).
+//   - il prezzo è in EURO (NUMERIC(10,2)): lo formatta formatPrice (lib/format);
+//   - inWishlist/inBacklog arrivano nel DTO: stato iniziale dei due pulsanti.
 // =============================================================================
 
 import { useEffect, useMemo, useState } from "react";
@@ -26,8 +27,8 @@ import {
 import { Button, Card, Badge, GameImage, Spinner } from "@/components";
 import { formatPrice } from "@/lib/format";
 import { getGame } from "@/lib/api/games";
-import { addToWishlist, removeFromWishlist, listWishlist } from "@/lib/api/wishlist";
-import { addToBacklog, removeFromBacklog, listBacklog } from "@/lib/api/backlog";
+import { addToWishlist, removeFromWishlist } from "@/lib/api/wishlist";
+import { addToBacklog, removeFromBacklog } from "@/lib/api/backlog";
 import { ApiError } from "@/lib/api/client";
 import styles from "./gioco.module.css";
 
@@ -57,7 +58,14 @@ export default function GameDetailPage() {
       setError(false);
       try {
         const data = await getGame(appId);
-        if (attivo) setGame(data);
+        if (attivo) {
+          setGame(data);
+          // La membership (wishlist/backlog) arriva ora nel dettaglio stesso:
+          // i due pulsanti partono con lo stato giusto senza scaricare le
+          // collezioni intere dell'utente (M6-T4).
+          setInWishlist(Boolean(data.inWishlist));
+          setInBacklog(Boolean(data.inBacklog));
+        }
       } catch {
         if (attivo) setError(true);
       } finally {
@@ -65,20 +73,6 @@ export default function GameDetailPage() {
       }
     };
     carica();
-    return () => { attivo = false; };
-  }, [appId]);
-
-  // All'apertura controlla se il gioco è già in wishlist e/o nel backlog,
-  // così i due pulsanti partono con lo stato corretto.
-  useEffect(() => {
-    let attivo = true;
-    const id = Number(appId);
-    listWishlist()
-      .then((list) => attivo && setInWishlist(list.some((w) => w.game.appId === id)))
-      .catch(() => {});
-    listBacklog()
-      .then((list) => attivo && setInBacklog(list.some((b) => b.game.appId === id)))
-      .catch(() => {});
     return () => { attivo = false; };
   }, [appId]);
 
