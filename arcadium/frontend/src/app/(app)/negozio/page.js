@@ -26,7 +26,26 @@ import { listGames, getGameFilters } from "@/lib/api/games";
 import styles from "./negozio.module.css";
 
 // Piattaforme accettate dal filtro `platform` del backend.
+// Il VALORE resta minuscolo (lo usa il backend); l'etichetta mostrata è con
+// l'iniziale maiuscola come gli altri filtri.
 const PLATFORMS = ["windows", "mac", "linux"];
+const PLATFORM_LABELS = { windows: "Windows", mac: "Mac", linux: "Linux" };
+
+// Lingue principali del filtro Negozio. Il catalogo Steam contiene centinaia di
+// voci lingua, alcune malformate (residui del dataset non eliminati da V12):
+// qui teniamo solo le lingue principali. Il confronto è case-insensitive e mostra
+// la stringa originale del backend; una lingua non presente in whitelist (o
+// malformata) non compare. Per aggiungerne/toglierne basta editare questo set.
+const PRINCIPAL_LANGUAGES = new Set([
+  "english", "italian", "french", "german",
+  "spanish - spain", "spanish - latin america",
+  "portuguese", "portuguese - portugal", "portuguese - brazil",
+  "russian", "polish", "turkish", "dutch",
+  "japanese", "korean", "simplified chinese", "traditional chinese",
+  "danish", "finnish", "norwegian", "swedish",
+  "czech", "hungarian", "greek", "romanian", "bulgarian", "ukrainian",
+  "thai", "vietnamese", "indonesian", "arabic",
+]);
 
 // Voci del filtro "Prezzo" (stato commerciale) mappate all'enum del backend.
 const PRICE_OPTIONS = [
@@ -141,7 +160,10 @@ function NegozioContent() {
       .then((f) => {
         if (!attivo) return;
         setGenreOptions(f.genres || []);
-        setLanguageOptions(f.languages || []);
+        // Solo le lingue principali: scarta l'esaustivo e le voci malformate.
+        setLanguageOptions(
+          (f.languages || []).filter((l) => PRINCIPAL_LANGUAGES.has(l.trim().toLowerCase()))
+        );
         setCategoryOptions(f.categories || []);
       })
       .catch(() => { /* tendine vuote in caso di errore: i filtri restano opzionali */ });
@@ -355,7 +377,7 @@ function NegozioContent() {
                 checked={platform === pf}
                 onChange={() => changePlatform(pf)}
               />
-              <span>{pf}</span>
+              <span>{PLATFORM_LABELS[pf]}</span>
             </label>
           ))}
         </FilterDropdown>

@@ -101,7 +101,7 @@ export default function RegisterPage() {
           name="username"
           type="text"
           label={t("auth.fields.username")}
-          placeholder="luca_rossi"
+          placeholder={t("auth.placeholders.username")}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           error={errors.username}
@@ -112,7 +112,7 @@ export default function RegisterPage() {
           name="email"
           type="email"
           label={t("auth.fields.email")}
-          placeholder="luca.rossi@email.com"
+          placeholder={t("auth.placeholders.email")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           error={errors.email}
@@ -124,6 +124,7 @@ export default function RegisterPage() {
             name="password"
             type={showPassword ? "text" : "password"}
             label={t("auth.fields.password")}
+            placeholder={t("auth.placeholders.password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
@@ -147,6 +148,7 @@ export default function RegisterPage() {
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
           label={t("auth.fields.confirmPassword")}
+          placeholder={t("auth.placeholders.confirmPassword")}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           error={errors.confirm}

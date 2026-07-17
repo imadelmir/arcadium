@@ -305,6 +305,12 @@
       "showPassword": "Mostra password",
       "hidePassword": "Nascondi password"
     },
+    "placeholders": {
+      "username": "Inserisci il nome utente",
+      "email": "Inserisci l'email",
+      "password": "Inserisci la password",
+      "confirmPassword": "Conferma la password"
+    },
     "login": {
       "title": "Bentornato",
       "subtitle": "Accedi al tuo account Arcadium.",

@@ -83,6 +83,7 @@ export default function LoginPage() {
               name="username"
               type="text"
               label={t("auth.fields.username")}
+              placeholder={t("auth.placeholders.username")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               error={errors.username}
@@ -94,6 +95,7 @@ export default function LoginPage() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 label={t("auth.fields.password")}
+                placeholder={t("auth.placeholders.password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 error={errors.password}
