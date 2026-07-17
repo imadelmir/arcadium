@@ -70,37 +70,54 @@
   overflow: hidden;
 }
 
-/* --- Generi: riga di testo compatta, una sola riga (change request Negozio) ---
-   Tono discreto (colore muted, niente sfondo): il badge acceso resta la
-   piattaforma. Su una sola riga con ellissi cosi' non allunga la card. */
+/* --- Generi: chip in evidenza (M6-T5, stile Steam) ---
+   Erano una riga di testo grigia sotto il titolo. Ora sono l'elemento in
+   evidenza della card: superficie violet tenue e testo pieno, perché il genere
+   è l'informazione che fa scegliere un gioco. Massimo tre chip (limite in
+   StoreCard.js), quindi la riga non va a capo e le card restano uniformi. */
 .genres {
-  margin: 2px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.genre {
+  padding: 4px 10px;
   font-size: 12px;
-  color: var(--color-text-muted);
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-primary-soft);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  border-radius: var(--radius-pill);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* --- Piattaforme: badge con COLORE DEDICATO (change request Negozio) ---
-   Testo in MAIUSCOLO e più grande rispetto ai vecchi chip; il colore proprio
-   (token --color-platform, cyan) lo distingue da sconto (verde) e brand (violet). */
+/* --- Piattaforme: testo piccolo e grigio (M6-T5) ---
+   Avevano un badge cyan acceso con bordo, che rubava l'occhio al titolo e ai
+   generi. È un dettaglio tecnico: ora è solo una riga discreta, come su Steam.
+   I token --color-platform / --color-platform-soft non servono più qui. */
 .platforms {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 .platform {
-  padding: 4px 10px;
-  font-size: 13px; /* più grande dei precedenti chip (11px) */
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase; /* piattaforma sempre in MAIUSCOLO */
-  color: var(--color-platform);
-  background: var(--color-platform-soft);
-  border: 1px solid var(--color-platform);
-  border-radius: var(--radius-pill);
+  color: var(--color-text-faint);
+}
+/* Separatore fra piattaforme: "WINDOWS · MAC" invece di due parole staccate */
+.platform + .platform::before {
+  content: "·";
+  margin-right: var(--space-2);
+  color: var(--color-text-faint);
 }
 
 /* --- Footer: prezzo + CTA (spinto in fondo alla card) ---

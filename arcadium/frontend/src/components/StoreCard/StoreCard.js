@@ -13,12 +13,15 @@ import styles from "./StoreCard.module.css";
 // Il prezzo dal backend è in EURO (es. 19.99), 0 = gratis. La copertina è
 // headerImage (URL del DB).
 //
-// Change request Negozio:
-//   - la PIATTAFORMA è mostrata in un badge dedicato (colore proprio, testo in
-//     MAIUSCOLO e più grande degli altri badge);
-//   - GENERE mostrato come riga di testo compatta sotto il titolo (change
-//     request Negozio del filtro multi-select: rende visibile su ogni card
-//     PERCHÉ quel gioco è comparso nei risultati di un filtro Genere attivo).
+// M6-T5: gerarchia ribaltata, come su Steam.
+//   - la PIATTAFORMA scende a testo piccolo e grigio, subito sotto il titolo:
+//     è un dettaglio tecnico, prima aveva un badge acceso che rubava l'occhio;
+//   - i GENERI passano da riga di testo grigia a CHIP in evidenza: sono
+//     l'informazione che fa scegliere un gioco.
+
+// Numero massimo di generi mostrati: oltre tre la riga andrebbe a capo e le
+// card perderebbero l'altezza uniforme. Il resto resta nel title="".
+const MAX_GENRES = 3;
 
 // Logo di Steam per la CTA (lucide non ha l'icona di Steam).
 function SteamIcon({ size = 16 }) {
@@ -65,21 +68,27 @@ export function StoreCard({ game, className = "", ...rest }) {
           {name}
         </h3>
 
-        {/* Generi: riga compatta su una linea (change request Negozio: rende
-            trasparente il match con un filtro Genere attivo). Troncata con
-            ellissi se lunga; il testo completo resta nel title="" al hover. */}
-        {genres.length > 0 && (
-          <p className={styles.genres} title={genres.join(", ")}>
-            {genres.join(", ")}
-          </p>
-        )}
-
-        {/* Badge PIATTAFORMA: colore dedicato, testo in MAIUSCOLO e più grande. */}
+        {/* M6-T5: piattaforma in testo piccolo e grigio, non più badge acceso.
+            Sta sopra ai generi: è la riga più discreta e fa da sottotitolo
+            tecnico, mentre i chip dei generi restano l'elemento in evidenza. */}
         {platforms.length > 0 && (
           <ul className={styles.platforms}>
             {platforms.map((code) => (
               <li key={code} className={styles.platform}>
                 {code}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* M6-T5: generi in evidenza come chip (stile Steam). Al massimo tre,
+            così la riga non va a capo e le card restano tutte alte uguali;
+            l'elenco completo resta nel title="" al passaggio del mouse. */}
+        {genres.length > 0 && (
+          <ul className={styles.genres} title={genres.join(", ")}>
+            {genres.slice(0, MAX_GENRES).map((g) => (
+              <li key={g} className={styles.genre}>
+                {g}
               </li>
             ))}
           </ul>
