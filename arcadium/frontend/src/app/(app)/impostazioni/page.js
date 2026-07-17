@@ -4,6 +4,10 @@
 // Pagina Impostazioni (/impostazioni) — M5-T15.
 // Sezioni: privacy del profilo (ProfilePanel), auto-abbandono (AutoAbandonPanel,
 // feature M6) e integrazione Steam (SteamPanel).
+//
+// M6: le card sono avvolte in un contenitore flex con gap uniforme, cosi' la
+// distanza tra i pannelli e' identica (prima dipendeva da margini per-pannello
+// incoerenti). I singoli pannelli non hanno margini propri.
 // =============================================================================
 
 import { Suspense } from "react";
@@ -22,18 +26,27 @@ export default function ImpostazioniPage() {
       <h1 className={styles.title}>{t("pages.impostazioni.title")}</h1>
       <p className={styles.subtitle}>{t("pages.impostazioni.subtitle")}</p>
 
-      {/* Privacy del profilo (change request privacy): pubblico / privato. */}
-      <ProfilePanel />
+      {/* Contenitore dei pannelli: gap uniforme tra tutte le card */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-5)",
+          marginTop: "var(--space-5)",
+        }}
+      >
+        {/* Privacy del profilo (change request privacy): pubblico / privato. */}
+        <ProfilePanel />
 
-      {/* Auto-abbandono (feature M6): timeout 1/3/6 mesi o spento. */}
-      <AutoAbandonPanel />
+        {/* Auto-abbandono (feature M6): timeout 1/3/6 mesi o spento. */}
+        <AutoAbandonPanel />
 
-      {/* Sezione integrazione Steam (M5-T15).
-          Suspense: SteamPanel legge ?steam= con useSearchParams e Next lo esige
-          per non bloccare il prerender della pagina (M6-T4). */}
-      <Suspense fallback={null}>
-        <SteamPanel />
-      </Suspense>
+        {/* Integrazione Steam (M5-T15). Suspense: SteamPanel legge ?steam= con
+            useSearchParams e Next lo esige per non bloccare il prerender. */}
+        <Suspense fallback={null}>
+          <SteamPanel />
+        </Suspense>
+      </div>
     </section>
   );
 }
