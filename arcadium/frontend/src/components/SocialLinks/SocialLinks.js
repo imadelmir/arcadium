@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Bell } from "lucide-react";
 import styles from "./SocialLinks.module.css";
@@ -23,19 +22,7 @@ const LINKS = [
 ];
 
 export function SocialLinks() {
-  const { t, i18n } = useTranslation();
-
-  const [notifOpen, setNotifOpen] = useState(false);
-  const bellRef = useRef(null);
-
-  useEffect(() => {
-    function onClickFuori(e) {
-      if (bellRef.current && !bellRef.current.contains(e.target)) setNotifOpen(false);
-    }
-    document.addEventListener("mousedown", onClickFuori);
-    return () => document.removeEventListener("mousedown", onClickFuori);
-  }, []);
-
+  const { t } = useTranslation();
   const comingSoon = t("common.comingSoon");
 
   return (
@@ -43,20 +30,30 @@ export function SocialLinks() {
       {LINKS.map((item) => {
         const label = t(item.labelKey);
         return (
-          <a key={item.key} href={item.href} className={styles.button} style={{ "--brand-rgb": item.rgb }} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
-            <svg viewBox="0 0 24 24" className={styles.icon} aria-hidden="true" focusable="false">
-              <path d={item.path} />
-            </svg>
-          </a>
+          <div key={item.key} className={styles.item} style={{ "--brand-rgb": item.rgb }}>
+            <a
+              href={item.href}
+              className={styles.button}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+            >
+              <svg viewBox="0 0 24 24" className={styles.icon} aria-hidden="true" focusable="false">
+                <path d={item.path} />
+              </svg>
+            </a>
+            <span className={styles.tooltip} role="tooltip" aria-hidden="true">{label}</span>
+          </div>
         );
       })}
 
-      {/* Campanello notifiche: stesso stile dei social (oro), tooltip + popup */}
-      <div className={styles.bellWrap} ref={bellRef}>
-        <button type="button" className={styles.button} style={{ "--brand-rgb": "245, 196, 81" }} onClick={() => setNotifOpen((v) => !v)} aria-label={t("notifications.label")} title={comingSoon}>
+      {/* Campanello notifiche: stessa resa dei social (oro) e stesso tooltip
+          custom su hover; le notifiche vere sono ancora "presto disponibili". */}
+      <div className={styles.item} style={{ "--brand-rgb": "245, 196, 81" }}>
+        <button type="button" className={styles.button} aria-label={t("notifications.label")}>
           <Bell className={styles.icon} size={18} />
         </button>
-        {notifOpen && <div className={styles.notifPopup}>{comingSoon}</div>}
+        <span className={styles.tooltip} role="tooltip" aria-hidden="true">{comingSoon}</span>
       </div>
     </div>
   );
