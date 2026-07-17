@@ -32,7 +32,7 @@ import { ApiError } from "@/lib/api/client";
 import styles from "./gioco.module.css";
 
 export default function GameDetailPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { appId } = useParams(); // stringa dall'URL
 
   // Dati del gioco + stati di caricamento.
@@ -197,7 +197,7 @@ export default function GameDetailPage() {
                   </span>
                   <span className={styles.reviewCount}>
                     {review.percent}% {t("gameDetail.reviewOf")}{" "}
-                    {formatNumber(review.total)} {t("gameDetail.reviewWord")}
+                    {formatNumber(review.total, i18n.language)} {t("gameDetail.reviewWord")}
                   </span>
                 </div>
                 <div className={styles.reviewBar} role="img" aria-label={`${review.percent}%`}>
@@ -290,7 +290,7 @@ export default function GameDetailPage() {
 
             {/* Scheda tecnica */}
             <dl className={styles.specs}>
-              <SpecRow icon={<Calendar size={16} />} label={t("gameDetail.releaseDate")} value={formatDate(game.releaseDate)} />
+              <SpecRow icon={<Calendar size={16} />} label={t("gameDetail.releaseDate")} value={formatDate(game.releaseDate, i18n.language)} />
               {developers.length > 0 && (
                 <SpecRow icon={<Code2 size={16} />} label={t("gameDetail.developer")} value={developers.join(", ")} />
               )}
@@ -406,11 +406,11 @@ function platformList({ windows, mac, linux }) {
   return list.join(" · ") || "—";
 }
 
-function formatDate(iso) {
+function formatDate(iso, lang) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString(lang, { day: "numeric", month: "long", year: "numeric" });
 }
 
-function formatNumber(n) {
-  return new Intl.NumberFormat("it-IT").format(n);
+function formatNumber(n, lang) {
+  return new Intl.NumberFormat(lang).format(n);
 }

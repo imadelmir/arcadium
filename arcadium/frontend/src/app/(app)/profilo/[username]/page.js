@@ -99,7 +99,7 @@ export default function ProfiloPage() {
   const playing = backlog.filter((b) => b.status.code === "in_corso");
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-  const shareText = lang === "en" ? `Check out ${nome} on Arcadium` : `Guarda ${nome} su Arcadium`;
+  const shareText = t("profile.shareText", { name: nome });
   const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
   const fbHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
 
@@ -122,7 +122,7 @@ export default function ProfiloPage() {
     return (
       <div className={styles.page}>
         <Link href="/community" className={styles.back}><ArrowLeft size={18} />{t("community.backToList")}</Link>
-        <div className={styles.state}><p>{lang === "en" ? "User not found." : "Utente non trovato."}</p></div>
+        <div className={styles.state}><p>{t("profile.notFound")}</p></div>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function ProfiloPage() {
           <div className={styles.name}>{nome}</div>
           <div className={styles.handle}>@{profile?.username}</div>
           {profile?.createdAt && (
-            <div className={styles.meta}>{lang === "en" ? "Member since " : "Membro dal "}{formatDate(profile.createdAt, lang)}</div>
+            <div className={styles.meta}>{t("profile.memberSince", { date: formatDate(profile.createdAt, lang) })}</div>
           )}
           {profile && !profile.profilePublic && (
             <div className={styles.privatePill}><Lock size={12} /> {t("community.privateProfile")}</div>
@@ -150,7 +150,7 @@ export default function ProfiloPage() {
           <Share2 size={20} className={styles.shareIcon} />
           <a className={`${styles.socialBtn} ${styles.fb}`} href={fbHref} target="_blank" rel="noopener noreferrer">Facebook</a>
           <button type="button" className={`${styles.socialBtn} ${styles.ig}`} onClick={copyLink}>
-            {copied ? (lang === "en" ? "Link copied!" : "Link copiato!") : "Instagram"}
+            {copied ? t("common.linkCopied") : "Instagram"}
           </button>
           <a className={`${styles.socialBtn} ${styles.x}`} href={xHref} target="_blank" rel="noopener noreferrer">X</a>
         </div>
@@ -168,7 +168,7 @@ export default function ProfiloPage() {
             </div>
             <div className={styles.stat}>
               <div className={styles.statValue}>{stats.playing}</div>
-              <div className={styles.statLabel}>{lang === "en" ? "Playing" : "In corso"}</div>
+              <div className={styles.statLabel}>{t("profile.playingStat")}</div>
             </div>
             <div className={styles.stat}>
               <div className={styles.statValue}>{playtimeLabel(stats.hours * 60)}</div>
@@ -181,9 +181,9 @@ export default function ProfiloPage() {
           </div>
 
           {/* Sto giocando */}
-          <h2 className={styles.sectionTitle}>{lang === "en" ? "Currently playing" : "Sto giocando"}</h2>
+          <h2 className={styles.sectionTitle}>{t("profile.currentlyPlaying")}</h2>
           {playing.length === 0 ? (
-            <p className={styles.note}>{lang === "en" ? "No games in progress." : "Nessun gioco in corso."}</p>
+            <p className={styles.note}>{t("profile.noGamesInProgress")}</p>
           ) : (
             <div className={styles.playingRow}>
               {playing.map(({ game }) => (
@@ -195,10 +195,10 @@ export default function ProfiloPage() {
           )}
 
           {/* Achievement */}
-          <h2 className={styles.sectionTitle}>{lang === "en" ? "Achievements" : "Achievement"}</h2>
+          <h2 className={styles.sectionTitle}>{t("profile.achievementsTitle")}</h2>
           {isMe ? (
             achievements.length === 0 ? (
-              <p className={styles.note}>{lang === "en" ? "No achievements yet." : "Ancora nessun achievement."}</p>
+              <p className={styles.note}>{t("profile.noAchievements")}</p>
             ) : (
               <div className={styles.achGrid}>
                 {achievements.map((a) => {
@@ -220,7 +220,7 @@ export default function ProfiloPage() {
               </div>
             )
           ) : (
-            <p className={styles.note}>{lang === "en" ? "Achievements are visible only on your own profile." : "Gli achievement sono visibili solo sul tuo profilo."}</p>
+            <p className={styles.note}>{t("profile.achievementsPrivate")}</p>
           )}
         </>
       )}

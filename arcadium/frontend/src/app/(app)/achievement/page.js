@@ -79,9 +79,7 @@ export default function AchievementPage() {
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/profilo/${encodeURIComponent(user?.username || "")}`
     : "";
-  const shareText = lang === "en"
-    ? `I unlocked ${riepilogo.sbloccati} achievements on Arcadium!`
-    : `Ho sbloccato ${riepilogo.sbloccati} achievement su Arcadium!`;
+  const shareText = t("achievement.shareText", { num: riepilogo.sbloccati });
   const fbHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
   const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
   function copyLink() {
@@ -99,7 +97,7 @@ export default function AchievementPage() {
         <div className={styles.heroContent}>
           <div className={styles.heroLeft}>
             <span className={styles.kicker}>
-              <Sparkles size={14} /> {lang === "en" ? "Trophy room" : "Sala trofei"}
+              <Sparkles size={14} /> {t("achievement.trophyRoom")}
             </span>
             <h1 className={styles.title}>{t("achievements.title")}</h1>
             <p className={styles.heroSub}>
@@ -151,7 +149,7 @@ export default function AchievementPage() {
                 <Share2 size={18} className={styles.shareIcon} />
                 <a className={`${styles.shareBtn} ${styles.fb}`} href={fbHref} target="_blank" rel="noopener noreferrer">Facebook</a>
                 <button type="button" className={`${styles.shareBtn} ${styles.ig}`} onClick={copyLink}>
-                  {copied ? (lang === "en" ? "Copied!" : "Copiato!") : "Instagram"}
+                  {copied ? t("common.copied") : "Instagram"}
                 </button>
                 <a className={`${styles.shareBtn} ${styles.x}`} href={xHref} target="_blank" rel="noopener noreferrer">X</a>
               </div>

@@ -15,7 +15,10 @@
     "search": "Cerca giochi, generi, sviluppatori…",
     "loading": "Attendere…",
     "all": "Tutti",
-    "logout": "Esci"
+    "logout": "Esci",
+    "comingSoon": "Presto disponibile",
+    "copied": "Copiato!",
+    "linkCopied": "Link copiato!"
   },
   "social": {
     "discord": "Unisciti a noi su Discord",
@@ -390,5 +393,23 @@
       "error": "Impossibile salvare l'impostazione. Riprova.",
       "locked": "Hai cambiato la visibilità di recente. Potrai modificarla di nuovo il {{time}}."
     }
+  },
+  "header": {
+    "myProfile": "Il mio profilo"
+  },
+  "achievement": {
+    "shareText": "Ho sbloccato {{num}} achievement su Arcadium!",
+    "trophyRoom": "Sala trofei"
+  },
+  "profile": {
+    "shareText": "Guarda {{name}} su Arcadium",
+    "notFound": "Utente non trovato.",
+    "memberSince": "Membro dal {{date}}",
+    "playingStat": "In corso",
+    "currentlyPlaying": "Sto giocando",
+    "noGamesInProgress": "Nessun gioco in corso.",
+    "achievementsTitle": "Achievement",
+    "noAchievements": "Ancora nessun achievement.",
+    "achievementsPrivate": "Gli achievement sono visibili solo sul tuo profilo."
   }
 }

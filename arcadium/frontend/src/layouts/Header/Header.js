@@ -21,7 +21,7 @@ import { useAuth } from "@/context/AuthProvider";
 import styles from "./Header.module.css";
 
 export function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user, logout } = useAuth();
 
@@ -56,7 +56,6 @@ export function Header() {
           <button
             type="button"
             className={styles.user}
-            data-open={menuAperto}
             onClick={() => setMenuAperto((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={menuAperto}
@@ -67,24 +66,30 @@ export function Header() {
           </button>
 
           {menuAperto && (
-            <div role="menu" className={styles.menu}>
+            <div
+              role="menu"
+              style={{
+                position: "absolute", right: 0, top: "calc(100% + 8px)", minWidth: 180,
+                background: "var(--surface-2, #1a2138)", border: "1px solid var(--border, #232b44)",
+                borderRadius: "var(--radius-md, 10px)", boxShadow: "0 12px 32px rgba(0,0,0,.45)",
+                padding: 6, zIndex: 50,
+              }}
+            >
               <Link
                 href={`/profilo/${encodeURIComponent(user?.username || "")}`}
                 role="menuitem"
-                className={styles.menuItem}
                 onClick={() => setMenuAperto(false)}
+                style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", borderRadius: "var(--radius-sm, 8px)", color: "var(--text, #e7e9f2)", textDecoration: "none" }}
               >
                 <UserIcon size={16} />
-                {t("common.myProfile")}
+                {t("header.myProfile")}
               </Link>
-
-              <hr className={styles.menuDivider} />
 
               <button
                 type="button"
                 role="menuitem"
                 onClick={esci}
-                className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", background: "transparent", border: "none", borderRadius: "var(--radius-sm, 8px)", color: "var(--text, #e7e9f2)", font: "inherit", cursor: "pointer", textAlign: "left" }}
               >
                 <LogOut size={16} />
                 {t("common.logout")}
