@@ -11,6 +11,7 @@ import "./globals.css"; // stili base (reset, sfondo, font)
 import { LanguageProvider } from "@/context/LanguageProvider"; // traduzioni IT/EN
 import { AuthProvider } from "@/context/AuthProvider"; // sessione utente (JWT)
 import { StarField } from "@/components/StarField/StarField";
+import SplashCursor from "@/components/SplashCursor/SplashCursor"; // export default: niente graffe
 
 // Testo mostrato nella scheda del browser e ai motori di ricerca.
 export const metadata = {
@@ -23,6 +24,11 @@ export default function RootLayout({ children }) {
     <html lang="it" suppressHydrationWarning>
       <body>
         <StarField />
+        {/* Effetto fluido che segue il mouse (M6-T4). Montato DOPO StarField:
+            a parità di z-index (-1) viene disegnato sopra le stelle.
+            RAINBOW_MODE spento + COLOR violet per restare nella palette del
+            tema (il default sarebbe arcobaleno con base rossa). */}
+        <SplashCursor RAINBOW_MODE={false} COLOR="#7c5cff" />
         <LanguageProvider>
           <AuthProvider>{children}</AuthProvider>
         </LanguageProvider>
