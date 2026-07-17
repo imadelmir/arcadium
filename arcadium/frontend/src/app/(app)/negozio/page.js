@@ -177,7 +177,9 @@ function NegozioContent() {
           <input
             type="search"
             className={styles.panelSearch}
-            placeholder={t("store.filters.searchInList")}
+            /* M6-T5: placeholder specifico del pannello (Cerca genere / Cerca
+               giochi in / Cerca categoria) invece di un unico testo generico. */
+            placeholder={t(`store.filters.searchIn.${labelKey}`)}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label={t(`store.filters.${labelKey}`)}
@@ -371,7 +373,7 @@ function NegozioContent() {
         <FilterDropdown
           className={styles.sort}
           align="right"
-          active={sort !== "releaseDate,desc"}
+          active={sort !== DEFAULT_SORT}
           label={`${t("store.sort.label")}`}
         >
           <p className={styles.panelTitle}>{t("store.sort.label")}</p>

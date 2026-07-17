@@ -97,7 +97,13 @@
       "minPrice": "Minimum price",
       "maxPrice": "Maximum price",
       "reset": "Reset",
-      "category": "Category"
+      "category": "Category",
+      "searchIn": {
+        "genre": "Search genre…",
+        "language": "Search games in…",
+        "category": "Search category…"
+      },
+      "clearSelection": "Clear selection"
     },
     "sort": {
       "label": "Sort",
