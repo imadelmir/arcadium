@@ -97,7 +97,13 @@
       "minPrice": "Prezzo minimo",
       "maxPrice": "Prezzo massimo",
       "reset": "Reimposta",
-      "category": "Categoria"
+      "category": "Categoria",
+      "searchIn": {
+        "genre": "Cerca genere…",
+        "language": "Cerca giochi in…",
+        "category": "Cerca categoria…"
+      },
+      "clearSelection": "Cancella selezione"
     },
     "sort": {
       "label": "Ordina",

@@ -1,9 +1,11 @@
 "use client";
 
 // Sfondo stellato animato (canvas), versione leggera a colori.
-// I puntini scorrono lenti e cambiano tinta da soli (dal ciano al magenta,
-// passando per blu e violetto). Niente bagliore: costo minimo, scroll fluido.
+// I puntini scorrono e cambiano tinta da soli (dal ciano al magenta, passando
+// per blu e violetto). Niente bagliore: costo minimo, scroll fluido.
 // Decorativo: aria-hidden, non blocca i click, si ferma con "reduced motion".
+//
+// M6-T5: stelle più grandi, più luminose e leggermente più veloci di prima.
 
 import { useEffect, useRef } from "react";
 import styles from "./StarField.module.css";
@@ -33,10 +35,14 @@ export function StarField() {
         stars.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          radius: Math.random() * 1.3 + 0.5, // dimensione
-          alpha: Math.random() * 0.4 + 0.4,  // luminosità
-          vx: (Math.random() - 0.5) * 0.16,  // movimento lento
-          vy: (Math.random() - 0.5) * 0.16,
+          // M6-T5: raggio 0.9 -> 2.7 px (prima 0.5 -> 1.8): puntini più grandi.
+          radius: Math.random() * 1.8 + 0.9,
+          // M6-T5: opacità 0.65 -> 1 (prima 0.4 -> 0.8): stelle più luminose.
+          alpha: Math.random() * 0.35 + 0.65,
+          // M6-T5: velocità raddoppiata, ±0.17 px/frame (prima ±0.08).
+          // Resta un movimento lento e non distrae dalla lettura.
+          vx: (Math.random() - 0.5) * 0.34,
+          vy: (Math.random() - 0.5) * 0.34,
           // Colore: tinta iniziale nel range fluo (180 ciano -> 320 magenta),
           // con una direzione e velocità di scorrimento proprie.
           hue: 180 + Math.random() * 140,
@@ -75,7 +81,8 @@ export function StarField() {
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
         // hsla: tinta variabile, colori vivaci, luminosità = alpha della stella.
-        ctx.fillStyle = `hsla(${s.hue}, 100%, 72%, ${s.alpha})`;
+        // M6-T5: lightness 78% (prima 72%) — colori più accesi sul navy scuro.
+        ctx.fillStyle = `hsla(${s.hue}, 100%, 78%, ${s.alpha})`;
         ctx.fill();
       }
       if (animate) {
