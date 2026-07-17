@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -121,4 +122,39 @@ public interface BacklogRepository extends JpaRepository<Backlog, BacklogId> {
 
         long getCount();
     }
+
+    /**
+     * Auto-abbandono (feature M6): porta ad "Abbandonato" tutti i giochi "In corso"
+     * degli utenti che hanno impostato un timeout ({@code abandon_after_months}) e
+     * che risultano inattivi da piu' mesi di quella soglia.
+     *
+     * <p>UPDATE massivo unico (nessun ciclo per-utente). Gli stati sono risolti
+     * PER CODICE via join su {@code backlog_status} (nessun ID cablato): 'in_corso'
+     * per selezionare, 'abbandonato' come nuovo stato. L'inattivita' e' misurata sul
+     * segnale piu' recente tra aggiunta ({@code added_at}), inizio ({@code started_at})
+     * e ultima ora registrata a mano ({@code MAX(playtime_entry.played_on)}):
+     * {@code GREATEST} in PostgreSQL ignora i NULL, e {@code added_at} e' sempre
+     * presente. La soglia e' costruita per-utente con {@code make_interval}.
+     *
+     * @return numero di righe (giochi) aggiornate
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+            UPDATE backlog b
+            SET status_id = ab.id
+            FROM app_user u, backlog_status inp, backlog_status ab
+            WHERE b.user_id = u.id
+              AND u.abandon_after_months IS NOT NULL
+              AND b.status_id = inp.id
+              AND inp.code = 'in_corso'
+              AND ab.code = 'abbandonato'
+              AND GREATEST(
+                    b.added_at,
+                    b.started_at,
+                    (SELECT MAX(pe.played_on)::timestamp
+                       FROM playtime_entry pe
+                      WHERE pe.user_id = b.user_id AND pe.app_id = b.app_id)
+                  ) < now() - make_interval(months => u.abandon_after_months::int)
+            """, nativeQuery = true)
+    int abandonInactiveInProgressGames();
 }
