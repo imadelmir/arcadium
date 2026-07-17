@@ -145,11 +145,19 @@ export default function GameDetailPage() {
     setBusyBacklog(true);
     const prossimo = !inBacklog;
     setInBacklog(prossimo); // ottimistico
+    // Aggiungere al backlog = gioco posseduto: il backend lo toglie dalla
+    // wishlist, quindi qui togliamo subito la spunta (il pulsante wishlist
+    // diventa grigio perche' il gioco lo possiedi gia').
+    const eraInWishlist = inWishlist;
+    if (prossimo && eraInWishlist) setInWishlist(false);
     try {
       if (prossimo) await addToBacklog(game.appId); // stato iniziale "mai_giocato"
       else await removeFromBacklog(game.appId);
     } catch (err) {
-      if (!(err instanceof ApiError && err.status === 409)) setInBacklog(!prossimo);
+      if (!(err instanceof ApiError && err.status === 409)) {
+        setInBacklog(!prossimo);
+        if (prossimo && eraInWishlist) setInWishlist(true); // ripristina in caso di errore
+      }
     } finally {
       setBusyBacklog(false);
     }
@@ -260,17 +268,23 @@ export default function GameDetailPage() {
             </div>
 
             <div className={styles.actions}>
-              {/* Wishlist reale */}
+              {/* Wishlist reale. Se il gioco è già nel backlog (posseduto) il
+                  pulsante è disabilitato e grigio: non ha senso desiderare un
+                  gioco che possiedi già. */}
               <Button
               className={styles.wishlistBtn}
                 variant={inWishlist ? "primary" : "secondary"}
                 fullWidth
-                disabled={busyWishlist}
+                disabled={busyWishlist || inBacklog}
                 iconLeft={inWishlist ? <Check size={18} /> : <Heart size={18} />}
                 aria-pressed={inWishlist}
                 onClick={toggleWishlist}
               >
-                {inWishlist ? t("gameDetail.inWishlist") : t("gameDetail.addWishlist")}
+                {inBacklog
+                  ? t("gameDetail.owned")
+                  : inWishlist
+                    ? t("gameDetail.inWishlist")
+                    : t("gameDetail.addWishlist")}
               </Button>
 
               {/* Backlog reale */}
