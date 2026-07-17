@@ -32,7 +32,25 @@
         <!-- springdoc-openapi: la linea 3.0.x e' quella per Spring Boot 4 / Spring 7
              (la 2.x e' per Boot 3). Non gestita dal BOM Spring: versione a mano. -->
         <springdoc.version>3.0.3</springdoc.version>
+        <!-- BOM di Testcontainers (M6-T4, BUG D): allinea le versioni dei
+             moduli org.testcontainers:* (junit-jupiter, postgresql) con quella
+             che spring-boot-testcontainers usa internamente. Il BOM di Spring
+             gestisce spring-boot-testcontainers ma NON i moduli Testcontainers
+             "puri": senza questo import, Maven non trova la loro versione. -->
+        <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- REST: base per gli endpoint. -->
@@ -136,6 +154,27 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers (M6-T4, BUG D): il context smoke test (contextLoads)
+             avvia un PostgreSQL reale ma EFFIMERO in un container invece di
+             richiedere un DB gia' in ascolto. Flyway applica le stesse migrazioni
+             e seed sul container: cosi' "mvn test"/CI non dipendono piu' da un
+             Postgres esterno. Versioni allineate dal testcontainers-bom sopra. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
