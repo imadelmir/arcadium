@@ -36,7 +36,7 @@ export function SocialLinks() {
     return () => document.removeEventListener("mousedown", onClickFuori);
   }, []);
 
-  const comingSoon = i18n.language === "en" ? "Coming soon" : "Presto disponibile";
+  const comingSoon = t("common.comingSoon");
 
   return (
     <div className={styles.group}>
