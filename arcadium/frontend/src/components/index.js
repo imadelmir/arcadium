@@ -17,7 +17,6 @@ export { NavItem } from "./NavItem/NavItem";
 export { SocialLinks } from "./SocialLinks/SocialLinks";
 export { GameImage } from "./GameImage/GameImage";
 export { StoreCard } from "./StoreCard/StoreCard";
-export { NotificationButton } from "./NotificationButton/NotificationButton";
 export { FilterDropdown } from "./FilterDropdown/FilterDropdown";
 export { PriceRangeSlider } from "./PriceRangeSlider/PriceRangeSlider";
 export { Pagination } from "./Pagination/Pagination";
