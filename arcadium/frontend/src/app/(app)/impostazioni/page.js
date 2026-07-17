@@ -2,14 +2,14 @@
 
 // =============================================================================
 // Pagina Impostazioni (/impostazioni) — M5-T15.
-// Per ora contiene la sezione "Integrazione Steam" (SteamPanel): connessione
-// dell'account Steam, sincronizzazione libreria/ore e gestione profilo privato.
-// In futuro qui si aggiungeranno profilo, lingua e altre preferenze.
+// Sezioni: privacy del profilo (ProfilePanel), auto-abbandono (AutoAbandonPanel,
+// feature M6) e integrazione Steam (SteamPanel).
 // =============================================================================
 
 import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { ProfilePanel } from "./ProfilePanel";
+import { AutoAbandonPanel } from "./AutoAbandonPanel";
 import { SteamPanel } from "./SteamPanel";
 import styles from "../placeholder.module.css";
 
@@ -24,6 +24,9 @@ export default function ImpostazioniPage() {
 
       {/* Privacy del profilo (change request privacy): pubblico / privato. */}
       <ProfilePanel />
+
+      {/* Auto-abbandono (feature M6): timeout 1/3/6 mesi o spento. */}
+      <AutoAbandonPanel />
 
       {/* Sezione integrazione Steam (M5-T15).
           Suspense: SteamPanel legge ?steam= con useSearchParams e Next lo esige

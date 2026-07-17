@@ -50,6 +50,8 @@ public class AppUser {
 
     private LocalDateTime profileVisibilityChangedAt;  // TIMESTAMP, nullable — ultimo cambio di is_profile_public (cooldown 48h, V11)
 
+    private Short abandonAfterMonths;         // SMALLINT, nullable (V9) — timeout auto-abbandono: NULL=off, 1/3/6 mesi
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;          // TIMESTAMP NOT NULL DEFAULT now()
@@ -92,6 +94,9 @@ public class AppUser {
 
     public LocalDateTime getProfileVisibilityChangedAt() { return profileVisibilityChangedAt; }
     public void setProfileVisibilityChangedAt(LocalDateTime profileVisibilityChangedAt) { this.profileVisibilityChangedAt = profileVisibilityChangedAt; }
+
+    public Short getAbandonAfterMonths() { return abandonAfterMonths; }
+    public void setAbandonAfterMonths(Short abandonAfterMonths) { this.abandonAfterMonths = abandonAfterMonths; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

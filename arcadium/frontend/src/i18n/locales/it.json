@@ -392,6 +392,16 @@
       "saved": "Impostazione salvata.",
       "error": "Impossibile salvare l'impostazione. Riprova.",
       "locked": "Hai cambiato la visibilità di recente. Potrai modificarla di nuovo il {{time}}."
+    },
+    "autoAbandon": {
+      "title": "Auto-abbandono",
+      "description": "I giochi \"In corso\" rimasti inattivi passano automaticamente ad \"Abbandonato\" dopo il periodo scelto. Conta l'ultima attività: ore registrate, inizio o aggiunta del gioco.",
+      "enableAria": "Attiva o disattiva l'auto-abbandono",
+      "month1": "1 mese",
+      "month3": "3 mesi",
+      "month6": "6 mesi",
+      "saved": "Impostazione salvata",
+      "error": "Impossibile salvare. Riprova."
     }
   },
   "header": {
