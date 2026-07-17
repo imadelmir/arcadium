@@ -3,6 +3,8 @@ package com.ace5.arcadium.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.repository.BacklogRepository;
 import com.ace5.arcadium.repository.BacklogStatusRepository;
 import com.ace5.arcadium.repository.GameRepository;
+import com.ace5.arcadium.repository.PlaytimeEntryRepository;
 import com.ace5.arcadium.repository.WishlistRepository;
 
 /**
@@ -38,6 +41,11 @@ import com.ace5.arcadium.repository.WishlistRepository;
  * enum fisso), coerente con la scelta di modello di M1-T5: nuovi stati si
  * aggiungono da seed senza toccare il codice. Solo le transizioni con effetto
  * sulle date fanno riferimento ai codici noti qui sotto.
+ *
+ * <p><b>Feature M6.</b> La lista arricchisce ogni voce con le ore registrate a
+ * mano su quel gioco ({@code manualPlaytimeMinutes}): un'unica query aggregata
+ * (somma per gioco) invece di N letture, cosi' le card di Backlog e Libreria
+ * mostrano subito le ore manuali.
  */
 @Service
 public class BacklogService {
@@ -54,21 +62,25 @@ public class BacklogService {
     private final WishlistRepository wishlistRepository;
     private final GameRepository gameRepository;
     private final AppUserRepository userRepository;
+    private final PlaytimeEntryRepository playtimeRepository;
 
     public BacklogService(BacklogRepository backlogRepository,
                           BacklogStatusRepository statusRepository,
                           WishlistRepository wishlistRepository,
                           GameRepository gameRepository,
-                          AppUserRepository userRepository) {
+                          AppUserRepository userRepository,
+                          PlaytimeEntryRepository playtimeRepository) {
         this.backlogRepository = backlogRepository;
         this.statusRepository = statusRepository;
         this.wishlistRepository = wishlistRepository;
         this.gameRepository = gameRepository;
         this.userRepository = userRepository;
+        this.playtimeRepository = playtimeRepository;
     }
 
     /**
-     * Elenco del backlog dell'utente, eventualmente filtrato per stato.
+     * Elenco del backlog dell'utente, eventualmente filtrato per stato. Ogni voce
+     * include le ore registrate a mano su quel gioco (M6).
      *
      * @param userId     id dell'utente autenticato
      * @param statusCode codice di stato per filtrare (nullable = tutti)
@@ -85,7 +97,17 @@ public class BacklogService {
             requireStatus(code); // 400 se lo stato non esiste (invece di lista vuota)
             items = backlogRepository.findByUserAndStatusWithGame(userId, code);
         }
-        return items.stream().map(BacklogItemResponse::from).toList();
+
+        // Ore manuali per gioco in un colpo solo (appId -> minuti), poi 0 di default.
+        Map<Long, Long> manualByGame = playtimeRepository.sumMinutesByGameForUser(userId).stream()
+                .collect(Collectors.toMap(
+                        PlaytimeEntryRepository.GameMinutes::getAppId,
+                        PlaytimeEntryRepository.GameMinutes::getMinutes));
+
+        return items.stream()
+                .map(item -> BacklogItemResponse.from(
+                        item, manualByGame.getOrDefault(item.getGame().getAppId(), 0L)))
+                .toList();
     }
 
     /**

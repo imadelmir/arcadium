@@ -15,7 +15,6 @@
     "search": "Cerca giochi, generi, sviluppatori…",
     "loading": "Attendere…",
     "all": "Tutti",
-    "myProfile": "Il mio profilo",
     "logout": "Esci"
   },
   "social": {
@@ -95,9 +94,7 @@
       "minPrice": "Prezzo minimo",
       "maxPrice": "Prezzo massimo",
       "reset": "Reimposta",
-      "category": "Categoria",
-      "searchInList": "Cerca nell'elenco…",
-      "clearSelection": "Cancella selezione"
+      "category": "Categoria"
     },
     "sort": {
       "label": "Ordina",
@@ -195,7 +192,9 @@
       "total": "Totale",
       "deleteAria": "Elimina questa voce",
       "error": "Impossibile salvare. Riprova.",
-      "steamNote": "Se attivi la sincronizzazione con Steam, le ore di gioco verranno prese da Steam e non potrai modificarle manualmente finché non disattivi la sincronizzazione."
+      "steamNote": "Se attivi la sincronizzazione con Steam, le ore di gioco verranno prese da Steam e non potrai modificarle manualmente finché non disattivi la sincronizzazione.",
+      "saved": "Ore salvate",
+      "dayLimit": "Massimo 24 ore per giorno."
     }
   },
   "status": {
