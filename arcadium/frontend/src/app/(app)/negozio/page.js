@@ -16,7 +16,7 @@
 //   - PAGINAZIONE: 300 giochi per pagina, con barra "Pagina 1/2/…" e ritorno
 //     in alto al cambio pagina.
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
@@ -47,6 +47,22 @@ const PRINCIPAL_LANGUAGES = new Set([
   "thai", "vietnamese", "indonesian", "arabic",
 ]);
 
+// Mappa nome-lingua (come arriva dal backend, in inglese) -> codice BCP47, usata
+// per localizzare SOLO l'etichetta mostrata con Intl.DisplayNames (il valore
+// inviato al backend resta la stringa inglese originale). Intl gestisce anche
+// le varianti regione/scrittura ("Spanish - Spain" -> es-ES, ecc.).
+const LANGUAGE_BCP47 = {
+  "english": "en", "italian": "it", "french": "fr", "german": "de",
+  "spanish - spain": "es-ES", "spanish - latin america": "es-419",
+  "portuguese": "pt", "portuguese - portugal": "pt-PT", "portuguese - brazil": "pt-BR",
+  "russian": "ru", "polish": "pl", "turkish": "tr", "dutch": "nl",
+  "japanese": "ja", "korean": "ko", "simplified chinese": "zh-Hans", "traditional chinese": "zh-Hant",
+  "danish": "da", "finnish": "fi", "norwegian": "no", "swedish": "sv",
+  "czech": "cs", "hungarian": "hu", "greek": "el", "romanian": "ro",
+  "bulgarian": "bg", "ukrainian": "uk", "thai": "th", "vietnamese": "vi",
+  "indonesian": "id", "arabic": "ar",
+};
+
 // Voci del filtro "Prezzo" (stato commerciale) mappate all'enum del backend.
 const PRICE_OPTIONS = [
   ["", "anyPrice"],
@@ -76,7 +92,31 @@ const PRICE_MAX = 100;
 const DEFAULT_SORT = "releaseDate,desc";
 
 function NegozioContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  // Etichetta lingua localizzata nella lingua UI corrente (Intl.DisplayNames):
+  // in italiano "Inglese", in inglese "English", ecc. Il VALORE del filtro resta
+  // la stringa inglese del backend; cambia solo cio' che si vede. Ricalcolata al
+  // cambio lingua; fallback alla stringa originale se il codice manca.
+  const localizeLanguage = useMemo(() => {
+    const uiLang = (i18n.language || "it").toLowerCase().startsWith("en") ? "en" : "it";
+    let displayNames = null;
+    try {
+      displayNames = new Intl.DisplayNames([uiLang], { type: "language" });
+    } catch {
+      displayNames = null;
+    }
+    return (opt) => {
+      const code = LANGUAGE_BCP47[opt.trim().toLowerCase()];
+      if (displayNames && code) {
+        const name = displayNames.of(code);
+        if (name && name.toLowerCase() !== code.toLowerCase()) {
+          return name.charAt(0).toUpperCase() + name.slice(1);
+        }
+      }
+      return opt;
+    };
+  }, [i18n.language]);
 
   // Valore iniziale della ricerca: eventuale ?q= arrivato dall'header.
   const searchParams = useSearchParams();
@@ -183,9 +223,15 @@ function NegozioContent() {
   // ricerca che filtra la lista mostrata (client-side, nessuna chiamata al
   // backend) e un link "Cancella" quando c'è almeno una selezione. La lista
   // scorre se lunga (es. le lingue).
-  const renderLookupFilter = (labelKey, values, search, setSearch, options, onToggle, onClear) => {
+  const renderLookupFilter = (labelKey, values, search, setSearch, options, onToggle, onClear, labelFor = (o) => o) => {
     const q = search.trim().toLowerCase();
-    const filteredOptions = q ? options.filter((opt) => opt.toLowerCase().includes(q)) : options;
+    // Ordine alfabetico in base all'ETICHETTA mostrata (che per la lingua è
+    // localizzata), non al valore inglese del backend: così le voci restano in
+    // ordine sia con la pagina in IT sia in EN. Copia con slice() per non mutare
+    // l'array di stato.
+    const filteredOptions = (q ? options.filter((opt) => labelFor(opt).toLowerCase().includes(q)) : options)
+      .slice()
+      .sort((a, b) => labelFor(a).localeCompare(labelFor(b), i18n.language || undefined));
     const label = values.length > 0
       ? `${t(`store.filters.${labelKey}`)} (${values.length})`
       : t(`store.filters.${labelKey}`);
@@ -226,7 +272,7 @@ function NegozioContent() {
                   checked={values.includes(opt)}
                   onChange={() => onToggle(opt)}
                 />
-                <span>{opt}</span>
+                <span>{labelFor(opt)}</span>
               </label>
             ))
           )}
@@ -386,7 +432,7 @@ function NegozioContent() {
         {renderLookupFilter("genre", genreValues, genreSearch, setGenreSearch, genreOptions, toggleGenre, clearGenre)}
 
         {/* Lingua: multi-select con mini ricerca (valori dal backend, solo quelle con giochi associati) */}
-        {renderLookupFilter("language", languageValues, languageSearch, setLanguageSearch, languageOptions, toggleLanguage, clearLanguage)}
+        {renderLookupFilter("language", languageValues, languageSearch, setLanguageSearch, languageOptions, toggleLanguage, clearLanguage, localizeLanguage)}
 
         {/* Categoria: multi-select con mini ricerca (valori dal backend) */}
         {renderLookupFilter("category", categoryValues, categorySearch, setCategorySearch, categoryOptions, toggleCategory, clearCategory)}
