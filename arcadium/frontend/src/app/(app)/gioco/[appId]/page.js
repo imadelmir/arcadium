@@ -241,6 +241,16 @@ export default function GameDetailPage() {
         {/* CARD ACQUISTO (sticky) */}
         <aside className={styles.aside}>
           <Card className={styles.buyCard}>
+            {/* M6-T5: stesso trattamento dell'hero — la copertina del gioco,
+                ingrandita e sfocata, fa da sfondo: ogni card prende i colori
+                del suo gioco. Sopra, un velo scuro che tiene leggibile il testo. */}
+            <div
+              className={styles.buyBackdrop}
+              style={{ backgroundImage: `url(${game.headerImage})` }}
+              aria-hidden="true"
+            />
+            <div className={styles.buyScrim} aria-hidden="true" />
+
             <div className={styles.priceRow}>
               {price.isFree ? (
                 <span className={styles.free}>{t("gameDetail.free")}</span>
@@ -258,6 +268,7 @@ export default function GameDetailPage() {
             <div className={styles.actions}>
               {/* Wishlist reale */}
               <Button
+              className={styles.wishlistBtn}
                 variant={inWishlist ? "primary" : "secondary"}
                 fullWidth
                 disabled={busyWishlist}
