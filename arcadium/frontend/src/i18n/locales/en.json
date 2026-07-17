@@ -392,6 +392,16 @@
       "saved": "Setting saved.",
       "error": "Couldn't save the setting. Please try again.",
       "locked": "You changed your visibility recently. You can change it again on {{time}}."
+    },
+    "autoAbandon": {
+      "title": "Auto-abandon",
+      "description": "\"Playing\" games left inactive are automatically moved to \"Abandoned\" after the chosen period. Last activity counts: logged hours, start, or when the game was added.",
+      "enableAria": "Turn auto-abandon on or off",
+      "month1": "1 month",
+      "month3": "3 months",
+      "month6": "6 months",
+      "saved": "Setting saved",
+      "error": "Couldn't save. Try again."
     }
   },
   "header": {

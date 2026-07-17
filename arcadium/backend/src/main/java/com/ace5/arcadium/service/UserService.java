@@ -129,6 +129,20 @@ public class UserService {
             user.setIsProfilePublic(request.profilePublic());
             user.setProfileVisibilityChangedAt(now);
         }
+
+        if (request.abandonAfterMonths() != null) {
+            // Auto-abbandono (change request): 0 = disattivato (NULL a DB), 1/3/6 = mesi.
+            int months = request.abandonAfterMonths();
+            if (months == 0) {
+                user.setAbandonAfterMonths(null);
+            } else if (months == 1 || months == 3 || months == 6) {
+                user.setAbandonAfterMonths((short) months);
+            } else {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "error.user.abandonMonths.invalid", months);
+            }
+        }
+
         return UserResponse.from(user);
     }
 
