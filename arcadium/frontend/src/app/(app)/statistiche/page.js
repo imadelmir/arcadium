@@ -88,6 +88,11 @@ export default function StatistichePage() {
         <h1 className={styles.title}>{t("pages.statistiche.title")}</h1>
       </header>
 
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
+
       {/* --- 1. Card KPI (solo dati reali) --- */}
       <section className={styles.kpiGrid}>
         <KpiCard
@@ -148,6 +153,7 @@ export default function StatistichePage() {
           </Card>
         </div>
       </section>
+      </div>
     </div>
   );
 }

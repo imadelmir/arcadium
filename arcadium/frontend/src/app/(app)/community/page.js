@@ -152,6 +152,11 @@ export default function CommunityPage() {
         <p className={styles.subtitle}>{t("community.subtitle")}</p>
       </header>
 
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
+
       {/* 1. Ricerca utenti, in cima. */}
       {!searchDisabled && (
         <div className={styles.searchRow}>
@@ -274,6 +279,7 @@ export default function CommunityPage() {
           ))}
         </div>
       )}
+      </div>
     </section>
   );
 }

@@ -67,6 +67,11 @@ export default function WishlistPage() {
         <h1 className={styles.title}>{t("nav.wishlist")}</h1>
       </header>
 
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
+
       <div className={styles.toolbar}>
         <div className={styles.sort}>
           <Select
@@ -144,6 +149,7 @@ export default function WishlistPage() {
           })}
         </ul>
       )}
+      </div>
     </section>
   );
 }

@@ -27,6 +27,11 @@ export default function ImpostazioniPage() {
       <h1 className={styles.title}>{t("pages.impostazioni.title")}</h1>
       <p className={styles.subtitle}>{t("pages.impostazioni.subtitle")}</p>
 
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
+
       {/* Contenitore dei pannelli: gap uniforme tra tutte le card */}
       <div
         style={{
@@ -50,6 +55,7 @@ export default function ImpostazioniPage() {
         <Suspense fallback={null}>
           <SteamPanel />
         </Suspense>
+      </div>
       </div>
     </section>
   );

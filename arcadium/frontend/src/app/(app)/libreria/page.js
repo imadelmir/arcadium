@@ -110,6 +110,11 @@ export default function LibraryPage() {
         <h1 className={styles.title}>{t("nav.libreria")}</h1>
       </header>
 
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
+
       {/* Avviso di errore sul salvataggio del cambio stato */}
       {statusError && (
         <div className={styles.statusError} role="alert">
@@ -150,6 +155,7 @@ export default function LibraryPage() {
           )}
         </>
       )}
+      </div>
     </section>
   );
 }
