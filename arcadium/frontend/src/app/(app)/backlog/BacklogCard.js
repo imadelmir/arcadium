@@ -24,6 +24,7 @@ import { GameImage } from "@/components";
 import { BACKLOG_STATUSES } from "@/lib/constants";
 import { useAuth } from "@/context/AuthProvider";
 import { listPlaytime, addPlaytime, deletePlaytime } from "@/lib/api/playtime";
+import { FilterDropdown } from "@/components";
 import styles from "./BacklogCard.module.css";
 
 // Opzioni durata: da 30 min a 24 h, a passi di 30 min (valore in MINUTI).
@@ -224,21 +225,34 @@ export function BacklogCard({
             <p className={styles.steamNote}>{t("backlog.playtime.steamNote")}</p>
           ) : (
             <form className={styles.addRow} onSubmit={handleAdd}>
-              <select
-                className={`${styles.addInput} ${styles.addHours}`}
-                aria-label={t("backlog.playtime.hoursLabel")}
-                value={minutes}
-                onChange={(e) => {
-                  setMinutes(e.target.value);
-                  setDayLimit(false);
-                }}
+              {/* Tendina ore nello stile dei filtri del Negozio: la lista di un
+                  <select> nativo e' disegnata dal sistema (colori fuori tema e
+                  48 voci senza limite d'altezza). Qui la lista e' nostra, quindi
+                  ha i colori dell'app e scorre entro un'altezza massima. */}
+              <FilterDropdown
+                label={formatDuration(Number(minutes))}
+                className={styles.addHours}
               >
-                {DURATION_OPTIONS.map((m) => (
-                  <option key={m} value={m}>
-                    {formatDuration(m)}
-                  </option>
-                ))}
-              </select>
+                <div className={styles.hoursList} role="listbox"
+                     aria-label={t("backlog.playtime.hoursLabel")}>
+                  {DURATION_OPTIONS.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      role="option"
+                      aria-selected={Number(minutes) === m}
+                      className={styles.hoursOption}
+                      data-selected={Number(minutes) === m}
+                      onClick={() => {
+                        setMinutes(String(m));
+                        setDayLimit(false);
+                      }}
+                    >
+                      {formatDuration(m)}
+                    </button>
+                  ))}
+                </div>
+              </FilterDropdown>
               <input
                 type="date"
                 max={todayLocal()}
