@@ -16,7 +16,7 @@
 // =============================================================================
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import {
@@ -377,8 +377,19 @@ export default function GameDetailPage() {
 // ============================ Supporto =======================================
 
 function BackToStore({ t }) {
+  const router = useRouter();
+  // Se c'è cronologia (si è arrivati qui dal negozio) torna indietro davvero,
+  // così il negozio si riapre con i filtri impostati (che vivono nell'URL).
+  // Senza cronologia (es. link diretto al gioco) resta la navigazione normale
+  // del Link verso /negozio come fallback.
+  const handleClick = (e) => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      e.preventDefault();
+      router.back();
+    }
+  };
   return (
-    <Link href="/negozio" className={styles.back}>
+    <Link href="/negozio" className={styles.back} onClick={handleClick}>
       <ArrowLeft size={18} aria-hidden="true" />
       {t("gameDetail.back")}
     </Link>

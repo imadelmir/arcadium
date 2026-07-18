@@ -17,7 +17,7 @@
 //     in alto al cambio pagina.
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 
@@ -91,6 +91,9 @@ const PRICE_MAX = 100;
 // Ordinamento di default del Negozio (novità più recenti in cima).
 const DEFAULT_SORT = "releaseDate,desc";
 
+// Legge un filtro multi-valore dall'URL (valori separati da virgola).
+const parseList = (v) => (v ? v.split(",").filter(Boolean) : []);
+
 function NegozioContent() {
   const { t, i18n } = useTranslation();
 
@@ -118,9 +121,28 @@ function NegozioContent() {
     };
   }, [i18n.language]);
 
-  // Valore iniziale della ricerca: eventuale ?q= arrivato dall'header.
+  // Valori iniziali dei filtri letti dall'URL. Così tornando indietro dal
+  // dettaglio di un gioco (o ricaricando/condividendo il link) i filtri
+  // impostati vengono ripristinati invece di azzerarsi.
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const initialQuery = searchParams.get("q") ?? "";
+  const initialPlatform = searchParams.get("platform") ?? "";
+  const initialGenres = parseList(searchParams.get("genre"));
+  const initialLanguages = parseList(searchParams.get("language"));
+  const initialCategories = parseList(searchParams.get("category"));
+  const initialPrice = searchParams.get("price") ?? "";
+  const minParam = searchParams.get("min");
+  const maxParam = searchParams.get("max");
+  const initialRange = {
+    min: minParam !== null ? Number(minParam) : PRICE_MIN,
+    max: maxParam !== null ? Number(maxParam) : PRICE_MAX,
+  };
+  const initialSort = searchParams.get("sort") ?? DEFAULT_SORT;
+  const pageParam = searchParams.get("page");
+  const initialPage = pageParam !== null ? Math.max(0, Number(pageParam) || 0) : 0;
 
   // Ricerca: `query` è il testo digitato (immediato), `debouncedQuery` è quello
   // effettivamente inviato al backend (aggiornato dopo una breve pausa).
@@ -128,20 +150,20 @@ function NegozioContent() {
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery.trim());
 
   // Stato dei filtri supportati dal backend.
-  const [platform, setPlatform] = useState("");            // "" = tutte
+  const [platform, setPlatform] = useState(initialPlatform);   // "" = tutte
   // Genere/Lingua/Categoria: MULTI-SELECT (change request Negozio). Ogni stato
   // è un array di nomi selezionati; array vuoto = nessun filtro (tutti inclusi).
-  const [genreValues, setGenreValues] = useState([]);
-  const [languageValues, setLanguageValues] = useState([]);
-  const [categoryValues, setCategoryValues] = useState([]);
+  const [genreValues, setGenreValues] = useState(initialGenres);
+  const [languageValues, setLanguageValues] = useState(initialLanguages);
+  const [categoryValues, setCategoryValues] = useState(initialCategories);
   // Testo della mini ricerca dentro ciascun pannello (filtra la lista mostrata,
   // non chiama il backend: le opzioni sono già tutte caricate una volta sola).
   const [genreSearch, setGenreSearch] = useState("");
   const [languageSearch, setLanguageSearch] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
-  const [price, setPrice] = useState("");                  // "" | free | paid | discounted
-  const [range, setRange] = useState({ min: PRICE_MIN, max: PRICE_MAX }); // fascia di prezzo
-  const [sort, setSort] = useState(DEFAULT_SORT);
+  const [price, setPrice] = useState(initialPrice);            // "" | free | paid | discounted
+  const [range, setRange] = useState(initialRange);            // fascia di prezzo
+  const [sort, setSort] = useState(initialSort);
 
   // Valori disponibili per le tendine Genere / Lingua / Categoria (dal backend).
   const [genreOptions, setGenreOptions] = useState([]);
@@ -149,7 +171,7 @@ function NegozioContent() {
   const [categoryOptions, setCategoryOptions] = useState([]);
 
   // Paginazione (0-based lato stato, come il backend).
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(0);
 
   // Stato dei dati.
@@ -280,6 +302,26 @@ function NegozioContent() {
       </FilterDropdown>
     );
   };
+
+  // Riflette i filtri correnti nell'URL (replace: non sporca la cronologia e non
+  // scrolla). Così l'entry di /negozio nella cronologia porta con sé i filtri e
+  // il "back" dal dettaglio di un gioco li ripristina; il link è anche
+  // condivisibile/ricaricabile. Si scrivono solo i valori diversi dal default.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedQuery) params.set("q", debouncedQuery);
+    if (platform) params.set("platform", platform);
+    if (genreValues.length) params.set("genre", genreValues.join(","));
+    if (languageValues.length) params.set("language", languageValues.join(","));
+    if (categoryValues.length) params.set("category", categoryValues.join(","));
+    if (price) params.set("price", price);
+    if (range.min > PRICE_MIN) params.set("min", String(range.min));
+    if (range.max < PRICE_MAX) params.set("max", String(range.max));
+    if (sort !== DEFAULT_SORT) params.set("sort", sort);
+    if (page > 0) params.set("page", String(page));
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [debouncedQuery, platform, genreValues, languageValues, categoryValues, price, range, sort, page, pathname, router]);
 
   // --- Ricarica dal backend a ogni variazione di ricerca, filtri o pagina ---
   useEffect(() => {
