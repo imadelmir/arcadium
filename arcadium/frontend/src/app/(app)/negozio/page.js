@@ -23,6 +23,7 @@ import { Search, X } from "lucide-react";
 
 import { StoreCard, FilterDropdown, PriceRangeSlider, Pagination } from "@/components";
 import { listGames, getGameFilters } from "@/lib/api/games";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import styles from "./negozio.module.css";
 
 // Piattaforme accettate dal filtro `platform` del backend.
@@ -181,6 +182,15 @@ function NegozioContent() {
 
   // La fascia di prezzo è "attiva" se diversa dall'intervallo pieno.
   const rangeActive = range.min > PRICE_MIN || range.max < PRICE_MAX;
+
+  // Ripristino della posizione di scroll al "torna indietro" dal dettaglio.
+  // Chiave = URL corrente (comprensivo dei filtri, che vivono nella query
+  // string): filtri diversi hanno posizioni salvate diverse. `ready` = lista
+  // caricata, così ripristiniamo solo quando i risultati sono nel DOM.
+  const currentUrl = `${pathname}${
+    searchParams?.toString() ? `?${searchParams.toString()}` : ""
+  }`;
+  useScrollRestoration(currentUrl, !loading);
 
   // --- Debounce della ricerca: dopo 300ms aggiorna la query e torna a pag. 0 ---
   useEffect(() => {
