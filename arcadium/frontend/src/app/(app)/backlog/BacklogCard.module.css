@@ -343,3 +343,16 @@
 .addInput {
   color-scheme: dark;
 }
+
+/* La tendina ore deve avere la stessa taglia degli altri campi della riga: il
+   trigger di FilterDropdown nasce grande (pillola 10x16, 15px) perche' pensato
+   per la barra filtri del Negozio. */
+.addHours {
+  min-width: 0;
+}
+.addHours button {
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}

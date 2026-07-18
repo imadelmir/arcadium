@@ -20,10 +20,37 @@ import { StatusBars } from "./StatusBars";
 import { HoursAreaChart } from "./HoursAreaChart";
 import styles from "./statistiche.module.css";
 
+// Conteggio animato: il numero sale da 0 al valore finale (stesso effetto della
+// pagina Achievement). Restituisce un numero: la formattazione resta a chi lo usa.
+function useCountUp(target, duration = 900) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!Number.isFinite(target)) { setVal(0); return; }
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3); // easing morbido
+      setVal(eased * target);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+}
+
 export default function StatistichePage() {
   const { t, i18n } = useTranslation();
 
   const [stats, setStats] = useState(null);
+
+  // Conteggio animato dei KPI. Va chiamato SEMPRE, prima degli early return
+  // (loading/errore): gli hook non possono stare dopo un return condizionale.
+  const cGames = useCountUp(stats?.gamesOwned ?? 0);
+  const cHours = useCountUp(stats?.playtimeHours ?? 0);
+  const cCompletion = useCountUp((stats?.completionRate ?? 0) * 100);
+  const cGenres = useCountUp(stats?.distinctGenres ?? 0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -43,12 +70,6 @@ export default function StatistichePage() {
   // Formatta i numeri col separatore della lingua attiva.
   const nf = (n) => new Intl.NumberFormat(i18n.language).format(n ?? 0);
 
-  // M6-T4 — il backend restituisce `completionRate` come QUOTA in [0,1]
-  // (UserStatsResponse: giochi finiti / giochi posseduti). Prima veniva stampata
-  // tale e quale seguita da "%", quindi un utente al 42% leggeva "0.42%".
-  // Qui la si converte in percentuale intera: la conversione è una scelta di
-  // presentazione e resta nel frontend, il contratto dell'API non cambia.
-  const percentuale = (quota) => Math.round((quota ?? 0) * 100);
 
   if (loading) {
     return (
@@ -99,25 +120,25 @@ export default function StatistichePage() {
           icon={Gamepad2}
           tone="violet"
           label={t("stats.kpi.totalGames")}
-          value={nf(stats.gamesOwned)}
+          value={nf(Math.round(cGames))}
         />
         <KpiCard
           icon={Clock}
           tone="blue"
           label={t("stats.kpi.hoursPlayed")}
-          value={`${nf(stats.playtimeHours)}${t("stats.unit.hours")}`}
+          value={`${nf(Math.round(cHours))}${t("stats.unit.hours")}`}
         />
         <KpiCard
           icon={Target}
           tone="green"
           label={t("stats.kpi.avgCompletion")}
-          value={`${percentuale(stats.completionRate)}%`}
+          value={`${Math.round(cCompletion)}%`}
         />
         <KpiCard
           icon={Layers}
           tone="amber"
           label={t("stats.kpi.genres")}
-          value={nf(stats.distinctGenres)}
+          value={nf(Math.round(cGenres))}
         />
       </section>
 

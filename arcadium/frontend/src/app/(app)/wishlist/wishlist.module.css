@@ -267,8 +267,8 @@
   padding-right: var(--space-4);
 }
 
-/* L'area che scorre partiva incollata alla riga dei filtri: un filo d'aria
-   sopra vale sia per la lista sia per la card "la tua wishlist è vuota". */
+/* L'area che scorre partiva incollata alla riga dei filtri: lo stacco vale sia
+   per la lista sia per la card "la tua wishlist è vuota". */
 .scrollArea {
-  padding-top: var(--space-4);
+  padding-top: var(--space-6);
 }
