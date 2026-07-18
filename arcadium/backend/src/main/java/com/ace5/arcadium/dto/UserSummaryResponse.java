@@ -19,13 +19,15 @@ import com.ace5.arcadium.entity.AppUser;
  * @param avatarUrl     URL dell'avatar (nullable)
  * @param profilePublic true se il profilo e la libreria sono pubblici
  * @param createdAt     data di iscrizione
+ * @param previousUsername handle precedente, se l'utente ha cambiato nome (V16); nullable
  */
 public record UserSummaryResponse(
         String username,
         String displayName,
         String avatarUrl,
         boolean profilePublic,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String previousUsername
 ) {
 
     /** Proietta un {@link AppUser} nella sua vista pubblica. */
@@ -35,6 +37,7 @@ public record UserSummaryResponse(
                 user.getDisplayName(),
                 user.getAvatarUrl(),
                 Boolean.TRUE.equals(user.getIsProfilePublic()),
-                user.getCreatedAt());
+                user.getCreatedAt(),
+                user.getPreviousUsername());
     }
 }

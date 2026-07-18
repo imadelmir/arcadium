@@ -110,3 +110,80 @@
 .disabledCta:hover {
   filter: brightness(1.08);
 }
+
+/* =============================================================================
+   Change request Community — amici, richieste e ricerca.
+   La card ora contiene una riga "identita'" (avatar + nome) e una riga di
+   AZIONI, quindi passa a colonna: prima era essa stessa il link al profilo.
+   ============================================================================= */
+
+.card {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Riga identita': e' un <Link> solo se siete amici, altrimenti un <div>. */
+.cardLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+/* Titolo di sezione (Richieste / Amici / Cerca utenti). */
+.sectionTitle {
+  margin: var(--space-5) 0 var(--space-3);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* Pillola "Amici" (verde) e "Richiesta inviata" (neutra, in attesa). */
+.friendPill,
+.pendingPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.friendPill {
+  color: var(--success, #37d67a);
+  background: color-mix(in srgb, var(--success, #37d67a) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success, #37d67a) 35%, transparent);
+}
+
+.pendingPill {
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+/* "Potresti conoscerlo come @vecchionome": nome utente precedente, mostrato
+   nei risultati di ricerca cosi' chi cerca ritrova chi ha cambiato nome. */
+.formerHandle {
+  margin-top: 2px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-faint);
+}

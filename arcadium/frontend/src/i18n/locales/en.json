@@ -127,11 +127,6 @@
     "back": "Back to store",
     "by": "by",
     "about": "About the game",
-    "showTranslated": "Show translated",
-    "showOriginal": "Show original",
-    "translating": "Translating…",
-    "translateError": "Translation failed, showing original",
-    "autoTranslated": "Auto-translated",
     "media": "Screenshots",
     "reviews": "Reviews",
     "reviewOf": "of",
@@ -401,6 +396,17 @@
     "label": "Language"
   },
   "settings": {
+    "username": {
+      "title": "Username",
+      "description": "You can change your username only once every 2 months. Your previous name will stay visible on your profile.",
+      "current": "Current username:",
+      "newLabel": "New username",
+      "placeholder": "Enter your new username",
+      "save": "Change username",
+      "saved": "Username updated",
+      "locked": "You'll be able to change it again on {{date}}",
+      "error": "Could not change your username"
+    },
     "privacy": {
       "title": "Profile privacy",
       "description": "With a public profile you can search for other users and appear in their searches. With a private profile you can't search anyone and you can't be found.",
@@ -432,6 +438,7 @@
   },
   "profile": {
     "shareText": "Check out {{name}} on Arcadium",
+    "formerlyKnownAs": "You might know them as @{{username}}",
     "notFound": "User not found.",
     "memberSince": "Member since {{date}}",
     "playingStat": "Playing",
@@ -439,6 +446,20 @@
     "noGamesInProgress": "No games in progress.",
     "achievementsTitle": "Achievements",
     "noAchievements": "No achievements yet.",
-    "achievementsPrivate": "Achievements are visible only on your own profile."
+    "achievementsPrivate": "Achievements are visible only on your own profile.",
+    "friendsOnly": "You must be friends with this user to see their profile."
+  },
+  "friends": {
+    "add": "Add friend",
+    "accept": "Accept",
+    "reject": "Decline",
+    "remove": "Remove friend",
+    "cancelRequest": "Cancel request",
+    "requestSent": "Request sent",
+    "friends": "Friends",
+    "requestsTitle": "Friend requests",
+    "friendsTitle": "My friends",
+    "searchTitle": "Find users",
+    "noFriends": "You have no friends yet. Search below and send a request."
   }
 }

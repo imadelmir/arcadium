@@ -24,6 +24,13 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
     List<UserAchievement> findByUserWithAchievement(@Param("userId") Long userId);
 
     /**
+     * Numero di achievement sbloccati dall'utente (una riga = uno sbloccato).
+     * Usato dalle card del profilo, dove serve solo il totale.
+     */
+    @Query("select count(ua) from UserAchievement ua where ua.user.id = :userId")
+    long countUnlocked(@Param("userId") Long userId);
+
+    /**
      * Registra uno sblocco solo se non esiste gia' (M6-T4).
      *
      * <p>La chiave primaria della tabella e' {@code (user_id, achievement_id)}: due

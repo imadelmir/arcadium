@@ -2,6 +2,7 @@ package com.ace5.arcadium.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -12,9 +13,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ace5.arcadium.dto.AuthResponse;
 import com.ace5.arcadium.dto.BacklogItemResponse;
+import com.ace5.arcadium.dto.FriendshipStatus;
 import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.dto.ProfileStatsResponse;
+import com.ace5.arcadium.dto.UserProfileResponse;
 import com.ace5.arcadium.dto.UserResponse;
+import com.ace5.arcadium.dto.UserStatsResponse;
 import com.ace5.arcadium.dto.UserSettingsRequest;
 import com.ace5.arcadium.dto.UserSummaryResponse;
 import com.ace5.arcadium.dto.WishlistItemResponse;
@@ -22,7 +28,9 @@ import com.ace5.arcadium.entity.AppUser;
 import com.ace5.arcadium.exception.ApiException;
 import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.repository.BacklogRepository;
+import com.ace5.arcadium.repository.UserAchievementRepository;
 import com.ace5.arcadium.repository.WishlistRepository;
+import com.ace5.arcadium.security.JwtService;
 
 /**
  * Ricerca utenti e consultazione della libreria altrui (M4-T9).
@@ -43,16 +51,31 @@ public class UserService {
     /** La ricerca utenti e' sempre ordinata per username (sort non pilotabile dal client). */
     private static final Sort SEARCH_SORT = Sort.by("username").ascending();
 
+    /** Intervallo minimo tra due cambi di username (V16): una volta ogni 2 mesi. */
+    private static final Period USERNAME_CHANGE_COOLDOWN = Period.ofMonths(2);
+
     private final AppUserRepository userRepository;
     private final BacklogRepository backlogRepository;
     private final WishlistRepository wishlistRepository;
+    private final JwtService jwtService;
+    private final FriendshipService friendshipService;
+    private final StatsService statsService;
+    private final UserAchievementRepository userAchievementRepository;
 
     public UserService(AppUserRepository userRepository,
                        BacklogRepository backlogRepository,
-                       WishlistRepository wishlistRepository) {
+                       WishlistRepository wishlistRepository,
+                       JwtService jwtService,
+                       FriendshipService friendshipService,
+                       StatsService statsService,
+                       UserAchievementRepository userAchievementRepository) {
         this.userRepository = userRepository;
         this.backlogRepository = backlogRepository;
         this.wishlistRepository = wishlistRepository;
+        this.jwtService = jwtService;
+        this.friendshipService = friendshipService;
+        this.statsService = statsService;
+        this.userAchievementRepository = userAchievementRepository;
     }
 
     /**
@@ -147,15 +170,110 @@ public class UserService {
     }
 
     /**
+     * Cambia lo username dell'utente autenticato (V16). Regole:
+     * <ul>
+     *   <li>al massimo una volta ogni 2 mesi (cooldown);</li>
+     *   <li>il nuovo username deve essere diverso da quello attuale;</li>
+     *   <li>non deve essere gia' in uso da un altro utente.</li>
+     * </ul>
+     * Al cambio, lo username attuale viene salvato in {@code previousUsername}
+     * (mostrato sul profilo pubblico) e si registra l'istante del cambio.
+     *
+     * <p>Poiche' il subject del JWT e' lo username, il token corrente (con il
+     * subject vecchio) non sarebbe piu' valido: si emette e si restituisce un
+     * nuovo {@link AuthResponse}, che il client usa per sostituire il token.
+     *
+     * @param userId      id dell'utente autenticato
+     * @param newUsername nuovo username desiderato (gia' validato @NotBlank/@Size)
+     * @return nuovo AuthResponse con token aggiornato e vista dell'utente
+     */
+    @Transactional
+    public AuthResponse changeUsername(Long userId, String newUsername) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND, "error.user.notFound", userId));
+
+        String trimmed = newUsername == null ? "" : newUsername.trim();
+
+        // Uguale all'attuale: niente da cambiare.
+        if (trimmed.equals(user.getUsername())) {
+            throw new ApiException(HttpStatus.CONFLICT, "error.username.same");
+        }
+
+        // Cooldown: una volta ogni 2 mesi dall'ultimo cambio.
+        LocalDateTime changedAt = user.getUsernameChangedAt();
+        if (changedAt != null) {
+            LocalDateTime unlockAt = changedAt.plus(USERNAME_CHANGE_COOLDOWN);
+            if (unlockAt.isAfter(LocalDateTime.now())) {
+                throw new ApiException(HttpStatus.CONFLICT, "error.username.cooldown");
+            }
+        }
+
+        // Univocita': nessun altro utente con questo username.
+        if (userRepository.existsByUsername(trimmed)) {
+            throw new ApiException(HttpStatus.CONFLICT, "error.username.taken");
+        }
+
+        user.setPreviousUsername(user.getUsername());
+        // Il nome visualizzato coincide SEMPRE con lo username (scelta del
+        // cliente): al cambio nome si allinea, cosi' header, avatar, titolo del
+        // profilo e ricerca in Community mostrano tutti il nome nuovo.
+        user.setDisplayName(trimmed);
+        user.setUsername(trimmed);
+        user.setUsernameChangedAt(LocalDateTime.now());
+        AppUser saved = userRepository.saveAndFlush(user);
+
+        String token = jwtService.generateToken(saved);
+        long expiresInSeconds = jwtService.getExpirationMs() / 1000;
+        return new AuthResponse(token, "Bearer", expiresInSeconds, UserResponse.from(saved));
+    }
+
+    /**
      * Profilo pubblico di un utente per username.
      *
-     * @param username handle dell'utente
-     * @return vista pubblica dell'utente
+     * <p>Restituisce solo dati di IDENTITA' (nome, handle, avatar, iscrizione,
+     * handle precedente) piu' lo stato della relazione con chi guarda: servono
+     * anche a un non-amico per poter inviare la richiesta. Il CONTENUTO del
+     * profilo (libreria, statistiche) sta su endpoint separati, accessibili solo
+     * tra amici.
+     *
+     * @param requesterId id dell'utente autenticato che guarda
+     * @param username    handle dell'utente
+     * @return profilo dell'utente con lo stato di amicizia
      * @throws ApiException 404 se l'utente non esiste
      */
     @Transactional(readOnly = true)
-    public UserSummaryResponse getProfile(String username) {
-        return UserSummaryResponse.from(requireUser(username));
+    public UserProfileResponse getProfile(Long requesterId, String username) {
+        AppUser target = requireUser(username);
+        FriendshipStatus status = friendshipService.statusWith(requesterId, target);
+        return UserProfileResponse.from(target, status);
+    }
+
+    /**
+     * Numeri delle card del profilo di {@code username}, visibili solo a un amico
+     * (o a se stessi). Riusa le statistiche gia' calcolate da {@link StatsService}
+     * — cosi' i totali coincidono con la pagina Statistiche — e vi aggiunge il
+     * totale degli achievement sbloccati.
+     *
+     * @throws ApiException 404 se l'utente non esiste, 403 se non siete amici
+     */
+    @Transactional(readOnly = true)
+    public ProfileStatsResponse profileStatsOf(Long requesterId, String username) {
+        AppUser target = requireVisibleUser(requesterId, username);
+        UserStatsResponse stats = statsService.getStats(target.getId());
+
+        long playing = stats.byStatus().stream()
+                .filter(s -> "in_corso".equals(s.code()))
+                .mapToLong(UserStatsResponse.StatusBreakdown::count)
+                .findFirst()
+                .orElse(0L);
+
+        return new ProfileStatsResponse(
+                stats.gamesOwned(),
+                playing,
+                stats.playtimeMinutes(),
+                stats.playtimeHours(),
+                userAchievementRepository.countUnlocked(target.getId()));
     }
 
     /**
@@ -199,14 +317,17 @@ public class UserService {
     }
 
     /**
-     * Risolve l'utente bersaglio e verifica la visibilita' della sua libreria:
-     * consentita se il profilo e' pubblico oppure se e' il richiedente stesso.
+     * Risolve l'utente bersaglio e verifica che il richiedente possa vederne il
+     * contenuto (libreria, statistiche).
+     *
+     * <p>Change request Community: la condizione e' l'AMICIZIA, non piu' la
+     * visibilita' del profilo. Il contenuto e' accessibile solo a se stessi o a
+     * un amico confermato; una richiesta ancora in attesa non basta.
      */
     private AppUser requireVisibleUser(Long requesterId, String username) {
         AppUser target = requireUser(username);
-        boolean isSelf = target.getId().equals(requesterId);
-        if (!isSelf && !Boolean.TRUE.equals(target.getIsProfilePublic())) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "error.user.profilePrivate");
+        if (!friendshipService.areFriends(requesterId, target.getId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "error.user.notFriends");
         }
         return target;
     }

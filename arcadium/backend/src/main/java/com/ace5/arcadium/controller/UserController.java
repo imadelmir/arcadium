@@ -8,14 +8,19 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ace5.arcadium.dto.AuthResponse;
 import com.ace5.arcadium.dto.BacklogItemResponse;
 import com.ace5.arcadium.dto.PageResponse;
+import com.ace5.arcadium.dto.ProfileStatsResponse;
+import com.ace5.arcadium.dto.UserProfileResponse;
 import com.ace5.arcadium.dto.UserResponse;
+import com.ace5.arcadium.dto.UsernameChangeRequest;
 import com.ace5.arcadium.dto.UserSettingsRequest;
 import com.ace5.arcadium.dto.UserSummaryResponse;
 import com.ace5.arcadium.dto.WishlistItemResponse;
@@ -70,10 +75,37 @@ public class UserController {
         return userService.updateSettings(principal.getId(), request);
     }
 
-    /** Profilo pubblico di un utente. 404 se l'username non esiste. */
+    /**
+     * Cambia lo username dell'utente autenticato (V16): consentito una volta ogni
+     * 2 mesi. Poiche' il subject del JWT e' lo username, restituisce un nuovo
+     * {@link AuthResponse} (token aggiornato) che il client deve usare al posto
+     * del precedente. 409 se in cooldown, uguale all'attuale o gia' in uso.
+     */
+    @PutMapping("/me/username")
+    public AuthResponse changeUsername(@AuthenticationPrincipal AppUserPrincipal principal,
+                                       @Valid @RequestBody UsernameChangeRequest request) {
+        return userService.changeUsername(principal.getId(), request.username());
+    }
+
+    /**
+     * Profilo di un utente, con lo stato di amicizia rispetto a chi guarda
+     * (change request Community). Sono dati di sola identita': il contenuto del
+     * profilo richiede l'amicizia. 404 se l'username non esiste.
+     */
     @GetMapping("/{username}")
-    public UserSummaryResponse profile(@PathVariable String username) {
-        return userService.getProfile(username);
+    public UserProfileResponse profile(@AuthenticationPrincipal AppUserPrincipal principal,
+                                       @PathVariable String username) {
+        return userService.getProfile(principal.getId(), username);
+    }
+
+    /**
+     * Numeri delle card del profilo (giochi, in corso, ore, achievement
+     * sbloccati). 403 se non siete amici.
+     */
+    @GetMapping("/{username}/stats")
+    public ProfileStatsResponse profileStats(@AuthenticationPrincipal AppUserPrincipal principal,
+                                             @PathVariable String username) {
+        return userService.profileStatsOf(principal.getId(), username);
     }
 
     /**
