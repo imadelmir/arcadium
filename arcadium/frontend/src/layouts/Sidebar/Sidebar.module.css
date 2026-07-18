@@ -1,6 +1,8 @@
 .sidebar {
   width: 240px;
-  min-height: 100vh;
+  height: 100vh;
+  flex-shrink: 0;
+  overflow-y: auto;   /* se le voci non ci stanno scorre la sola sidebar */
   background: #0c0e23;              /* navy pieno, campionato dal mockup (T4) */
   padding: 8px 4px;
   border-right: 2px solid rgba(255, 255, 255, 0.06);

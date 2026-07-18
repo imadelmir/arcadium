@@ -23,7 +23,6 @@ import { Search, X } from "lucide-react";
 
 import { StoreCard, FilterDropdown, PriceRangeSlider, Pagination } from "@/components";
 import { listGames, getGameFilters } from "@/lib/api/games";
-import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import styles from "./negozio.module.css";
 
 // Piattaforme accettate dal filtro `platform` del backend.
@@ -182,15 +181,6 @@ function NegozioContent() {
 
   // La fascia di prezzo è "attiva" se diversa dall'intervallo pieno.
   const rangeActive = range.min > PRICE_MIN || range.max < PRICE_MAX;
-
-  // Ripristino della posizione di scroll al "torna indietro" dal dettaglio.
-  // Chiave = URL corrente (comprensivo dei filtri, che vivono nella query
-  // string): filtri diversi hanno posizioni salvate diverse. `ready` = lista
-  // caricata, così ripristiniamo solo quando i risultati sono nel DOM.
-  const currentUrl = `${pathname}${
-    searchParams?.toString() ? `?${searchParams.toString()}` : ""
-  }`;
-  useScrollRestoration(currentUrl, !loading);
 
   // --- Debounce della ricerca: dopo 300ms aggiorna la query e torna a pag. 0 ---
   useEffect(() => {
@@ -384,6 +374,9 @@ function NegozioContent() {
 
   return (
     <div className={styles.page}>
+      {/* Testata fissa: titolo + ricerca + filtri restano in alto mentre
+          scorre solo la griglia dei giochi (change request layout). */}
+      <div className={styles.stickyHead}>
       <header className={styles.header}>
         <h1 className={styles.title} suppressHydrationWarning>
           {t("pages.negozio.title")}
@@ -511,6 +504,12 @@ function NegozioContent() {
           ))}
         </FilterDropdown>
       </div>
+      </div>
+
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
 
       {/* --- Risultati --- */}
       {loading ? (
@@ -540,6 +539,7 @@ function NegozioContent() {
       ) : (
         <div className={styles.empty}>{t("store.noResults")}</div>
       )}
+      </div>
     </div>
   );
 }
