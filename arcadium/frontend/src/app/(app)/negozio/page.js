@@ -23,6 +23,11 @@ import { Search, X } from "lucide-react";
 
 import { StoreCard, FilterDropdown, PriceRangeSlider, Pagination } from "@/components";
 import { listGames, getGameFilters } from "@/lib/api/games";
+import {
+  makeSteamLabelLocalizer,
+  GENRE_LABELS_IT,
+  CATEGORY_LABELS_IT,
+} from "@/lib/steamLabels";
 import styles from "./negozio.module.css";
 
 // Piattaforme accettate dal filtro `platform` del backend.
@@ -120,6 +125,18 @@ function NegozioContent() {
       return opt;
     };
   }, [i18n.language]);
+
+  // Etichette localizzate per Generi e Categorie: come per la lingua, in
+  // italiano mostriamo la traduzione, in inglese l'originale. Il VALORE del
+  // filtro resta la stringa inglese del backend; cambia solo cio' che si vede.
+  const localizeGenre = useMemo(
+    () => makeSteamLabelLocalizer(GENRE_LABELS_IT, i18n.language),
+    [i18n.language]
+  );
+  const localizeCategory = useMemo(
+    () => makeSteamLabelLocalizer(CATEGORY_LABELS_IT, i18n.language),
+    [i18n.language]
+  );
 
   // Valori iniziali dei filtri letti dall'URL. Così tornando indietro dal
   // dettaglio di un gioco (o ricaricando/condividendo il link) i filtri
@@ -474,13 +491,13 @@ function NegozioContent() {
         </FilterDropdown>
 
         {/* Genere: multi-select con mini ricerca (valori dal backend) */}
-        {renderLookupFilter("genre", genreValues, genreSearch, setGenreSearch, genreOptions, toggleGenre, clearGenre)}
+        {renderLookupFilter("genre", genreValues, genreSearch, setGenreSearch, genreOptions, toggleGenre, clearGenre, localizeGenre)}
 
         {/* Lingua: multi-select con mini ricerca (valori dal backend, solo quelle con giochi associati) */}
         {renderLookupFilter("language", languageValues, languageSearch, setLanguageSearch, languageOptions, toggleLanguage, clearLanguage, localizeLanguage)}
 
         {/* Categoria: multi-select con mini ricerca (valori dal backend) */}
-        {renderLookupFilter("category", categoryValues, categorySearch, setCategorySearch, categoryOptions, toggleCategory, clearCategory)}
+        {renderLookupFilter("category", categoryValues, categorySearch, setCategorySearch, categoryOptions, toggleCategory, clearCategory, localizeCategory)}
 
         {/* Ordina: ancorato a destra */}
         <FilterDropdown

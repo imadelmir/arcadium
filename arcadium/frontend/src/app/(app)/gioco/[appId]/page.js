@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { Button, Card, Badge, GameImage, Spinner } from "@/components";
+import { GameDescription } from "@/components/GameDescription/GameDescription";
 import { formatPrice } from "@/lib/format";
 import { getGame } from "@/lib/api/games";
 import { addToWishlist, removeFromWishlist } from "@/lib/api/wishlist";
@@ -167,10 +168,6 @@ export default function GameDetailPage() {
     <div className={styles.page}>
       <BackToStore t={t} />
 
-      {/* Area che scorre: la barra sopra resta FUORI, cosi' niente le passa
-          dietro e puo' restare trasparente (effetto di sfondo visibile). */}
-      <div className={styles.scrollArea}>
-
       {/* HERO: sfondo sfocato + cover + titolo e meta */}
       <section className={styles.hero}>
         <div
@@ -218,10 +215,10 @@ export default function GameDetailPage() {
       {/* CORPO */}
       <div className={styles.body}>
         <main className={styles.main}>
-          {/* Descrizione */}
+          {/* Descrizione: originale (EN/CJK dal dataset) con traduzione IT/EN */}
           <section className={styles.block}>
             <h2 className={styles.blockTitle}>{t("gameDetail.about")}</h2>
-            <p className={styles.about}>{game.aboutTheGame}</p>
+            <GameDescription text={game.aboutTheGame} gameId={game.appId} />
           </section>
 
           {/* Screenshot (dal backend) */}
@@ -373,7 +370,6 @@ export default function GameDetailPage() {
             )}
           </Card>
         </aside>
-      </div>
       </div>
     </div>
   );
