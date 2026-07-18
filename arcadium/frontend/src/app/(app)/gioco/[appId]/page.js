@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 
 import { Button, Card, Badge, GameImage, Spinner } from "@/components";
-import { GameDescription } from "@/components/GameDescription/GameDescription";
 import { formatPrice } from "@/lib/format";
 import { getGame } from "@/lib/api/games";
 import { addToWishlist, removeFromWishlist } from "@/lib/api/wishlist";
@@ -215,10 +214,10 @@ export default function GameDetailPage() {
       {/* CORPO */}
       <div className={styles.body}>
         <main className={styles.main}>
-          {/* Descrizione: originale (EN dal dataset) con traduzione in IT */}
+          {/* Descrizione */}
           <section className={styles.block}>
             <h2 className={styles.blockTitle}>{t("gameDetail.about")}</h2>
-            <GameDescription text={game.aboutTheGame} gameId={game.appId} />
+            <p className={styles.about}>{game.aboutTheGame}</p>
           </section>
 
           {/* Screenshot (dal backend) */}
@@ -390,10 +389,12 @@ function BackToStore({ t }) {
     }
   };
   return (
-    <Link href="/negozio" className={styles.back} onClick={handleClick}>
-      <ArrowLeft size={18} aria-hidden="true" />
-      {t("gameDetail.back")}
-    </Link>
+    <div className={styles.backBar}>
+      <Link href="/negozio" className={styles.back} onClick={handleClick}>
+        <ArrowLeft size={18} aria-hidden="true" />
+        {t("gameDetail.back")}
+      </Link>
+    </div>
   );
 }
 

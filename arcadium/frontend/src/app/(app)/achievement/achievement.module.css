@@ -219,3 +219,23 @@
 .points { color: #ffd76a; font-weight: 700; text-shadow: 0 0 10px rgba(245,166,35,0.4); }
 
 .state { display: grid; place-items: center; min-height: 240px; color: var(--color-text-muted); }
+
+/* =============================================================================
+   Change request layout — testata fissa.
+   L'area che scorre e' <main> (vedi (app)/layout.js): la testata resta agganciata
+   in alto mentre scorre solo il contenuto. Sfondo semitrasparente + blur per non
+   coprire il gradiente dell'app e non far "trasparire" il contenuto sotto.
+   ============================================================================= */
+.title {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  /* Sfondo IDENTICO a quello della pagina: colore + gradiente ancorato al
+     viewport come il body. Essendo opaco, le card che scorrono sotto non
+     traspaiono piu' e la testata non si vede come una fascia scura. */
+  background-color: var(--color-bg);
+  background-image: var(--gradient-bg);
+  background-attachment: fixed;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
