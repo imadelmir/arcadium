@@ -21,11 +21,53 @@
 }
 /* Riga degli strumenti sotto il titolo: l'ordinamento ancorato a destra. */
 .toolbar {
+  position: relative;
+  z-index: 5; /* la tendina resta sopra le card della lista */
   display: flex;
   justify-content: flex-end;
+  margin-bottom: var(--space-4); /* stacca il filtro "Ordina" dalla prima card */
 }
-.sort {
+
+/* --- Dropdown "Ordina" in stile app (come il selettore di stato della Libreria) --- */
+/* Trigger compatto (figlio diretto button del FilterDropdown). */
+.sortDropdown > button {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+}
+/* Pannello opzioni (figlio diretto div del FilterDropdown). */
+.sortDropdown > div {
   min-width: 190px;
+  padding: 6px;
+}
+.sortList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+.sortOption {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.sortOption:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.sortOption[data-selected="true"] {
+  background: var(--color-primary-soft);
+  font-weight: 600;
 }
 
 /* Banner calo prezzo (tinta success/teal) */

@@ -25,6 +25,7 @@ import { listAchievements } from "@/lib/api/achievements";
 import { sendFriendRequest, acceptFriendRequest, removeFriend } from "@/lib/api/friends";
 import { ApiError } from "@/lib/api/client";
 import { formatDate } from "@/lib/format";
+import { useCountUp } from "@/hooks/useCountUp";
 import styles from "./profilo.module.css";
 
 export default function ProfiloPage() {
@@ -133,6 +134,15 @@ export default function ProfiloPage() {
 
   const playing = backlog.filter((b) => b.status?.code === "in_corso");
 
+  // Conteggio animato dei numeri del profilo (stessa animazione di Statistiche
+  // e Achievement). Va chiamato SEMPRE prima degli early return: gli hook non
+  // possono stare dopo un return condizionale. Partono da 0 e salgono al valore
+  // reale appena i dati arrivano.
+  const cGames = useCountUp(stats?.gamesOwned ?? 0);
+  const cPlaying = useCountUp(stats?.playing ?? 0);
+  const cHours = useCountUp(stats?.playtimeHours ?? 0);
+  const cAchievements = useCountUp(stats?.achievementsUnlocked ?? 0);
+
   if (loading) {
     return <div className={styles.page}><div className={styles.state}><Spinner size="lg" /></div></div>;
   }
@@ -235,21 +245,21 @@ export default function ProfiloPage() {
           {/* Card del profilo: giochi, in corso, ore, achievement sbloccati. */}
           <div className={styles.statGrid}>
             <div className={styles.stat}>
-              <div className={styles.statValue}>{stats?.gamesOwned ?? "—"}</div>
+              <div className={styles.statValue}>{stats ? Math.round(cGames) : "—"}</div>
               <div className={styles.statLabel}>{t("stats.kpi.totalGames")}</div>
             </div>
             <div className={styles.stat}>
-              <div className={styles.statValue}>{stats?.playing ?? "—"}</div>
+              <div className={styles.statValue}>{stats ? Math.round(cPlaying) : "—"}</div>
               <div className={styles.statLabel}>{t("profile.playingStat")}</div>
             </div>
             <div className={styles.stat}>
               <div className={styles.statValue}>
-                {stats ? `${stats.playtimeHours}${t("stats.unit.hours")}` : "—"}
+                {stats ? `${Math.round(cHours)}${t("stats.unit.hours")}` : "—"}
               </div>
               <div className={styles.statLabel}>{t("stats.kpi.hoursPlayed")}</div>
             </div>
             <div className={styles.stat}>
-              <div className={styles.statValue}>{stats?.achievementsUnlocked ?? "—"}</div>
+              <div className={styles.statValue}>{stats ? Math.round(cAchievements) : "—"}</div>
               <div className={styles.statLabel}>{t("stats.kpi.achievements")}</div>
             </div>
           </div>
