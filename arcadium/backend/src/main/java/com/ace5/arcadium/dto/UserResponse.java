@@ -3,6 +3,7 @@ package com.ace5.arcadium.dto;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.ZoneId;
 
 import com.ace5.arcadium.entity.AppUser;
@@ -32,10 +33,15 @@ public record UserResponse(
         String steamId,
         String discordUrl,
         String twitchUrl,
-        Integer abandonAfterMonths
+        Integer abandonAfterMonths,
+        String previousUsername,
+        Instant usernameChangeAllowedAt
 ) {
     /** Intervallo minimo tra due cambi di visibilita' del profilo (change request). */
     public static final Duration PROFILE_VISIBILITY_COOLDOWN = Duration.ofHours(48);
+
+    /** Intervallo minimo tra due cambi di username (V16): una volta ogni 2 mesi. */
+    public static final Period USERNAME_CHANGE_COOLDOWN = Period.ofMonths(2);
 
     public static UserResponse from(AppUser user) {
         return new UserResponse(
@@ -50,7 +56,27 @@ public record UserResponse(
                 user.getSteamId(),
                 user.getDiscordUrl(),
                 user.getTwitchUrl(),
-                user.getAbandonAfterMonths() == null ? null : user.getAbandonAfterMonths().intValue());
+                user.getAbandonAfterMonths() == null ? null : user.getAbandonAfterMonths().intValue(),
+                user.getPreviousUsername(),
+                usernameChangeAllowedAt(user));
+    }
+
+    /**
+     * Istante (con offset) a partire dal quale l'utente potra' cambiare di nuovo
+     * lo username, o {@code null} se puo' gia' cambiarlo ora (mai cambiato o
+     * cooldown di 2 mesi gia' scaduto). Serve al pannello Impostazioni per
+     * disabilitare il campo e indicare quando sara' di nuovo possibile.
+     */
+    private static Instant usernameChangeAllowedAt(AppUser user) {
+        LocalDateTime changedAt = user.getUsernameChangedAt();
+        if (changedAt == null) {
+            return null;
+        }
+        LocalDateTime unlockAt = changedAt.plus(USERNAME_CHANGE_COOLDOWN);
+        if (!unlockAt.isAfter(LocalDateTime.now())) {
+            return null;
+        }
+        return unlockAt.atZone(ZoneId.systemDefault()).toInstant();
     }
 
     /**

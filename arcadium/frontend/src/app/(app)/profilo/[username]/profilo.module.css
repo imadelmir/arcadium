@@ -61,6 +61,13 @@
   font-size: 15px;
   margin-top: 2px;
 }
+/* "Potresti conoscerlo come @vecchionome" — nome utente precedente (V16). */
+.formerHandle {
+  color: var(--color-text-faint);
+  font-size: 13px;
+  font-style: italic;
+  margin-top: 3px;
+}
 .meta {
   color: var(--color-text-faint);
   font-size: 13px;
@@ -296,4 +303,46 @@
 .ach:hover {
   border-color: #f5a623;
   box-shadow: 0 0 22px rgba(245, 166, 35, 0.55);
+}
+/* =============================================================================
+   Change request Community — pulsanti di amicizia sul profilo.
+   ============================================================================= */
+
+.friendActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+/* Pillola "Amici" (verde) e "Richiesta inviata" (neutra, in attesa). */
+.friendPill,
+.pendingPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.friendPill {
+  color: var(--success, #37d67a);
+  background: color-mix(in srgb, var(--success, #37d67a) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success, #37d67a) 35%, transparent);
+}
+
+.pendingPill {
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.errore {
+  margin: var(--space-2) 0 0;
+  font-size: 0.9rem;
+  color: var(--danger, #ef4444);
 }

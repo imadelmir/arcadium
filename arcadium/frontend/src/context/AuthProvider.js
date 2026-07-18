@@ -6,6 +6,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import * as authApi from "@/lib/api/auth";
+import { changeUsername as changeUsernameApi } from "@/lib/api/users";
 import { setToken, clearToken, getToken } from "@/lib/api/client";
 
 const AuthContext = createContext(null);
@@ -75,6 +76,17 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Cambio username (V16): il backend restituisce un token NUOVO (il subject del
+  // JWT è lo username), quindi si sostituisce il token salvato e si aggiorna
+  // l'utente in memoria. Senza questo, la richiesta successiva userebbe il token
+  // vecchio (subject inesistente) e l'utente verrebbe sloggato.
+  const changeUsername = useCallback(async (username) => {
+    const res = await changeUsernameApi(username);
+    setToken(res.token);
+    setUser(res.user);
+    return res.user;
+  }, []);
+
   const value = {
     user,
     loading,
@@ -83,6 +95,7 @@ export function AuthProvider({ children }) {
     register,
     logout,
     refresh,
+    changeUsername,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

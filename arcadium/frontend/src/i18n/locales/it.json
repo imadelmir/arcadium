@@ -127,11 +127,6 @@
     "back": "Torna al negozio",
     "by": "di",
     "about": "Informazioni sul gioco",
-    "showTranslated": "Mostra tradotto",
-    "showOriginal": "Mostra originale",
-    "translating": "Traduzione in corso…",
-    "translateError": "Traduzione non riuscita, mostro l'originale",
-    "autoTranslated": "Tradotto automaticamente",
     "media": "Immagini",
     "reviews": "Recensioni",
     "reviewOf": "su",
@@ -401,6 +396,17 @@
     "label": "Lingua"
   },
   "settings": {
+    "username": {
+      "title": "Nome utente",
+      "description": "Puoi cambiare il tuo nome utente una sola volta ogni 2 mesi. Sul tuo profilo resterà visibile il nome precedente.",
+      "current": "Nome utente attuale:",
+      "newLabel": "Nuovo nome utente",
+      "placeholder": "Inserisci il nuovo nome utente",
+      "save": "Cambia nome utente",
+      "saved": "Nome utente aggiornato",
+      "locked": "Potrai cambiarlo di nuovo il {{date}}",
+      "error": "Impossibile cambiare il nome utente"
+    },
     "privacy": {
       "title": "Privacy del profilo",
       "description": "Con il profilo pubblico puoi cercare altri utenti e comparire nelle loro ricerche. Con il profilo privato non puoi cercare nessuno e non sei cercabile.",
@@ -432,6 +438,7 @@
   },
   "profile": {
     "shareText": "Guarda {{name}} su Arcadium",
+    "formerlyKnownAs": "Potresti conoscerlo come @{{username}}",
     "notFound": "Utente non trovato.",
     "memberSince": "Membro dal {{date}}",
     "playingStat": "In corso",
@@ -439,6 +446,20 @@
     "noGamesInProgress": "Nessun gioco in corso.",
     "achievementsTitle": "Achievement",
     "noAchievements": "Ancora nessun achievement.",
-    "achievementsPrivate": "Gli achievement sono visibili solo sul tuo profilo."
+    "achievementsPrivate": "Gli achievement sono visibili solo sul tuo profilo.",
+    "friendsOnly": "Devi essere amico di questo utente per vedere il suo profilo."
+  },
+  "friends": {
+    "add": "Aggiungi amico",
+    "accept": "Accetta",
+    "reject": "Rifiuta",
+    "remove": "Rimuovi amico",
+    "cancelRequest": "Annulla richiesta",
+    "requestSent": "Richiesta inviata",
+    "friends": "Amici",
+    "requestsTitle": "Richieste di amicizia",
+    "friendsTitle": "I miei amici",
+    "searchTitle": "Cerca utenti",
+    "noFriends": "Non hai ancora amici. Cerca qualcuno qui sotto e invia una richiesta."
   }
 }

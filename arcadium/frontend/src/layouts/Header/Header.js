@@ -28,8 +28,9 @@ export function Header() {
   // Menu utente aperto/chiuso.
   const [menuAperto, setMenuAperto] = useState(false);
 
-  // Nome mostrato: displayName se c'è, altrimenti username; fallback neutro.
-  const nome = user?.displayName || user?.username || "Utente";
+  // Nome mostrato: SEMPRE lo username corrente (il nome visualizzato coincide
+  // con lo username e cambiando nome deve aggiornarsi ovunque); fallback neutro.
+  const nome = user?.username || "Utente";
 
   // Logout: cancella sessione e torna al login.
   function esci() {

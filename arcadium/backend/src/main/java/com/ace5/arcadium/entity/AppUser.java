@@ -50,6 +50,9 @@ public class AppUser {
 
     private LocalDateTime profileVisibilityChangedAt;  // TIMESTAMP, nullable — ultimo cambio di is_profile_public (cooldown 48h, V11)
 
+    private String previousUsername;          // TEXT, nullable (V16) — username precedente, mostrato sul profilo pubblico
+    private LocalDateTime usernameChangedAt;  // TIMESTAMP, nullable (V16) — ultimo cambio username, per il cooldown (1 volta / 2 mesi)
+
     private Short abandonAfterMonths;         // SMALLINT, nullable (V9) — timeout auto-abbandono: NULL=off, 1/3/6 mesi
 
     @CreationTimestamp
@@ -94,6 +97,12 @@ public class AppUser {
 
     public LocalDateTime getProfileVisibilityChangedAt() { return profileVisibilityChangedAt; }
     public void setProfileVisibilityChangedAt(LocalDateTime profileVisibilityChangedAt) { this.profileVisibilityChangedAt = profileVisibilityChangedAt; }
+
+    public String getPreviousUsername() { return previousUsername; }
+    public void setPreviousUsername(String previousUsername) { this.previousUsername = previousUsername; }
+
+    public LocalDateTime getUsernameChangedAt() { return usernameChangedAt; }
+    public void setUsernameChangedAt(LocalDateTime usernameChangedAt) { this.usernameChangedAt = usernameChangedAt; }
 
     public Short getAbandonAfterMonths() { return abandonAfterMonths; }
     public void setAbandonAfterMonths(Short abandonAfterMonths) { this.abandonAfterMonths = abandonAfterMonths; }

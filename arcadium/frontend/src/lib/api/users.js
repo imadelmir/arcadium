@@ -30,8 +30,21 @@ export function getUserWishlist(username) {
   return api.get(`/api/users/${username}/wishlist`);
 }
 
+// Numeri delle card del profilo di un utente (giochi, in corso, ore,
+// achievement sbloccati). Visibile solo tra amici: 403 altrimenti.
+export function getUserProfileStats(username) {
+  return api.get(`/api/users/${encodeURIComponent(username)}/stats`);
+}
+
 // Aggiorna le impostazioni dell'utente autenticato (change request privacy).
 // `payload` = { profilePublic? }. Restituisce lo UserResponse aggiornato.
 export function updateMySettings(payload) {
   return api.patch("/api/users/me", payload);
+}
+
+// Cambia lo username dell'utente autenticato (V16): consentito una volta ogni
+// 2 mesi. Restituisce un nuovo AuthResponse { token, user }: il chiamante DEVE
+// sostituire il token salvato, perché il subject del JWT è lo username.
+export function changeUsername(username) {
+  return api.put("/api/users/me/username", { username });
 }
