@@ -106,6 +106,11 @@ export default function BacklogPage() {
         <h1 className={styles.title}>{t("nav.backlog")}</h1>
       </header>
 
+      {/* Area che scorre: la testata sopra resta FUORI, quindi nessuna card le
+          passa dietro e puo' restare trasparente (l'effetto animato di sfondo
+          resta visibile come prima). */}
+      <div className={styles.scrollArea}>
+
       {statusError && (
         <div className={styles.statusError} role="alert">
           {t("backlog.statusError")}
@@ -178,6 +183,7 @@ export default function BacklogPage() {
       )}
 
       <p className={styles.hint}>{t("backlog.hint")}</p>
+      </div>
     </section>
   );
 }

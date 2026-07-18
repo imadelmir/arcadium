@@ -471,25 +471,27 @@
     grid-template-columns: 1fr;
   }
 }
+
 /* =============================================================================
-   Change request layout — barra "Torna al negozio" fissa.
-   L'area che scorre e' <main> ((app)/layout.js): questa barra resta agganciata
-   in alto come le testate delle altre schede. Il banner del gioco NON e' fisso:
-   e' troppo alto e coprirebbe mezza pagina. La barra e' a tutta larghezza (il
-   link da solo e' fit-content e lascerebbe passare il contenuto di fianco).
+   Change request layout — barra "Torna al negozio" ferma FUORI dall'area che
+   scorre: niente sfondo, cosi' l'effetto animato dietro resta visibile.
    ============================================================================= */
+.page {
+  height: 100%;
+}
 .backBar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  /* Sfondo IDENTICO a quello della pagina: colore + gradiente ancorato al
-     viewport come il body. Essendo opaco, le card che scorrono sotto non
-     traspaiono piu' e la testata non si vede come una fascia scura. */
-  background-color: var(--color-bg);
-  background-image: var(--gradient-bg);
-  background-attachment: fixed;
   padding-top: var(--space-3);
-  padding-bottom: var(--space-3);
+}
+.scrollArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Sposta la barra di scorrimento verso l'esterno: il riquadro si allarga oltre
+     il contenuto e il padding rimette il contenuto al suo posto, cosi' la barra
+     non resta incollata alle card. */
+  margin-right: calc(var(--space-4) * -1);
+  padding-right: var(--space-4);
 }

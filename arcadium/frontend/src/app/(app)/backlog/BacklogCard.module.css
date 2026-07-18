@@ -299,3 +299,60 @@
 @media (max-width: 640px) {
   .hoursBtn { width: auto; }
 }
+
+/* =============================================================================
+   Tendina "ore giocate" in stile filtri del Negozio (change request Backlog).
+   Il pannello e' quello condiviso di FilterDropdown: qui si definisce solo la
+   lista interna, che scorre entro un'altezza massima invece di allungarsi per
+   tutte e 48 le voci.
+   ============================================================================= */
+.hoursList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 16rem;      /* stessa altezza delle liste dei filtri del Negozio */
+  overflow-y: auto;
+}
+
+.hoursOption {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.hoursOption:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Voce attualmente scelta: evidenziata come le opzioni attive dei filtri. */
+.hoursOption[data-selected="true"] {
+  background: var(--color-primary-soft);
+  font-weight: 600;
+}
+
+/* Il campo data resta nativo (il calendario lo disegna il browser), ma il campo
+   in se' segue i colori dell'app: color-scheme dark rende scura anche l'icona. */
+.addInput {
+  color-scheme: dark;
+}
+
+/* La tendina ore deve avere la stessa taglia degli altri campi della riga: il
+   trigger di FilterDropdown nasce grande (pillola 10x16, 15px) perche' pensato
+   per la barra filtri del Negozio. */
+.addHours {
+  min-width: 0;
+}
+.addHours button {
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}

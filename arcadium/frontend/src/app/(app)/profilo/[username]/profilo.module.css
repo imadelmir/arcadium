@@ -7,7 +7,9 @@
 /* Contenitore pagina: largo, così i componenti riempiono lo spazio. */
 .page {
   padding: var(--space-6) 0;
-  max-width: 1500px;
+  /* Larghezza piena come le altre schede: con un limite fisso le card si
+     fermavano a meta' schermo sui monitor grandi. */
+  max-width: none;
 }
 
 /* Link "Torna alla community" sopra la testata. */

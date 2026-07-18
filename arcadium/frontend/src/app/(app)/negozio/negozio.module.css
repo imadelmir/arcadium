@@ -365,4 +365,9 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Sposta la barra di scorrimento verso l'esterno: il riquadro si allarga oltre
+     il contenuto e il padding rimette il contenuto al suo posto, cosi' la barra
+     non resta incollata alle card. */
+  margin-right: calc(var(--space-4) * -1);
+  padding-right: var(--space-4);
 }
