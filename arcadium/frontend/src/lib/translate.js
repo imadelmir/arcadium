@@ -24,6 +24,12 @@
 const ENDPOINT = "https://api.mymemory.translated.net/get";
 const MAX_BYTES = 450; // margine sotto il limite (~500 byte) di MyMemory
 
+// Email di contatto per MyMemory: aggiungendo il parametro `de` il limite
+// gratuito sale da ~5.000 a ~50.000 parole al giorno. Metti QUI una tua email
+// vera (basta un indirizzo valido, non serve registrarsi). Se la lasci vuota,
+// funziona lo stesso ma con la quota più bassa.
+const CONTACT_EMAIL = "arcadium.dev@example.com";
+
 const encoder = new TextEncoder();
 const byteLen = (s) => encoder.encode(s).length;
 
@@ -75,8 +81,14 @@ function splitIntoChunks(text) {
 // Traduce un singolo blocco. Lancia un errore se l'API non risponde bene o se
 // segnala il raggiungimento dei limiti (quota / lunghezza).
 async function translateChunk(text, from, to) {
-  const url = `${ENDPOINT}?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(from)}|${encodeURIComponent(to)}`;
+  let url = `${ENDPOINT}?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(from)}|${encodeURIComponent(to)}`;
+  // `de` alza la quota giornaliera gratuita di MyMemory (vedi CONTACT_EMAIL).
+  if (CONTACT_EMAIL) url += `&de=${encodeURIComponent(CONTACT_EMAIL)}`;
+
   const res = await fetch(url);
+  // 429 = troppe richieste / quota giornaliera esaurita: errore chiaro e stop
+  // (il componente mostra l'originale con l'avviso, senza ritentare a vuoto).
+  if (res.status === 429) throw new Error("translate quota (429)");
   if (!res.ok) throw new Error(`translate http ${res.status}`);
 
   const data = await res.json();

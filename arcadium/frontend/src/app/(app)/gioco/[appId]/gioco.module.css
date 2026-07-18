@@ -36,6 +36,8 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
+  flex-shrink: 0;       /* non si schiaccia dentro il flex column di .page */
+  min-height: 240px;    /* rete di sicurezza: l'hero resta sempre visibile */
 }
 
 /* Sfondo ambientale: la stessa cover ingrandita e sfocata dietro al contenuto. */
@@ -109,6 +111,7 @@
   grid-template-columns: 1fr 340px;
   gap: var(--space-5);
   align-items: start;
+  margin-top: var(--space-4); /* stacca l'hero dal corpo (descrizione + card) */
 }
 
 .main {
@@ -189,8 +192,13 @@
    CARD ACQUISTO (sticky)
    ============================================================================= */
 .aside {
+  /* Nella struttura reale della pagina l'area che scorre è <main> (vedi
+     app/(app)/layout.js: <main overflowY:auto>). Lo sticky si aggancia quindi
+     a <main>: basta position:sticky con un top piccolo. NIENTE max-height né
+     overflow qui, altrimenti la card si crea una barra interna e non si fissa. */
   position: sticky;
-  top: calc(var(--header-height) + var(--space-4));
+  top: var(--space-4);
+  align-self: start; /* nel grid resta in alto e può agganciarsi */
 }
 
 .buyCard {
@@ -473,12 +481,12 @@
 }
 
 /* =============================================================================
-   Change request layout — barra "Torna al negozio" ferma FUORI dall'area che
-   scorre: niente sfondo, cosi' l'effetto animato dietro resta visibile.
+   Layout scroll — la barra "Torna al negozio" resta in cima.
+   NB: questa pagina NON usa un contenitore .scrollArea interno: a scorrere è
+   direttamente <main> del layout (app/(app)/layout.js). Quindi .page deve
+   crescere col contenuto (NIENTE height:100%, che senza .scrollArea farebbe
+   traboccare tutto e romperebbe lo sticky della card).
    ============================================================================= */
-.page {
-  height: 100%;
-}
 .backBar {
   flex-shrink: 0;
   display: flex;
