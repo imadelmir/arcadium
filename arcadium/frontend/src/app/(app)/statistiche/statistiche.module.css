@@ -7,9 +7,10 @@
    centrata. Il padding si adatta allo schermo con clamp(). */
 .page {
   width: 100%;
-  /* top a 0: il titolo parte alla stessa altezza delle altre pagine
-     (coerenza); lo spazio in alto lo dà il main. Lati e fondo ampi. */
-  padding: 0 clamp(24px, 3vw, 48px) clamp(32px, 3vw, 48px);
+  /* Lati a 0: il margine laterale (32px) lo dà il <main>, uguale alle altre
+     pagine e a impostazioni. Prima un clamp aggiungeva 24–48px ai lati. Il
+     top resta 0 così il titolo è alla stessa altezza delle altre pagine. */
+  padding: 0 0 clamp(32px, 3vw, 48px);
   animation: fadeIn 0.5s ease both;
 }
 
