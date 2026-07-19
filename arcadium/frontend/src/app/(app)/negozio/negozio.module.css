@@ -1,9 +1,11 @@
 /* Contenitore pagina.
-   max-width alto = pagina larga; padding-top piccolo = contenuto più in alto. */
+   Nessun padding qui: main ((app)/layout.js) fornisce già lo spazio attorno
+   al contenuto (0 32px 24px), esattamente come Libreria e Wishlist. Prima
+   c'era un padding duplicato che spingeva la pagina più lontana dalla sidebar
+   e più in basso rispetto alle altre sezioni. */
 .page {
   max-width: none;
   margin: 0;
-  padding: 0 var(--space-6) var(--space-6);
   /* Colonna a tutta altezza: testata ferma in alto, griglia che scorre sotto. */
   display: flex;
   flex-direction: column;
@@ -354,9 +356,10 @@
 .stickyHead {
   /* Non e' piu' sovrapposta al contenuto: sta FUORI dall'area che scorre, quindi
      niente sfondo. Cosi' l'effetto animato dietro (StarField / SplashCursor) e il
-     gradiente restano visibili esattamente come prima. */
+     gradiente restano visibili esattamente come prima.
+     Nessun padding-top: il titolo parte alla stessa altezza di Libreria/Wishlist
+     (che non hanno spaziatura extra sopra il proprio <header>). */
   flex-shrink: 0;
-  padding-top: var(--space-3);
 }
 
 /* L'unica parte che scorre della pagina: la griglia dei giochi. La testata

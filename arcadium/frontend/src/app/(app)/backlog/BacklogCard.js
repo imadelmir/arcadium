@@ -24,6 +24,7 @@ import { GameImage } from "@/components";
 import { BACKLOG_STATUSES } from "@/lib/constants";
 import { useAuth } from "@/context/AuthProvider";
 import { listPlaytime, addPlaytime, deletePlaytime } from "@/lib/api/playtime";
+import { getAverageColor } from "@/lib/imageColor";
 import { FilterDropdown } from "@/components";
 import styles from "./BacklogCard.module.css";
 
@@ -52,6 +53,45 @@ function todayLocal() {
   const d = new Date();
   const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
+}
+
+// Percentuale di riempimento della barra sotto il titolo:
+//   - "mai_giocato"  -> 0%, niente da mostrare;
+//   - "finito"       -> 100%, la barra e' sempre piena;
+//   - "in_corso"/"abbandonato" -> proporzionale alle ore giocate, con 48 ore
+//     come riferimento a META' barra: meno ore restano sotto meta',
+//     più ore (es. le tue 58h di Apex) superano la meta', fino a un tetto
+//     an che non sembri mai "quasi finito" per sbaglio.
+const FILL_REFERENCE_HOURS = 48; // ore = meta' barra
+const FILL_MIN_PERCENT = 30; // pavimento: anche a 0 ore si vede un accenno
+const FILL_MAX_PERCENT = 92; // tetto: mai pieno per un gioco "in corso"
+const FILL_SLOPE = 0.4; // punti percentuale guadagnati per ogni ora sopra/sotto le 48
+
+function computeFillPercent(statusCode, minutes) {
+  if (statusCode === "finito") return 100;
+  if (statusCode === "mai_giocato") return 0;
+
+  const hours = (minutes ?? 0) / 60;
+  const percent = 50 + (hours - FILL_REFERENCE_HOURS) * FILL_SLOPE;
+  return Math.min(FILL_MAX_PERCENT, Math.max(FILL_MIN_PERCENT, percent));
+}
+
+// Colore di RISERVA per la riga, usato finché il colore reale della copertina
+// non è ancora pronto (il canvas carica l'immagine in modo asincrono) o se
+// l'estrazione fallisce (CORS, immagine mancante, ecc — vedi imageColor.js).
+// Generato dall'appId: stesso gioco -> sempre lo stesso colore di riserva.
+function hashToHue(seed) {
+  const str = String(seed ?? "");
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % 360;
+}
+
+function gameAccentColor(game) {
+  const hue = hashToHue(game?.appId ?? game?.name);
+  return `hsl(${hue}, 72%, 62%)`;
 }
 
 export function BacklogCard({
@@ -93,6 +133,25 @@ export function BacklogCard({
     : entries !== null
       ? loggedMinutes
       : manualPlaytimeMinutes ?? 0;
+
+  const fillPercent = computeFillPercent(statusCode, shownMinutes);
+
+  // Colore della riga preso dalla copertina reale (come il backdrop sfocato
+  // della pagina di dettaglio): parte dal colore di riserva (hash sull'appId)
+  // e passa a quello estratto dai pixel non appena è pronto. Per copertina,
+  // così non lo si ricalcola a ogni riordino/filtro del backlog.
+  const [gameColor, setGameColor] = useState(() => gameAccentColor(game));
+
+  useEffect(() => {
+    let cancelled = false;
+    setGameColor(gameAccentColor(game)); // riserva subito, poi eventuale upgrade
+    getAverageColor(game.headerImage).then((color) => {
+      if (!cancelled && color) setGameColor(color);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [game]);
 
   async function toggle() {
     const next = !open;
@@ -163,6 +222,7 @@ export function BacklogCard({
         className={styles.row}
         data-status={statusCode}
         data-dragging={dragging || undefined}
+        style={{ "--game": gameColor }}
         draggable="true"
         onDragStart={(event) => {
           event.dataTransfer.setData("text/plain", String(game.appId));
@@ -181,7 +241,14 @@ export function BacklogCard({
 
         <div className={styles.main}>
           <h3 className={styles.name}>{game.name}</h3>
-          <div className={styles.bar} />
+          <div className={styles.bar}>
+            {fillPercent > 0 && (
+              <span
+                className={styles.fill}
+                style={{ "--w": `${fillPercent}%` }}
+              />
+            )}
+          </div>
         </div>
 
         {/* Ore giocate: pulsante che apre/chiude il pannello (secondo click chiude) */}
