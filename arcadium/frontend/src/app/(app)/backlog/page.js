@@ -65,6 +65,9 @@ export default function BacklogPage() {
   async function moveGame(appId, nextCode) {
     const backup = items;
     setStatusError(false);
+    // Cambio ottimistico: aggiorniamo SOLO il codice di stato. Le ore
+    // (playtimeMinutes / manualPlaytimeMinutes) restano invariate: cambiare
+    // stato non deve mai azzerarle.
     setItems((prev) =>
       prev.map((it) =>
         it.game.appId === appId
@@ -74,14 +77,20 @@ export default function BacklogPage() {
     );
     try {
       const updated = await updateBacklog(appId, { status: nextCode });
-      // Riconcilia con lo stato reale del server (code + etichette).
+      // Riconcilia con lo stato reale del server, MA senza perdere le ore:
+      // teniamo i valori esistenti e li aggiorniamo solo se il server ne
+      // restituisce di nuovi. Così le ore (anche quelle manuali) non spariscono
+      // e la barra "già finito" resta piena (finishedAt conservato).
       setItems((prev) =>
         prev.map((it) =>
           it.game.appId === appId
             ? {
                 ...it,
-                status: updated.status,
+                status: updated.status ?? it.status,
+                finishedAt: updated.finishedAt ?? it.finishedAt,
                 playtimeMinutes: updated.playtimeMinutes ?? it.playtimeMinutes,
+                manualPlaytimeMinutes:
+                  updated.manualPlaytimeMinutes ?? it.manualPlaytimeMinutes,
               }
             : it
         )
@@ -163,6 +172,7 @@ export default function BacklogPage() {
                         key={it.game.appId}
                         game={it.game}
                         statusCode={it.status.code}
+                        finishedAt={it.finishedAt}
                         playtimeMinutes={it.playtimeMinutes}
                         manualPlaytimeMinutes={it.manualPlaytimeMinutes}
                         onStatusChange={moveGame}

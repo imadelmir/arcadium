@@ -55,25 +55,25 @@ function todayLocal() {
   return local.toISOString().slice(0, 10);
 }
 
-// Percentuale di riempimento della barra sotto il titolo:
-//   - "mai_giocato"  -> 0%, niente da mostrare;
-//   - "finito"       -> 100%, la barra e' sempre piena;
-//   - "in_corso"/"abbandonato" -> proporzionale alle ore giocate, con 48 ore
-//     come riferimento a META' barra: meno ore restano sotto meta',
-//     più ore (es. le tue 58h di Apex) superano la meta', fino a un tetto
-//     an che non sembri mai "quasi finito" per sbaglio.
-const FILL_REFERENCE_HOURS = 48; // ore = meta' barra
-const FILL_MIN_PERCENT = 30; // pavimento: anche a 0 ore si vede un accenno
-const FILL_MAX_PERCENT = 92; // tetto: mai pieno per un gioco "in corso"
-const FILL_SLOPE = 0.4; // punti percentuale guadagnati per ogni ora sopra/sotto le 48
+// Percentuale di riempimento della barra sotto il titolo. La regola dipende
+// dal fatto che il gioco sia stato FINITO almeno una volta (finishedAt), non
+// solo dallo stato attuale:
+//   - "mai_giocato"                 -> 0%, sempre vuota;
+//   - "finito" (ora) OPPURE già finito in passato -> 100%, sempre piena.
+//     Così spostando un gioco finito su "in corso"/"abbandonato" la barra
+//     RESTA piena (cambiano solo le ore, che si possono aggiungere);
+//   - "in_corso"/"abbandonato" MAI finiti -> proporzionale alle ore, da ZERO
+//     (vuota senza ore), fino a un tetto (non è finito, quindi mai pieno).
+const FILL_HALF_HOURS = 48;   // ore a cui la barra è circa a metà
+const FILL_MAX_PERCENT = 92;  // tetto per un gioco non ancora "finito"
 
-function computeFillPercent(statusCode, minutes) {
-  if (statusCode === "finito") return 100;
+function computeFillPercent(statusCode, minutes, wasFinished) {
   if (statusCode === "mai_giocato") return 0;
+  if (statusCode === "finito" || wasFinished) return 100;
 
   const hours = (minutes ?? 0) / 60;
-  const percent = 50 + (hours - FILL_REFERENCE_HOURS) * FILL_SLOPE;
-  return Math.min(FILL_MAX_PERCENT, Math.max(FILL_MIN_PERCENT, percent));
+  const percent = (hours / FILL_HALF_HOURS) * 50; // 0 ore -> 0%, 48 ore -> 50%
+  return Math.min(FILL_MAX_PERCENT, Math.max(0, percent));
 }
 
 // Colore di RISERVA per la riga, usato finché il colore reale della copertina
@@ -97,6 +97,7 @@ function gameAccentColor(game) {
 export function BacklogCard({
   game,          // il gioco (GameSummary)
   statusCode,    // codice stato corrente: "mai_giocato" | ...
+  finishedAt,    // data del primo passaggio a "finito" (null se mai finito)
   playtimeMinutes,
   manualPlaytimeMinutes, // ore manuali totali del gioco (dal backend)
   onStatusChange, // (appId, nuovoCodice) -> cambia stato
@@ -134,7 +135,7 @@ export function BacklogCard({
       ? loggedMinutes
       : manualPlaytimeMinutes ?? 0;
 
-  const fillPercent = computeFillPercent(statusCode, shownMinutes);
+  const fillPercent = computeFillPercent(statusCode, shownMinutes, Boolean(finishedAt));
 
   // Colore della riga preso dalla copertina reale (come il backdrop sfocato
   // della pagina di dettaglio): parte dal colore di riserva (hash sull'appId)
@@ -223,15 +224,21 @@ export function BacklogCard({
         data-status={statusCode}
         data-dragging={dragging || undefined}
         style={{ "--game": gameColor }}
-        draggable="true"
-        onDragStart={(event) => {
-          event.dataTransfer.setData("text/plain", String(game.appId));
-          event.dataTransfer.effectAllowed = "move";
-          onDragStart(game.appId);
-        }}
-        onDragEnd={onDragEnd}
       >
-        <span className={styles.grip} aria-hidden="true">
+        {/* Solo la maniglia è trascinabile: così il <select> e gli altri
+            controlli restano sempre cliccabili (in Chrome, un <select> dentro
+            un elemento draggable a volte fa partire il drag e non cambia stato). */}
+        <span
+          className={styles.grip}
+          aria-hidden="true"
+          draggable="true"
+          onDragStart={(event) => {
+            event.dataTransfer.setData("text/plain", String(game.appId));
+            event.dataTransfer.effectAllowed = "move";
+            onDragStart(game.appId);
+          }}
+          onDragEnd={onDragEnd}
+        >
           <GripVertical size={16} />
         </span>
 
