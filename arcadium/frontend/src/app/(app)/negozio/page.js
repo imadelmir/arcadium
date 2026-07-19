@@ -78,7 +78,13 @@ const PRICE_OPTIONS = [
 
 // Voci di ordinamento mappate al parametro `sort` di Spring Data.
 // A -> Z e Z -> A ordinano per nome (crescente/decrescente).
+// "Popolarità" e "Valutazione" usano dati reali di Steam già esposti dal
+// backend (whitelist SORTABLE_FIELDS in GameService): peakCcu = picco di
+// giocatori contemporanei (buon proxy per "più giocati in questo momento"),
+// positive = numero di recensioni positive (buon proxy per "più famosi").
 const SORT_OPTIONS = [
+  ["peakCcu,desc", "popularity"], // default: giochi più giocati in cima
+  ["positive,desc", "rating"],
   ["name,asc", "name"],       // A -> Z
   ["name,desc", "nameDesc"],  // Z -> A (change request Negozio)
   ["price,asc", "priceAsc"],
@@ -93,8 +99,10 @@ const PAGE_SIZE = 300;
 const PRICE_MIN = 0;
 const PRICE_MAX = 100;
 
-// Ordinamento di default del Negozio (novità più recenti in cima).
-const DEFAULT_SORT = "releaseDate,desc";
+// Ordinamento di default del Negozio: giochi più popolari (picco giocatori
+// contemporanei) in cima, invece delle novità appena uscite — così la prima
+// pagina mostra titoli conosciuti invece di indie sconosciuti.
+const DEFAULT_SORT = "peakCcu,desc";
 
 // Legge un filtro multi-valore dall'URL (valori separati da virgola).
 const parseList = (v) => (v ? v.split(",").filter(Boolean) : []);
