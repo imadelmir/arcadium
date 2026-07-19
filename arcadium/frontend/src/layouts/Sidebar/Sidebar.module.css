@@ -3,7 +3,15 @@
   height: 100vh;
   flex-shrink: 0;
   overflow-y: auto;   /* se le voci non ci stanno scorre la sola sidebar */
-  background: #0c0e23;              /* navy pieno, campionato dal mockup (T4) */
+
+  /* Effetto "aurora" (fedele al logo): alone viola concentrato in alto, dietro
+     il marchio, che sfuma verticalmente fino al blu-nero in basso. Il fondo
+     resta ancorato al box della sidebar: anche in caso di scroll l'alone non si
+     sposta. Campionato dai colori reali del logo (#5E2FEF..#9458F8). */
+  background:
+    radial-gradient(280px circle at 27% -6%, rgba(148, 88, 248, 0.32), transparent 73%),
+    linear-gradient(180deg, #332268 0%, #261d4c 24%, #191534 55%, #0f0f20 100%);
+
   padding: 8px 4px;
   border-right: 2px solid rgba(255, 255, 255, 0.06);
 }

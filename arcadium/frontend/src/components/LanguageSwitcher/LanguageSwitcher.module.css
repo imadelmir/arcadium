@@ -4,8 +4,10 @@
   gap: 2px;
   padding: 4px;
   border-radius: var(--radius-pill);
-  /* stesso vetro del pulsante Luca */
-  background: rgba(18, 22, 42, 0.32);
+  /* Vetro intonato alla superficie "indaco morbido" (come il pill utente e i
+     pulsanti social nell'header). Prima era una tinta della vecchia superficie
+     piu' scura/bluastra. */
+  background: rgba(28, 29, 61, 0.34);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.10);
