@@ -1,0 +1,98 @@
+/* =============================================================================
+   ScreenshotLightbox — overlay a schermo intero per gli screenshot ingranditi.
+   ============================================================================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6, 2rem);
+  background: rgba(6, 8, 20, 0.92);
+  cursor: zoom-out;
+  animation: fadeIn 160ms ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Immagine ingrandita: mai più larga/alta della viewport, proporzioni intatte. */
+.image {
+  max-width: min(92vw, 1200px);
+  max-height: 88vh;
+  border-radius: var(--radius-md, 12px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  cursor: default;
+}
+
+/* Pulsante di chiusura, angolo alto-destra. */
+.close {
+  position: absolute;
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--color-primary, #7c5cff);
+}
+
+/* Frecce di navigazione, ai lati verticali dell'overlay. */
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.nav:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--color-primary, #7c5cff);
+}
+.navPrev { left: var(--space-4, 1rem); }
+.navNext { right: var(--space-4, 1rem); }
+
+/* Contatore "2 / 6", in basso al centro. */
+.counter {
+  position: absolute;
+  bottom: var(--space-4, 1rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .nav { width: 40px; height: 40px; }
+  .navPrev { left: var(--space-2, 0.5rem); }
+  .navNext { right: var(--space-2, 0.5rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay { animation: none; }
+}

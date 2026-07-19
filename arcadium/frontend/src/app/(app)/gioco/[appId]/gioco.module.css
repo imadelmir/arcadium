@@ -148,9 +148,24 @@
   gap: var(--space-3);
 }
 .shot {
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  background: transparent;
+  font: inherit;
+  cursor: zoom-in;
+  transition: border-color var(--transition), transform var(--transition);
+}
+.shot:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+.shot:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Recensioni */

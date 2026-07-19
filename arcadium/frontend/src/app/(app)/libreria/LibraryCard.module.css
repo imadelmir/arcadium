@@ -37,6 +37,20 @@
     0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
+/* Link esteso: la card intera porta al dettaglio del gioco (come StoreCard).
+   z-index:1 lo tiene SOTTO al badge di stato (2) e alla tendina (3), che
+   restano cliccabili sopra di lui senza propagare la navigazione. */
+.cardLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+.cardLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
 /* La card "emerge" da un vetro sfocato fino a diventare nitida. */
 @keyframes cardIn {
   from { opacity: 0; filter: blur(6px); }

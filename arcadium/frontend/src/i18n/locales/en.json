@@ -133,6 +133,13 @@
     "autoTranslated": "Auto-translated",
     "translateError": "Translation failed, showing original",
     "media": "Screenshots",
+  "lightbox": {
+    "title": "Image viewer",
+    "previous": "Previous image",
+    "next": "Next image",
+    "openAria": "Open image {{current}} full screen",
+    "imageAlt": "Screenshot {{current}} of {{total}}"
+  },
     "reviews": "Reviews",
     "reviewOf": "of",
     "reviewWord": "reviews",

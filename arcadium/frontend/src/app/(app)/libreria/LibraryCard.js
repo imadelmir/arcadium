@@ -13,6 +13,7 @@
 // (componente FilterDropdown + lista di opzioni), così è coerente col resto.
 
 import { useTranslation } from "react-i18next";
+import Link from "next/link";
 import { Clock } from "lucide-react";
 
 import { GameImage, StatusBadge, FilterDropdown } from "@/components";
@@ -47,6 +48,11 @@ export function LibraryCard({
 
   return (
     <article className={styles.card} data-status={statusCode}>
+      {/* Link esteso: la card intera porta al dettaglio interno /gioco/[appId],
+          come StoreCard. Sta SOTTO (z-index:1) al badge di stato e alla
+          tendina (z-index:2/3), che restano cliccabili sopra di lui. */}
+      <Link href={`/gioco/${game.appId}`} className={styles.cardLink} aria-label={game.name} />
+
       <div className={styles.cover}>
         <GameImage src={game.headerImage} alt={game.name} />
         <span className={styles.shade} aria-hidden="true" />
