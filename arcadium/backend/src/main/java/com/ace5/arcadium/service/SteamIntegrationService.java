@@ -1,5 +1,6 @@
 package com.ace5.arcadium.service;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -50,10 +51,17 @@ import com.ace5.arcadium.steam.SteamClient.SteamProfile;
  *
  * <p><b>Sync.</b> Esplicita e non distruttiva: legge i giochi posseduti su Steam
  * col tempo di gioco e, per quelli presenti nel catalogo Arcadium, aggiunge le
- * voci mancanti nel backlog (stato iniziale "mai_giocato") e aggiorna il tempo di
- * gioco di quelle gia' presenti, <em>senza</em> toccarne lo stato ne' rimuovere i
- * giochi aggiunti a mano. Cosi' "tenere la propria libreria" e "sincronizzare"
- * convivono: e' l'utente a scegliere se lanciarla.
+ * voci mancanti nel backlog e aggiorna il tempo di gioco di quelle gia' presenti,
+ * <em>senza</em> rimuovere i giochi aggiunti a mano. Cosi' "tenere la propria
+ * libreria" e "sincronizzare" convivono: e' l'utente a scegliere se lanciarla.
+ *
+ * <p><b>Stato dedotto dalle ore, ma solo al primo import.</b> Una voce nuova
+ * nasce "in corso" se Steam riporta tempo di gioco, "mai giocato" se il gioco e'
+ * posseduto ma mai avviato: senza questa distinzione una libreria importata
+ * finirebbe tutta in "mai giocato", con la barra di avanzamento vuota accanto a
+ * righe che dichiarano centinaia di ore. Da li' in poi lo stato e' dell'utente e
+ * la sync non lo tocca piu', nemmeno quando contraddice le ore — riscriverlo
+ * significherebbe annullare a ogni sincronizzazione una scelta appena fatta.
  *
  * <p><b>Profilo privato.</b> Se il profilo Steam non e' leggibile, la sync
  * fallisce con 422 e chiave {@code error.steam.profilePrivate}: il frontend
@@ -78,7 +86,11 @@ public class SteamIntegrationService {
     /** Chiave Steam Web API: 32 caratteri esadecimali. */
     private static final Pattern API_KEY = Pattern.compile("^[0-9A-F]{32}$");
 
-    private static final String DEFAULT_STATUS = "mai_giocato";
+    /** Stato di chi possiede il gioco ma non lo ha mai avviato. */
+    private static final String STATUS_NEVER_PLAYED = "mai_giocato";
+
+    /** Stato assegnato quando Steam riporta tempo di gioco. */
+    private static final String STATUS_IN_PROGRESS = "in_corso";
 
     private final SteamClient steamClient;
     private final SecretCipher cipher;
@@ -163,8 +175,8 @@ public class SteamIntegrationService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "error.steam.profilePrivate");
         }
 
-        BacklogStatus defaultStatus = backlogStatusRepository.findByCode(DEFAULT_STATUS)
-                .orElseThrow(() -> new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "error.internal"));
+        BacklogStatus neverPlayed = requireStatus(STATUS_NEVER_PLAYED);
+        BacklogStatus inProgress = requireStatus(STATUS_IN_PROGRESS);
 
         int added = 0;
         int updated = 0;
@@ -175,19 +187,41 @@ public class SteamIntegrationService {
                 skipped++; // gioco posseduto ma non nel catalogo Arcadium
                 continue;
             }
+            int minutes = game.playtimeMinutes() == null ? 0 : game.playtimeMinutes();
             Optional<Backlog> existing = backlogRepository.findById(new BacklogId(userId, game.appId()));
+
             if (existing.isPresent()) {
-                existing.get().setPlaytimeMinutes(game.playtimeMinutes());
+                // Voce gia' nel backlog: si aggiorna SOLO il tempo di gioco. Lo
+                // stato appartiene all'utente — anche quando contraddice le ore.
+                // Se lo riscrivessimo qui, ogni sincronizzazione annullerebbe la
+                // sua scelta: sposta un gioco su "mai giocato", risincronizza, e
+                // se lo ritrova "in corso" senza aver toccato nulla.
+                existing.get().setPlaytimeMinutes(minutes);
                 updated++;
             } else {
+                // Lo stato iniziale viene dal dato che Steam ci ha appena dato:
+                // zero minuti = posseduto ma mai avviato, altrimenti in corso.
+                // Senza questa distinzione l'intera libreria importata finirebbe
+                // in "mai giocato" anche con centinaia di ore alle spalle, e nel
+                // backlog la barra di avanzamento resterebbe vuota su ogni riga.
                 Backlog entry = new Backlog(userRepository.getReferenceById(userId),
-                        gameRepository.getReferenceById(game.appId()), defaultStatus);
-                entry.setPlaytimeMinutes(game.playtimeMinutes());
+                        gameRepository.getReferenceById(game.appId()),
+                        minutes > 0 ? inProgress : neverPlayed);
+                entry.setPlaytimeMinutes(minutes);
+                if (minutes > 0) {
+                    entry.setStartedAt(LocalDateTime.now());
+                }
                 backlogRepository.save(entry);
                 added++;
             }
         }
         return new SteamSyncResponse(library.games().size(), added, updated, skipped);
+    }
+
+    /** Stato di lookup per codice; la sua assenza e' un guasto dei dati di base. */
+    private BacklogStatus requireStatus(String code) {
+        return backlogStatusRepository.findByCode(code)
+                .orElseThrow(() -> new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "error.internal"));
     }
 
     /**

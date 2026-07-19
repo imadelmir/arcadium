@@ -8,17 +8,23 @@
 // "ore per mese" delle statistiche; le ore sono sempre legate a un gioco della
 // libreria.
 //
-// Ore mostrate sulla riga: se Steam e' collegato -> totale Steam; altrimenti il
-// totale manuale del gioco (`manualPlaytimeMinutes` dal backend, aggiornato in
-// locale mentre il pannello e' aperto). Cosi' le ore restano visibili anche
-// senza aprire il pannello e dopo un cambio pagina.
+// Ore mostrate sulla riga: se QUESTO gioco arriva dalla sync Steam -> totale
+// Steam; altrimenti il totale manuale del gioco (`manualPlaytimeMinutes` dal
+// backend, aggiornato in locale mentre il pannello e' aperto). Cosi' le ore
+// restano visibili anche senza aprire il pannello e dopo un cambio pagina.
 //
-// "Steam vince": con Steam collegato l'inserimento e' disabilitato (nota); le
-// voci gia' presenti restano come storico ma non modificabili.
+// "Steam vince", ma UN GIOCO ALLA VOLTA. Il blocco non dipende dall'avere un
+// account Steam collegato, bensi' dal fatto che le ore di questa riga vengano
+// da Steam: il backend valorizza `playtimeMinutes` solo nella sync, mentre le
+// voci aggiunte a mano lo lasciano nullo. Un gioco che su Steam non possiedi
+// (comprato altrove, aggiunto manualmente) resta quindi modificabile anche con
+// l'account collegato — prima veniva bloccato anche quello, senza motivo.
+// Quando la riga e' gestita da Steam il pannello mostra un lucchetto e spiega
+// perche': le ore le tiene Steam, e riscriverle a mano creerebbe due verita'.
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { GripVertical, Clock, ChevronDown } from "lucide-react";
+import { GripVertical, Clock, ChevronDown, Lock } from "lucide-react";
 
 import { GameImage } from "@/components";
 import { BACKLOG_STATUSES } from "@/lib/constants";
@@ -68,8 +74,11 @@ const FILL_HALF_HOURS = 48;   // ore a cui la barra è circa a metà
 const FILL_MAX_PERCENT = 92;  // tetto per un gioco non ancora "finito"
 
 function computeFillPercent(statusCode, minutes, wasFinished) {
-  if (statusCode === "mai_giocato") return 0;
   if (statusCode === "finito" || wasFinished) return 100;
+  // "Mai giocato" con ore alle spalle e' una contraddizione (la sync Steam ora
+  // la corregge alla fonte). Qui restiamo comunque coerenti con il numero che
+  // la riga sta mostrando: se ci sono ore, la barra non puo' essere vuota.
+  if (statusCode === "mai_giocato" && !(minutes > 0)) return 0;
 
   const hours = (minutes ?? 0) / 60;
   const percent = (hours / FILL_HALF_HOURS) * 50; // 0 ore -> 0%, 48 ore -> 50%
@@ -107,7 +116,10 @@ export function BacklogCard({
 }) {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const steamConnected = Boolean(user?.steamId);
+  // Blocco per GIOCO: conta che le ore di questa riga arrivino da Steam, non che
+  // l'utente abbia un account collegato. `playtimeMinutes` lo valorizza solo la
+  // sync; le voci aggiunte a mano lo lasciano nullo e restano modificabili.
+  const steamManaged = Boolean(user?.steamId) && playtimeMinutes != null;
 
   const [open, setOpen] = useState(false);
   const [entries, setEntries] = useState(null); // null = non ancora caricate
@@ -129,13 +141,17 @@ export function BacklogCard({
   const loggedMinutes = (entries ?? []).reduce((sum, e) => sum + e.minutes, 0);
   // Ore mostrate sulla riga: Steam -> valore Steam; altrimenti totale manuale
   // (dal backend, oppure quello locale se il pannello e' gia' aperto).
-  const shownMinutes = steamConnected
+  const shownMinutes = steamManaged
     ? playtimeMinutes
     : entries !== null
       ? loggedMinutes
       : manualPlaytimeMinutes ?? 0;
 
   const fillPercent = computeFillPercent(statusCode, shownMinutes, Boolean(finishedAt));
+
+  // Etichetta dello stato corrente, mostrata sulla pillola della tendina.
+  const statusLabelKey =
+    BACKLOG_STATUSES.find((s) => s.code === statusCode)?.labelKey ?? "backlog.moveAria";
 
   // Colore della riga preso dalla copertina reale (come il backdrop sfocato
   // della pagina di dettaglio): parte dal colore di riserva (hash sull'appId)
@@ -268,35 +284,66 @@ export function BacklogCard({
           }}
           aria-expanded={open}
           aria-label={t("backlog.playtime.toggleAria")}
+          data-locked={steamManaged || undefined}
+          title={steamManaged ? t("backlog.playtime.lockedTitle") : undefined}
         >
-          <Clock size={14} aria-hidden="true" />
+          {steamManaged
+            ? <Lock size={13} aria-hidden="true" />
+            : <Clock size={14} aria-hidden="true" />}
           {formatHours(shownMinutes)} {t("backlog.hoursUnit")}
           <ChevronDown size={14} className={styles.chev} aria-hidden="true" />
         </button>
 
-        <label className={styles.moveLabel}>
+        {/* Selettore di stato. Era un <select> nativo: la sua lista la disegna
+            il sistema operativo, quindi arrivava con colori fuori tema e
+            stonava accanto alla tendina delle ore, che gia' usa il pannello
+            condiviso dei filtri. Stesso componente, stesse voci, stesso stile
+            in tutta l'app — e closeOnSelect perche' qui la scelta e' una sola,
+            come faceva il controllo nativo. */}
+        <div className={styles.moveLabel}>
           <span className={styles.srOnly}>
             {t("backlog.moveAria")} — {game.name}
           </span>
-          <select
-            className={styles.move}
-            value={statusCode}
-            onChange={(event) => onStatusChange(game.appId, event.target.value)}
+          <FilterDropdown
+            label={t(statusLabelKey)}
+            align="right"
+            closeOnSelect
+            className={styles.moveDropdown}
           >
-            {BACKLOG_STATUSES.map((s) => (
-              <option key={s.code} value={s.code}>
-                {t(s.labelKey)}
-              </option>
-            ))}
-          </select>
-        </label>
+            <div
+              className={styles.hoursList}
+              role="listbox"
+              aria-label={t("backlog.moveAria")}
+            >
+              {BACKLOG_STATUSES.map((s) => (
+                <button
+                  key={s.code}
+                  type="button"
+                  role="option"
+                  aria-selected={statusCode === s.code}
+                  className={styles.hoursOption}
+                  data-selected={statusCode === s.code}
+                  onClick={() => onStatusChange(game.appId, s.code)}
+                >
+                  {t(s.labelKey)}
+                </button>
+              ))}
+            </div>
+          </FilterDropdown>
+        </div>
       </article>
 
       {/* Pannello ore giocate (M6) — sibling della riga: NON trascinabile */}
       {open && (
         <div className={styles.panel}>
-          {steamConnected ? (
-            <p className={styles.steamNote}>{t("backlog.playtime.steamNote")}</p>
+          {steamManaged ? (
+            <p className={styles.lockedNote}>
+              <Lock size={14} aria-hidden="true" />
+              <span>
+                <strong>{t("backlog.playtime.lockedTitle")}</strong>{" "}
+                {t("backlog.playtime.lockedText")}
+              </span>
+            </p>
           ) : (
             <form className={styles.addRow} onSubmit={handleAdd}>
               {/* Tendina ore nello stile dei filtri del Negozio: la lista di un
@@ -361,7 +408,7 @@ export function BacklogCard({
                     <span className={styles.entryHours}>
                       {formatHours(e.minutes)} {t("backlog.hoursUnit")}
                     </span>
-                    {!steamConnected && (
+                    {!steamManaged && (
                       <button
                         type="button"
                         className={styles.entryDelete}

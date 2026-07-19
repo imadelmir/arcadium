@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,6 +87,68 @@ class StatsServiceTest {
         lenient().when(userRepository.isSteamConnected(USER_ID)).thenReturn(false);
         lenient().when(playtimeRepository.sumMinutesByUser(USER_ID)).thenReturn(0L);
         lenient().when(playtimeRepository.monthlyMinutes(eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
+        // top giochi: vuoti di default, dalla sorgente coerente con "Steam vince"
+        lenient().when(playtimeRepository.topPlayedGames(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+        lenient().when(backlogRepository.topPlayedGames(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+    }
+
+    /**
+     * Senza Steam la sorgente dichiarata e' il registro manuale: e' il campo su
+     * cui il frontend decide se ha senso mostrare la serie mensile o la classifica
+     * dei giochi. La decisione sta qui, dove si conosce la provenienza del dato.
+     */
+    @Test
+    void playtimeSourceIsManualWhenSteamIsNotConnected() {
+        UserStatsResponse stats = statsService.getStats(USER_ID);
+
+        assertThat(stats.playtimeSource()).isEqualTo("manual");
+        verify(playtimeRepository).topPlayedGames(eq(USER_ID), any(Pageable.class));
+        verify(backlogRepository, never()).topPlayedGames(eq(USER_ID), any(Pageable.class));
+    }
+
+    /**
+     * Con Steam collegato i top giochi arrivano dal tempo sincronizzato, come il
+     * totale: le due grandezze non devono poter raccontare storie diverse.
+     */
+    @Test
+    void topGamesComeFromSteamPlaytimeWhenConnected() {
+        when(userRepository.isSteamConnected(USER_ID)).thenReturn(true);
+        when(backlogRepository.topPlayedGames(eq(USER_ID), any(Pageable.class)))
+                .thenReturn(List.of(gamePlaytime(10L, "Hollow Knight", "cover.jpg", 4200L)));
+
+        UserStatsResponse stats = statsService.getStats(USER_ID);
+
+        assertThat(stats.playtimeSource()).isEqualTo("steam");
+        assertThat(stats.topGames()).hasSize(1);
+        UserStatsResponse.TopGame top = stats.topGames().get(0);
+        assertThat(top.appId()).isEqualTo(10L);
+        assertThat(top.name()).isEqualTo("Hollow Knight");
+        assertThat(top.minutes()).isEqualTo(4200L);
+        assertThat(top.hours()).isEqualTo(70L); // 4200 / 60, troncate
+        verify(playtimeRepository, never()).topPlayedGames(eq(USER_ID), any(Pageable.class));
+    }
+
+    /** Il grafico dei top giochi si ferma a dieci voci, come quello dei generi. */
+    @Test
+    void topGamesQueryIsLimitedToTenFromFirstPage() {
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+
+        statsService.getStats(USER_ID);
+
+        verify(playtimeRepository).topPlayedGames(eq(USER_ID), pageable.capture());
+        assertThat(pageable.getValue().getPageNumber()).isZero();
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(10);
+    }
+
+    /** Riga di proiezione "gioco + minuti" per i test dei top giochi. */
+    private static BacklogRepository.GamePlaytime gamePlaytime(
+            Long appId, String name, String headerImage, long minutes) {
+        return new BacklogRepository.GamePlaytime() {
+            @Override public Long getAppId() { return appId; }
+            @Override public String getName() { return name; }
+            @Override public String getHeaderImage() { return headerImage; }
+            @Override public long getMinutes() { return minutes; }
+        };
     }
 
     @Test

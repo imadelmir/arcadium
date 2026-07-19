@@ -102,3 +102,18 @@
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
+
+/* Messaggio al posto del grafico quando non c'e' ancora nulla da disegnare
+   (es. Steam collegato ma nessun gioco con ore registrate). Meglio una frase
+   che un riquadro vuoto con gli assi. */
+.emptyChart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}

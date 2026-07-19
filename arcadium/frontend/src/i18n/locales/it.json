@@ -208,9 +208,10 @@
       "total": "Totale",
       "deleteAria": "Elimina questa voce",
       "error": "Impossibile salvare. Riprova.",
-      "steamNote": "Se attivi la sincronizzazione con Steam, le ore di gioco verranno prese da Steam e non potrai modificarle manualmente finché non disattivi la sincronizzazione.",
       "saved": "Ore salvate",
-      "dayLimit": "Massimo 24 ore per giorno."
+      "dayLimit": "Massimo 24 ore per giorno.",
+      "lockedTitle": "Ore gestite da Steam",
+      "lockedText": "Le ore di questo gioco arrivano dalla sincronizzazione e si aggiornano da sole. Per modificarle a mano, scollega Steam dalle Impostazioni."
     }
   },
   "status": {
@@ -249,7 +250,9 @@
       "hoursTitle": "Ore giocate per mese",
       "hoursSubtitle": "Ultimi 12 mesi",
       "genreTitle": "Giochi per genere",
-      "statusTitle": "Stato dei giochi"
+      "statusTitle": "Stato dei giochi",
+      "topGamesTitle": "Giochi più giocati",
+      "topGamesEmpty": "Nessun gioco con ore registrate. Sincronizza la libreria da Steam oppure aggiungi le tue ore dal Backlog."
     },
     "status": {
       "completed": "Completati",

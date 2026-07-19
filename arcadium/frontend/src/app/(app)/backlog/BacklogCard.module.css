@@ -18,7 +18,12 @@
   border: 1px solid var(--color-border);
   border-left: 3px solid color-mix(in srgb, var(--game) 75%, transparent);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  /* NIENTE overflow: hidden qui. La tendina di stato vive dentro la riga e il
+     suo pannello si apre SOTTO il pulsante, quindi fuori dai 56px di altezza
+     della riga: con l'overflow veniva ritagliato via del tutto e sembrava che
+     la tendina non si aprisse. Non serviva comunque a nulla — la copertina e
+     la barra di avanzamento si ritagliano gia' da sole (.cover e .bar hanno il
+     proprio overflow: hidden) e lo sfondo lo taglia gia' il border-radius. */
   cursor: grab;
   transition: background var(--transition), border-color var(--transition),
     transform var(--transition), box-shadow var(--transition);
@@ -128,28 +133,30 @@
 .pct[data-empty] { color: var(--color-text-faint); }
 
 /* Selettore stato compatto */
+/* Selettore di stato: ora e' il FilterDropdown condiviso, come la tendina delle
+   ore accanto e come i filtri del Negozio. Le regole del vecchio <select>
+   nativo (.move) sono state rimosse: disegnavano una pillola che assomigliava
+   al componente condiviso ma non era quella, e la lista restava comunque
+   disegnata dal sistema operativo, fuori tema. */
 .moveLabel { flex-shrink: 0; }
-.move {
-  max-width: 128px;
-  padding: 6px 26px 6px 10px;
+
+.moveDropdown { min-width: 128px; }
+
+/* Pillola e pannello con le stesse misure del selettore di stato della Libreria
+   (LibraryCard.module.css), cosi' le due schermate mostrano lo stesso controllo
+   e non due varianti che si somigliano. */
+.moveDropdown > button {
+  padding: 5px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text);
-  background-color: rgba(6, 8, 20, 0.55);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b92a8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  backdrop-filter: blur(6px);
-  transition: border-color var(--transition);
+  border-radius: var(--radius-pill);
 }
-.move:hover { border-color: color-mix(in srgb, var(--game) 60%, var(--color-border)); }
-.move:focus-visible { outline: none; box-shadow: var(--ring); }
-.move option { color: var(--color-text); background: var(--color-surface-2); }
+
+.moveDropdown > div {
+  min-width: 150px;
+  max-width: 210px;
+  padding: 6px;
+}
 
 /* Solo screen reader */
 .srOnly {
@@ -178,6 +185,14 @@
 /* La riga resta trascinabile; il pannello e' un fratello, NON trascinabile.   */
 /* =========================================================================== */
 .card { display: block; }
+
+/* Con una tendina aperta la card sale sopra le righe successive. Serve perche'
+   le righe sono tutte position:relative: senza questo, il pannello di una riga
+   finirebbe sotto la riga che le sta sotto nel DOM. */
+.card:has([aria-expanded="true"]) {
+  position: relative;
+  z-index: 50;
+}
 
 .hoursBtn {
   display: inline-flex;
@@ -298,7 +313,35 @@
 /* Conferma "ore salvate" (verde), come il salvataggio profilo */
 .saved { margin: var(--space-2) 0 0; font-size: 12.5px; font-weight: 600; color: #4ade80; }
 
-.steamNote { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--color-text-muted); }
+/* Nota "ore gestite da Steam": sostituisce il modulo di inserimento sulle righe
+   sincronizzate. Non e' un errore, quindi niente rosso — e' uno stato di sola
+   lettura, e il lucchetto lo dice prima del testo. */
+.lockedNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--game) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--game) 28%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+.lockedNote svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: color-mix(in srgb, var(--game) 70%, #ffffff);
+}
+
+.lockedNote strong { color: var(--color-text); font-weight: 600; }
+
+/* Il pulsante delle ore su una riga gestita da Steam: resta cliccabile (apre il
+   pannello e mostra lo storico) ma il lucchetto anticipa che non si modifica. */
+.hoursBtn[data-locked] { cursor: default; }
+.hoursBtn[data-locked] svg:first-child { opacity: 0.75; }
 
 @media (max-width: 640px) {
   .hoursBtn { width: auto; }

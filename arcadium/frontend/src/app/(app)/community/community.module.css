@@ -4,7 +4,11 @@
 
 .page {
   padding: 0 0 var(--space-6);
-  max-width: 1100px;
+  /* Piena larghezza, come Negozio, Libreria e Achievement: il margine laterale
+     lo da' il <main> dello shell, uguale per tutte le pagine. Il max-width che
+     c'era qui rendeva la Community piu' stretta di tutte le altre, con uno
+     stacco visibile passando da una voce all'altra del menu. */
+  max-width: none;
 }
 
 /* Intestazione */
@@ -31,12 +35,14 @@
   margin: var(--space-4) 0 var(--space-6);
 }
 
-/* Griglia utenti: colonne TUTTE della stessa larghezza (card uniformi) */
+/* Elenco utenti: RIGHE a piena larghezza, come il Backlog — non piu' una
+   griglia di riquadri. Una riga per utente, tutte della stessa altezza e con lo
+   stesso margine, cosi' l'occhio scorre in verticale e i pulsanti finiscono
+   incolonnati sul lato destro invece di trovarsi ogni volta in un punto diverso. */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--space-4);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 /* Card utente cliccabile */
@@ -118,8 +124,17 @@
    ============================================================================= */
 
 .card {
-  flex-direction: column;
-  align-items: stretch;
+  /* Stesse misure della riga del Backlog: identita' a sinistra, azioni a destra,
+     altezza dettata dal contenuto piu' alto ma uguale per tutte le righe. */
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  /* Accento a sinistra: sostituisce la variazione di colore per gioco del
+     Backlog, che qui non ha senso (gli utenti non hanno una copertina). */
+  border-left: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
 }
 
 /* Riga identita': e' un <Link> solo se siete amici, altrimenti un <div>. */
@@ -127,6 +142,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex: 1;          /* si prende lo spazio libero: le azioni restano a destra */
   min-width: 0;
   color: inherit;
   text-decoration: none;
@@ -136,8 +152,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex-wrap: wrap;
-  margin-top: var(--space-3);
+  flex-shrink: 0;   /* in riga: non si stringono, restano leggibili a destra */
+  margin-top: 0;
 }
 
 /* Titolo di sezione (Richieste / Amici / Cerca utenti). */
@@ -213,4 +229,20 @@
      non resta incollata alle card. */
   margin-right: calc(var(--space-4) * -1);
   padding-right: var(--space-4);
+}
+
+
+/* Schermi stretti: la riga si spezza in due livelli, identita' sopra e azioni
+   sotto, invece di comprimere il nome fino a renderlo illeggibile. */
+@media (max-width: 560px) {
+  .card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .cardActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }

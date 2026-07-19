@@ -5,7 +5,13 @@
 // Legge le statistiche reali da GET /api/stats/me e mostra:
 //   1. 4 card KPI (giochi posseduti, ore, completamento, generi distinti);
 //   2. tre grafici: giochi per genere (donut), per stato (barre) e ore giocate
-//      per mese (area, feature M6, dalla serie `monthly` del registro manuale).
+//      per mese (area, feature M6, dalla serie `monthly` del registro manuale)
+//      OPPURE, con Steam collegato, i giochi piu' giocati (barre orizzontali).
+//      La scelta la fa il backend con `playtimeSource`: Steam espone solo il
+//      totale di sempre per gioco, senza date, quindi una serie mensile costruita
+//      su quel dato sarebbe piatta. Meglio mostrare l'informazione che c'e'
+//      davvero — come le ore si distribuiscono fra i titoli — che una linea a
+//      zero o una attribuzione temporale inventata.
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +24,7 @@ import { Reveal } from "./Reveal";
 import { GenreDonut } from "./GenreDonut";
 import { StatusBars } from "./StatusBars";
 import { HoursAreaChart } from "./HoursAreaChart";
+import { TopGamesBars } from "./TopGamesBars";
 import styles from "./statistiche.module.css";
 
 // Conteggio animato: il numero sale da 0 al valore finale (stesso effetto della
@@ -93,6 +100,10 @@ export default function StatistichePage() {
   }
 
   // Dati per il grafico generi: il backend dà già { name, count }.
+  // Da dove arrivano le ore, secondo il backend: "steam" (totali sincronizzati,
+  // senza date) oppure "manual" (registro datato). Decide quale grafico mostrare.
+  const steamHours = stats.playtimeSource === "steam";
+
   const genreData = stats.topGenres ?? [];
 
   // Dati per il grafico stati: StatusBars usa `key` (per il colore) e `label`.
@@ -162,14 +173,22 @@ export default function StatistichePage() {
           </Reveal>
         </Card>
 
-        {/* Ore per mese (M6): a tutta larghezza, dalla serie `monthly` reale */}
+        {/* Ore giocate, a tutta larghezza. Con Steam collegato la serie mensile
+            non esiste (nessuna data nel dato di Steam): al suo posto la
+            classifica dei giochi piu' giocati, che le stesse ore le contengono. */}
         <div style={{ gridColumn: "1 / -1" }}>
           <Card padding="lg">
             <div className={styles.chartHead}>
-              <h2 className={styles.chartTitle}>{t("stats.charts.hoursTitle")}</h2>
+              <h2 className={styles.chartTitle}>
+                {steamHours ? t("stats.charts.topGamesTitle") : t("stats.charts.hoursTitle")}
+              </h2>
             </div>
             <Reveal minHeight={340}>
-              <HoursAreaChart data={stats.monthly ?? []} />
+              {steamHours ? (
+                <TopGamesBars data={stats.topGames ?? []} />
+              ) : (
+                <HoursAreaChart data={stats.monthly ?? []} />
+              )}
             </Reveal>
           </Card>
         </div>

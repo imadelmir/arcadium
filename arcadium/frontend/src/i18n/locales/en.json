@@ -208,9 +208,10 @@
       "total": "Total",
       "deleteAria": "Delete this entry",
       "error": "Couldn't save. Try again.",
-      "steamNote": "If you enable Steam sync, playtime is taken from Steam and can't be edited manually until you turn off sync.",
       "saved": "Hours saved",
-      "dayLimit": "Max 24 hours per day."
+      "dayLimit": "Max 24 hours per day.",
+      "lockedTitle": "Hours managed by Steam",
+      "lockedText": "The hours for this game come from the sync and update on their own. To edit them by hand, disconnect Steam in Settings."
     }
   },
   "status": {
@@ -249,7 +250,9 @@
       "hoursTitle": "Hours played per month",
       "hoursSubtitle": "Last 12 months",
       "genreTitle": "Games by genre",
-      "statusTitle": "Games by status"
+      "statusTitle": "Games by status",
+      "topGamesTitle": "Most played games",
+      "topGamesEmpty": "No game has recorded hours yet. Sync your library from Steam, or add your hours from the Backlog."
     },
     "status": {
       "completed": "Completed",
