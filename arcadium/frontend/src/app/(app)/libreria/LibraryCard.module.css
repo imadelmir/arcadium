@@ -6,12 +6,13 @@
 .card[data-status="abandoned"] { --accent: var(--status-abandoned); }
 
 .card {
+  position: relative;   /* per lo z-index quando la tendina è aperta */
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;    /* così il pannello della tendina non viene tagliato */
   /* transform resta rapido (hover reattivo); bordo e ombra scivolano più lenti
      così il CAMBIO STATO — che sposta i colori legati a --accent — è fluido. */
   transition:
@@ -22,6 +23,12 @@
      Anima solo opacity e filter (NON transform), così l'hover che solleva la
      card continua a funzionare. Parte a ogni montaggio (es. cambio tab). */
   animation: cardIn 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Quando la tendina di stato è aperta (focus dentro la card), portiamo la card
+   sopra le altre così il pannello non finisce sotto le card vicine. */
+.card:focus-within {
+  z-index: 20;
 }
 .card:hover {
   transform: translateY(-4px);
@@ -39,6 +46,9 @@
 .cover {
   position: relative;
   overflow: hidden;
+  /* La card non taglia più (overflow:visible), quindi arrotondiamo qui gli
+     angoli in alto per non far sporgere l'immagine oltre il bordo della card. */
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .cover :global(img) {
   transition: transform 450ms ease;
@@ -93,50 +103,61 @@
    NB: le VOCI del menu aperto restano su superficie piena (change request
    Libreria, punto 6): il popup di <select> è disegnato dal sistema operativo e
    non può essere reso trasparente in modo affidabile, quindi lo teniamo nitido. */
-.picker {
+/* --- Selettore di stato: dropdown in stile app (come la tendina ore del Backlog) ---
+   Il trigger (pillola in vetro) è quello di FilterDropdown; qui lo posizioniamo
+   in alto a destra sulla copertina e lo rendiamo compatto, e diamo alla lista
+   di opzioni gli stessi stili della tendina ore del Backlog. */
+.pickerWrap {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
-  z-index: 2;
-  min-width: 116px;
-  padding: 5px 26px 5px 10px;
+  z-index: 3;
+}
+
+/* Trigger compatto (figlio diretto button del FilterDropdown). */
+.statusDropdown > button {
+  padding: 5px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text);
-  /* Vetro scuro tinto con lo stato: base scura per leggibilità + accento. */
-  background-color: color-mix(in srgb, var(--accent) 22%, rgba(8, 10, 24, 0.62));
-  /* Chevron più chiaro per staccare bene sul vetro. */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c7cbe0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.12));
   border-radius: var(--radius-pill);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14), /* riflesso in alto = vetro */
-    0 4px 18px rgba(0, 0, 0, 0.35);          /* stacco dalla copertina */
-  backdrop-filter: blur(10px) saturate(1.1);
-  -webkit-backdrop-filter: blur(10px) saturate(1.1); /* supporto Safari */
+}
+
+/* Pannello più stretto delle opzioni (figlio diretto div del FilterDropdown). */
+.statusDropdown > div {
+  min-width: 150px;
+  max-width: 210px;
+  padding: 6px;
+}
+
+/* Lista opzioni + singola opzione: STESSI stili della tendina ore del Backlog. */
+.statusList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+.statusOption {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  /* Al cambio stato il vetro si ritinta in modo fluido, in sincrono col badge. */
-  transition:
-    background-color 240ms ease,
-    border-color 240ms ease,
-    box-shadow 240ms ease,
-    transform var(--transition);
+  transition: background var(--transition);
 }
-.picker:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 6px 22px rgba(0, 0, 0, 0.4),
-    0 0 18px color-mix(in srgb, var(--accent) 35%, transparent); /* alone stato */
+.statusOption:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
-.picker:focus-visible { outline: none; box-shadow: var(--ring); }
-/* Voci del menu su superficie piena del tema (leggibili all'apertura). */
-.picker option { color: var(--color-text); background: var(--color-surface-2); }
+.statusOption[data-selected="true"] {
+  background: var(--color-primary-soft);
+  font-weight: 600;
+}
 
 .body {
   display: flex;
@@ -219,5 +240,5 @@
   .card:hover .cover :global(img) { transform: none; }
   /* Niente sfocatura in entrata né scivolamenti se l'utente li ha disattivati. */
   .card { animation: none; }
-  .status, .picker { transition: none; }
+  .status, .statusOption { transition: none; }
 }

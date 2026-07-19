@@ -10,10 +10,17 @@ import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { X } from "lucide-react";
 
-import { GameImage, Select, Spinner } from "@/components";
+import { GameImage, FilterDropdown, Spinner } from "@/components";
 import { formatPrice } from "@/lib/format";
 import { listWishlist, removeFromWishlist } from "@/lib/api/wishlist";
 import styles from "./wishlist.module.css";
+
+// Opzioni di ordinamento: [valore, chiave i18n]. L'ordine qui è l'ordine mostrato.
+const SORT_OPTIONS = [
+  ["priceAsc", "priceAsc"],
+  ["discount", "discount"],
+  ["name", "name"],
+];
 
 export default function WishlistPage() {
   const { t, i18n } = useTranslation();
@@ -73,17 +80,34 @@ export default function WishlistPage() {
       <div className={styles.scrollArea}>
 
       <div className={styles.toolbar}>
-        <div className={styles.sort}>
-          <Select
-            label={t("wishlist.sortLabel")}
-            value={sort}
-            onChange={(event) => setSort(event.target.value)}
+        {/* Ordinamento in stile app (come il selettore di stato della Libreria):
+            FilterDropdown + lista di opzioni con la scelta evidenziata. */}
+        <FilterDropdown
+          className={styles.sortDropdown}
+          align="right"
+          active={sort !== "priceAsc"}
+          label={`${t("wishlist.sortLabel")}: ${t(`wishlist.sort.${sort}`)}`}
+        >
+          <div
+            className={styles.sortList}
+            role="listbox"
+            aria-label={t("wishlist.sortLabel")}
           >
-            <option value="priceAsc">{t("wishlist.sort.priceAsc")}</option>
-            <option value="discount">{t("wishlist.sort.discount")}</option>
-            <option value="name">{t("wishlist.sort.name")}</option>
-          </Select>
-        </div>
+            {SORT_OPTIONS.map(([value, key]) => (
+              <button
+                key={value}
+                type="button"
+                role="option"
+                aria-selected={sort === value}
+                data-selected={sort === value}
+                className={styles.sortOption}
+                onClick={() => setSort(value)}
+              >
+                {t(`wishlist.sort.${key}`)}
+              </button>
+            ))}
+          </div>
+        </FilterDropdown>
       </div>
 
       {loading ? (
