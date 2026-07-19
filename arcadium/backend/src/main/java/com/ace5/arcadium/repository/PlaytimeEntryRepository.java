@@ -3,6 +3,7 @@ package com.ace5.arcadium.repository;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -65,6 +66,36 @@ public interface PlaytimeEntryRepository extends JpaRepository<PlaytimeEntry, Lo
             """, nativeQuery = true)
     List<MonthlyMinutes> monthlyMinutes(@Param("userId") Long userId,
                                         @Param("fromDate") LocalDate fromDate);
+
+    /**
+     * Giochi piu' giocati secondo il registro manuale, dal piu' giocato.
+     *
+     * <p>Gemella di {@code BacklogRepository.topPlayedGames}: alimenta lo stesso
+     * grafico quando Steam non e' collegato, cosi' il pannello "top giochi" ha
+     * dati in entrambi i casi e la regola "Steam vince" resta l'unica differenza.
+     *
+     * @param userId   id dell'utente
+     * @param pageable pagina/limite dei giochi da restituire
+     * @return righe (appId, nome, copertina, minuti) ordinate per minuti discendenti
+     */
+    @Query("select g.appId as appId, g.name as name, g.headerImage as headerImage, "
+            + "sum(p.minutes) as minutes "
+            + "from PlaytimeEntry p join p.game g "
+            + "where p.user.id = :userId "
+            + "group by g.appId, g.name, g.headerImage "
+            + "order by sum(p.minutes) desc")
+    List<GamePlaytimeRow> topPlayedGames(@Param("userId") Long userId, Pageable pageable);
+
+    /** Proiezione riga "gioco + minuti manuali" del grafico dei top giochi. */
+    interface GamePlaytimeRow {
+        Long getAppId();
+
+        String getName();
+
+        String getHeaderImage();
+
+        long getMinutes();
+    }
 
     /** Proiezione riga aggregata mensile (alias -> getter). */
     interface MonthlyMinutes {

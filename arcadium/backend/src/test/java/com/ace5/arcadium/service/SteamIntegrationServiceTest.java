@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -229,6 +230,8 @@ class SteamIntegrationServiceTest {
         when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of()));
         when(backlogStatusRepository.findByCode("mai_giocato"))
                 .thenReturn(Optional.of(status("mai_giocato")));
+        when(backlogStatusRepository.findByCode("in_corso"))
+                .thenReturn(Optional.of(status("in_corso")));
 
         SteamSyncResponse response = service.sync(USER_ID);
 
@@ -242,12 +245,14 @@ class SteamIntegrationServiceTest {
     @Test
     void syncAddsNewUpdatesExistingAndSkipsGamesOutOfCatalog() {
         AppUser user = collegato();
-        BacklogStatus status = status("mai_giocato");
-        Backlog existing = new Backlog(user, game(10L), status); // gioco gia' nel backlog
+        BacklogStatus neverPlayed = status("mai_giocato");
+        BacklogStatus inProgress = status("in_corso");
+        Backlog existing = new Backlog(user, game(10L), neverPlayed); // gia' nel backlog
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
-        when(backlogStatusRepository.findByCode("mai_giocato")).thenReturn(Optional.of(status));
+        when(backlogStatusRepository.findByCode("mai_giocato")).thenReturn(Optional.of(neverPlayed));
+        when(backlogStatusRepository.findByCode("in_corso")).thenReturn(Optional.of(inProgress));
         when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of(
                 new OwnedGame(10L, 120),   // in catalogo, gia' presente -> update
                 new OwnedGame(20L, 300),   // in catalogo, nuovo         -> add
@@ -269,6 +274,90 @@ class SteamIntegrationServiceTest {
         assertThat(existing.getPlaytimeMinutes()).isEqualTo(120); // tempo aggiornato
         verify(backlogRepository, times(1)).save(any(Backlog.class)); // solo il nuovo
         verify(backlogRepository, never()).delete(any());              // niente cancellazioni
+    }
+
+    /**
+     * Lo stato di una voce gia' presente appartiene all'utente e la sync non lo
+     * riscrive, nemmeno quando contraddice le ore. Se lo facesse, spostare un
+     * gioco su "mai giocato" e risincronizzare lo riporterebbe "in corso" da
+     * solo: una scelta annullata a ogni sincronizzazione.
+     */
+    @Test
+    void syncNeverRewritesTheStatusOfAnExistingEntry() {
+        AppUser user = collegato();
+        BacklogStatus neverPlayed = status("mai_giocato");
+        Backlog existing = new Backlog(user, game(10L), neverPlayed);
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
+        when(backlogStatusRepository.findByCode("mai_giocato")).thenReturn(Optional.of(neverPlayed));
+        when(backlogStatusRepository.findByCode("in_corso"))
+                .thenReturn(Optional.of(status("in_corso")));
+        when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID))
+                .thenReturn(new OwnedLibrary(true, List.of(new OwnedGame(10L, 4200))));
+        when(gameRepository.existsById(10L)).thenReturn(true);
+        when(backlogRepository.findById(any())).thenReturn(Optional.of(existing));
+
+        service.sync(USER_ID);
+
+        assertThat(existing.getStatus()).isSameAs(neverPlayed); // scelta rispettata
+        assertThat(existing.getPlaytimeMinutes()).isEqualTo(4200); // ore aggiornate
+    }
+
+    /**
+     * Stessa regola per gli altri stati: la sync aggiorna le ore di un gioco
+     * "abbandonato" senza riportarlo in corso.
+     */
+    @Test
+    void syncLeavesUserChosenStatusUntouched() {
+        AppUser user = collegato();
+        BacklogStatus abandoned = status("abbandonato");
+        Backlog existing = new Backlog(user, game(10L), abandoned);
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
+        when(backlogStatusRepository.findByCode("mai_giocato"))
+                .thenReturn(Optional.of(status("mai_giocato")));
+        when(backlogStatusRepository.findByCode("in_corso"))
+                .thenReturn(Optional.of(status("in_corso")));
+        when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID))
+                .thenReturn(new OwnedLibrary(true, List.of(new OwnedGame(10L, 900))));
+        when(gameRepository.existsById(10L)).thenReturn(true);
+        when(backlogRepository.findById(any())).thenReturn(Optional.of(existing));
+
+        service.sync(USER_ID);
+
+        assertThat(existing.getStatus()).isSameAs(abandoned);
+        assertThat(existing.getPlaytimeMinutes()).isEqualTo(900);
+    }
+
+    /**
+     * Un gioco posseduto ma mai avviato (zero minuti) nasce "mai giocato": lo
+     * stato deve seguire il dato, in entrambe le direzioni.
+     */
+    @Test
+    void syncCreatesNeverPlayedEntryForOwnedGameWithZeroPlaytime() {
+        AppUser user = collegato();
+        BacklogStatus neverPlayed = status("mai_giocato");
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
+        when(backlogStatusRepository.findByCode("mai_giocato")).thenReturn(Optional.of(neverPlayed));
+        when(backlogStatusRepository.findByCode("in_corso"))
+                .thenReturn(Optional.of(status("in_corso")));
+        when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID))
+                .thenReturn(new OwnedLibrary(true, List.of(new OwnedGame(10L, 0))));
+        when(gameRepository.existsById(10L)).thenReturn(true);
+        when(backlogRepository.findById(any())).thenReturn(Optional.empty());
+        when(userRepository.getReferenceById(anyLong())).thenReturn(user);
+        when(gameRepository.getReferenceById(10L)).thenReturn(game(10L));
+
+        ArgumentCaptor<Backlog> saved = ArgumentCaptor.forClass(Backlog.class);
+        service.sync(USER_ID);
+
+        verify(backlogRepository).save(saved.capture());
+        assertThat(saved.getValue().getStatus()).isSameAs(neverPlayed);
+        assertThat(saved.getValue().getStartedAt()).isNull();
     }
 
     // ------------------------------------------------------------------- unlink

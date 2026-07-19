@@ -183,8 +183,10 @@ class AchievementServiceTest {
                 new UserStatsResponse.StatusBreakdown("in_corso", "In corso", "Playing", inProgress),
                 new UserStatsResponse.StatusBreakdown("finito", "Finito", "Completed", finished),
                 new UserStatsResponse.StatusBreakdown("abbandonato", "Abbandonato", "Abandoned", abandoned));
+        // topGames vuoto e sorgente "manual": il motore degli achievement guarda
+        // conteggi e ore totali, non la classifica dei giochi ne' la provenienza.
         return new UserStatsResponse(owned, wishlist, playtimeHours * 60, playtimeHours,
-                distinctGenres, 0.0, byStatus, List.of(), List.of());
+                distinctGenres, 0.0, byStatus, List.of(), List.of(), List.of(), "manual");
     }
 
     private static Achievement achievement(long id, String code, String metric, int threshold) {

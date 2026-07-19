@@ -64,6 +64,7 @@ export function LibraryCard({
           className={styles.statusDropdown}
           label={currentLabel}
           align="right"
+          closeOnSelect
         >
           <div
             className={styles.statusList}

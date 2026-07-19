@@ -21,6 +21,13 @@
 //           pallino con il conteggio ed evidenzia la pillola)
 //   active  evidenzia la pillola per i filtri a scelta singola non di default
 //   align   "left" (default) | "right" — lato a cui si ancora il pannello
+//   closeOnSelect  chiude il pannello al primo clic su un'opzione. Serve alle
+//           tendine a scelta SINGOLA che sostituiscono un <select> nativo (es.
+//           lo stato nel Backlog): li' restare aperti dopo la scelta sarebbe
+//           un passo indietro rispetto al controllo di sistema, che si chiude
+//           da solo. I filtri multi-selezione del Negozio non lo usano, perche'
+//           di norma si spuntano piu' voci di seguito: default false, quindi
+//           nessun uso esistente cambia comportamento.
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
@@ -33,6 +40,7 @@ export function FilterDropdown({
   active = false,
   align = "left",
   className = "",
+  closeOnSelect = false,
   children,
 }) {
   const [open, setOpen] = useState(false);
@@ -80,7 +88,14 @@ export function FilterDropdown({
         <ChevronDown size={16} className={styles.chevron} aria-hidden="true" />
       </button>
 
-      {open && <div className={panelClasses}>{children}</div>}
+      {open && (
+        <div
+          className={panelClasses}
+          onClick={closeOnSelect ? () => setOpen(false) : undefined}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }

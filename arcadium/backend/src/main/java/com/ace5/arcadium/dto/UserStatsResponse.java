@@ -42,6 +42,8 @@ import java.util.List;
  * @param byStatus        ripartizione per stato, tutti gli stati in ordine (con etichette IT/EN)
  * @param topGenres       generi piu' frequenti nel posseduto, dal piu' numeroso
  * @param monthly         ore per mese, ultimi 12 mesi in ordine cronologico (dal registro manuale)
+ * @param topGames        giochi piu' giocati, dal piu' giocato (stessa fonte di playtimeMinutes)
+ * @param playtimeSource  da dove arrivano le ore: "steam" se l'account e' collegato, altrimenti "manual"
  */
 public record UserStatsResponse(
         long gamesOwned,
@@ -52,7 +54,9 @@ public record UserStatsResponse(
         double completionRate,
         List<StatusBreakdown> byStatus,
         List<TopGenre> topGenres,
-        List<MonthlyPlaytime> monthly
+        List<MonthlyPlaytime> monthly,
+        List<TopGame> topGames,
+        String playtimeSource
 ) {
 
     /**
@@ -90,5 +94,23 @@ public record UserStatsResponse(
      * @param hours   ore totali (minuti / 60, troncate)
      */
     public record MonthlyPlaytime(int year, int month, long minutes, long hours) {
+    }
+
+    /**
+     * Un gioco nella classifica dei piu' giocati.
+     *
+     * <p>Alimenta il grafico a barre che, con Steam collegato, prende il posto di
+     * quello mensile: Steam espone solo il totale di sempre per gioco, senza
+     * storico datato, quindi non esiste un mese a cui attribuire quelle ore.
+     * Invece di una serie temporale piatta si mostra come le ore si distribuiscono
+     * fra i giochi, che e' l'informazione realmente contenuta nel dato.
+     *
+     * @param appId       identificativo Steam del gioco
+     * @param name        nome del gioco
+     * @param headerImage copertina, per la miniatura accanto alla barra (puo' mancare)
+     * @param minutes     minuti giocati su quel gioco
+     * @param hours       ore giocate (minuti / 60, troncate)
+     */
+    public record TopGame(long appId, String name, String headerImage, long minutes, long hours) {
     }
 }

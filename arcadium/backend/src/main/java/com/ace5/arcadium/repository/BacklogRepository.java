@@ -101,6 +101,30 @@ public interface BacklogRepository extends JpaRepository<Backlog, BacklogId> {
             + "where b.user.id = :userId group by g.name order by count(b) desc")
     List<GenreCount> topGenres(@Param("userId") Long userId, Pageable pageable);
 
+    /**
+     * Giochi piu' giocati secondo il tempo sincronizzato da Steam
+     * ({@code backlog.playtime_minutes}), dal piu' giocato.
+     *
+     * <p>Serve al grafico "top giochi per ore" delle statistiche, che con Steam
+     * collegato prende il posto di quello mensile: Steam espone soltanto il
+     * totale di sempre per gioco, senza alcuno storico datato, quindi una serie
+     * per mese costruita su quei dati sarebbe piatta (o inventata).
+     *
+     * <p>Si escludono i valori nulli (voci aggiunte a mano, mai sincronizzate) e
+     * gli zeri (posseduti ma mai avviati): non aggiungono informazione al grafico
+     * e allungherebbero soltanto l'asse.
+     *
+     * @param userId   id dell'utente
+     * @param pageable pagina/limite dei giochi da restituire
+     * @return righe (appId, nome, copertina, minuti) ordinate per minuti discendenti
+     */
+    @Query("select gm.appId as appId, gm.name as name, gm.headerImage as headerImage, "
+            + "b.playtimeMinutes as minutes "
+            + "from Backlog b join b.game gm "
+            + "where b.user.id = :userId and b.playtimeMinutes is not null and b.playtimeMinutes > 0 "
+            + "order by b.playtimeMinutes desc")
+    List<GamePlaytime> topPlayedGames(@Param("userId") Long userId, Pageable pageable);
+
     // ------------------------------------------------------------- proiezioni
 
     /**
@@ -121,6 +145,21 @@ public interface BacklogRepository extends JpaRepository<Backlog, BacklogId> {
         String getName();
 
         long getCount();
+    }
+
+    /**
+     * Proiezione (interface projection) di una riga "gioco + minuti giocati" del
+     * grafico dei giochi piu' giocati. La copertina serve al frontend per
+     * affiancare la miniatura alla barra.
+     */
+    interface GamePlaytime {
+        Long getAppId();
+
+        String getName();
+
+        String getHeaderImage();
+
+        long getMinutes();
     }
 
     /**

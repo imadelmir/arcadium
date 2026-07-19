@@ -42,6 +42,13 @@ import com.ace5.arcadium.repository.WishlistRepository;
  * Il grafico "ore per mese" e' invece SEMPRE dal registro manuale (Steam non
  * espone lo storico mensile) e viene sempre restituito con 12 voci in ordine
  * cronologico, anche a zero, per dare al grafico un asse stabile.
+ *
+ * <p><b>Top giochi e sorgente delle ore.</b> Poiche' con Steam collegato la serie
+ * mensile e' per forza di cose vuota — {@code playtime_forever} e' un totale di
+ * sempre, senza date — la risposta porta anche i giochi piu' giocati e un campo
+ * {@code playtimeSource} ("steam" o "manual") che dice al frontend quale dei due
+ * grafici abbia effettivamente qualcosa da mostrare. Cosi' la decisione sta dove
+ * si conosce la provenienza del dato, invece di essere dedotta dal client.
  */
 @Service
 public class StatsService {
@@ -51,6 +58,13 @@ public class StatsService {
 
     /** Quanti generi mostrare nel grafico dei generi piu' frequenti. */
     private static final int TOP_GENRES_LIMIT = 10;
+
+    /** Quanti giochi mostrare nel grafico dei piu' giocati. */
+    private static final int TOP_GAMES_LIMIT = 10;
+
+    /** Valori di {@code playtimeSource}: dicono al frontend quale grafico ha senso. */
+    private static final String SOURCE_STEAM = "steam";
+    private static final String SOURCE_MANUAL = "manual";
 
     /** Minuti in un'ora, per la conversione del tempo di gioco. */
     private static final long MINUTES_PER_HOUR = 60L;
@@ -109,8 +123,10 @@ public class StatsService {
 
         // "Steam vince": se l'account Steam e' collegato il totale ore e' quello
         // sincronizzato (backlog.playtime_minutes); altrimenti la somma delle voci
-        // del registro manuale.
-        long playtimeMinutes = userRepository.isSteamConnected(userId)
+        // del registro manuale. La stessa scelta decide anche da dove vengono i
+        // "top giochi", cosi' i due numeri non possono raccontare storie diverse.
+        boolean steamConnected = userRepository.isSteamConnected(userId);
+        long playtimeMinutes = steamConnected
                 ? backlogRepository.sumPlaytimeMinutes(userId)
                 : playtimeRepository.sumMinutesByUser(userId);
 
@@ -125,6 +141,7 @@ public class StatsService {
         double completionRate = completionRate(finished, gamesOwned);
 
         List<UserStatsResponse.MonthlyPlaytime> monthly = monthlyPlaytime(userId);
+        List<UserStatsResponse.TopGame> topGames = topGames(userId, steamConnected);
 
         return new UserStatsResponse(
                 gamesOwned,
@@ -135,7 +152,36 @@ public class StatsService {
                 completionRate,
                 byStatus,
                 topGenres,
-                monthly);
+                monthly,
+                topGames,
+                steamConnected ? SOURCE_STEAM : SOURCE_MANUAL);
+    }
+
+    /**
+     * Classifica dei giochi piu' giocati, dalla stessa fonte del totale ore.
+     *
+     * <p>Con Steam collegato i minuti sono quelli sincronizzati per gioco; senza,
+     * la somma delle sessioni dichiarate a mano. Il frontend usa questa serie al
+     * posto del grafico mensile quando la fonte e' Steam: {@code playtime_forever}
+     * e' un totale di sempre, privo di date, quindi una serie per mese costruita
+     * su quel dato sarebbe piatta — e attribuire tutte le ore al mese dell'ultima
+     * sessione darebbe un grafico verosimile ma falso.
+     */
+    private List<UserStatsResponse.TopGame> topGames(Long userId, boolean steamConnected) {
+        PageRequest limit = PageRequest.of(0, TOP_GAMES_LIMIT);
+
+        if (steamConnected) {
+            return backlogRepository.topPlayedGames(userId, limit).stream()
+                    .map(row -> new UserStatsResponse.TopGame(
+                            row.getAppId(), row.getName(), row.getHeaderImage(),
+                            row.getMinutes(), row.getMinutes() / MINUTES_PER_HOUR))
+                    .toList();
+        }
+        return playtimeRepository.topPlayedGames(userId, limit).stream()
+                .map(row -> new UserStatsResponse.TopGame(
+                        row.getAppId(), row.getName(), row.getHeaderImage(),
+                        row.getMinutes(), row.getMinutes() / MINUTES_PER_HOUR))
+                .toList();
     }
 
     /**
