@@ -133,6 +133,13 @@
     "autoTranslated": "Tradotto automaticamente",
     "translateError": "Traduzione non riuscita, mostro l'originale",
     "media": "Immagini",
+  "lightbox": {
+    "title": "Visualizzatore immagini",
+    "previous": "Immagine precedente",
+    "next": "Immagine successiva",
+    "openAria": "Apri l'immagine {{current}} a schermo intero",
+    "imageAlt": "Screenshot {{current}} di {{total}}"
+  },
     "reviews": "Recensioni",
     "reviewOf": "su",
     "reviewWord": "recensioni",

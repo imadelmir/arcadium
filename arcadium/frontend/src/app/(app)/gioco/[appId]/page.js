@@ -26,6 +26,7 @@ import {
 
 import { Button, Card, Badge, GameImage, Spinner } from "@/components";
 import { GameDescription } from "@/components/GameDescription/GameDescription";
+import { ScreenshotLightbox } from "./ScreenshotLightbox";
 import { formatPrice } from "@/lib/format";
 import { getGame } from "@/lib/api/games";
 import { addToWishlist, removeFromWishlist } from "@/lib/api/wishlist";
@@ -47,6 +48,9 @@ export default function GameDetailPage() {
   const [inBacklog, setInBacklog] = useState(false);
   const [busyWishlist, setBusyWishlist] = useState(false);
   const [busyBacklog, setBusyBacklog] = useState(false);
+
+  // Lightbox degli screenshot: null = chiuso, altrimenti indice aperto.
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   // Carica il gioco dal backend quando cambia l'appId.
   useEffect(() => {
@@ -227,12 +231,30 @@ export default function GameDetailPage() {
               <h2 className={styles.blockTitle}>{t("gameDetail.media")}</h2>
               <div className={styles.media}>
                 {game.screenshots.map((src, i) => (
-                  <div key={i} className={styles.shot}>
+                  <button
+                    key={i}
+                    type="button"
+                    className={styles.shot}
+                    onClick={() => setLightboxIndex(i)}
+                    aria-label={t("gameDetail.lightbox.openAria", { current: i + 1 })}
+                  >
                     <GameImage src={src} alt={`${game.name} — ${i + 1}`} />
-                  </div>
+                  </button>
                 ))}
               </div>
             </section>
+          )}
+
+          {/* Lightbox: si apre cliccando una miniatura, scorre tra tutti gli
+              screenshot del gioco. Montato solo quando serve (lightboxIndex
+              non è null), così non pesa sulla pagina finché resta chiuso. */}
+          {lightboxIndex !== null && (
+            <ScreenshotLightbox
+              images={game.screenshots}
+              index={lightboxIndex}
+              onClose={() => setLightboxIndex(null)}
+              onIndexChange={setLightboxIndex}
+            />
           )}
 
           {/* Recensioni: spostate nell'header, subito sotto il titolo. */}
