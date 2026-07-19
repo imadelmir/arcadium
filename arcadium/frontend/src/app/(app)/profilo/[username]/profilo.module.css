@@ -6,7 +6,10 @@
 
 /* Contenitore pagina: largo, così i componenti riempiono lo spazio. */
 .page {
-  padding: var(--space-6) 0;
+  /* Top a 0: il contenuto (e il titolo) parte alla stessa altezza delle altre
+     pagine. Prima un padding-top space-6 lo abbassava. Lati a 0: i 32px li dà
+     il <main>, come tutte le altre schede. */
+  padding: 0 0 var(--space-6);
   /* Larghezza piena come le altre schede: con un limite fisso le card si
      fermavano a meta' schermo sui monitor grandi. */
   max-width: none;
