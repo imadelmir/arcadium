@@ -109,3 +109,121 @@
   font-size: 0.9rem;
   color: var(--danger, #ef4444);
 }
+/* =============================================================================
+   Collegamento con la chiave Steam Web API dell'utente.
+   ============================================================================= */
+
+/* Riquadro con le istruzioni per generare la chiave sul sito di Steam. */
+.guideBox {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius, 8px);
+  background: color-mix(in srgb, var(--accent, #8b5cf6) 8%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guideTitle {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.guideIntro {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Elenco numerato dei passi da fare su Steam. */
+.steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.steps li::marker {
+  color: var(--accent, #8b5cf6);
+  font-weight: 700;
+}
+
+/* Link diretto alla pagina ufficiale da cui si genera la chiave. */
+.guideLink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+  color: var(--accent, #8b5cf6);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.guideLink:hover {
+  text-decoration: underline;
+}
+
+/* Nota conclusiva: la chiave e' personale, si puo' revocare da Steam. */
+.guideNote {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
+/* Modulo: profilo Steam + chiave API. */
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.form > * {
+  width: 100%;
+}
+
+/* Campo segreto: input mascherato + pulsante "mostra / nascondi" a destra.
+   Il pulsante e' allineato in basso perche' l'Input porta con se' etichetta
+   sopra e suggerimento sotto. */
+.secretField {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.secretInput {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.secretToggle {
+  flex: 0 0 auto;
+  margin-top: 1.75rem; /* scavalca l'etichetta dell'Input e si allinea al campo */
+  white-space: nowrap;
+}
+
+/* Il campo mascherato usa cifre a larghezza fissa: un incolla di 32 caratteri
+   resta leggibile quando si preme "mostra". */
+.secretInput input {
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 480px) {
+  .secretField {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .secretToggle {
+    margin-top: 0;
+  }
+}

@@ -4,17 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
-import com.ace5.arcadium.config.SteamProperties;
+import com.ace5.arcadium.dto.SteamConnectRequest;
 import com.ace5.arcadium.dto.SteamConnectResponse;
 import com.ace5.arcadium.dto.SteamSyncResponse;
 import com.ace5.arcadium.entity.AppUser;
@@ -36,21 +36,34 @@ import com.ace5.arcadium.repository.AppUserRepository;
 import com.ace5.arcadium.repository.BacklogRepository;
 import com.ace5.arcadium.repository.BacklogStatusRepository;
 import com.ace5.arcadium.repository.GameRepository;
+import com.ace5.arcadium.security.SecretCipher;
 import com.ace5.arcadium.steam.SteamClient;
 import com.ace5.arcadium.steam.SteamClient.OwnedGame;
 import com.ace5.arcadium.steam.SteamClient.OwnedLibrary;
+import com.ace5.arcadium.steam.SteamClient.SteamProfile;
 
+/**
+ * Test del servizio di integrazione Steam, senza rete: {@link SteamClient} e
+ * {@link SecretCipher} sono mockati.
+ *
+ * <p>Coprono le due meta' del comportamento: il <b>collegamento</b> (forme
+ * accettate del profilo, validazione della chiave, unicita' dell'account) e la
+ * <b>sincronizzazione</b> (profilo privato, libreria vuota, aggiunte/aggiornamenti
+ * e giochi fuori catalogo).
+ */
 @ExtendWith(MockitoExtension.class)
 class SteamIntegrationServiceTest {
 
     private static final Long USER_ID = 7L;
     private static final String STEAM_ID = "76561198000000000";
-    private static final String CLAIMED_ID = "https://steamcommunity.com/openid/id/" + STEAM_ID;
+    private static final String API_KEY = "A1B2C3D4E5F60718293A4B5C6D7E8F90";
+    private static final String API_KEY_ENC = "chiave-cifrata";
+    private static final String PERSONA = "GamerACE5";
 
     @Mock
     private SteamClient steamClient;
     @Mock
-    private SteamProperties properties;
+    private SecretCipher cipher;
     @Mock
     private AppUserRepository userRepository;
     @Mock
@@ -63,55 +76,122 @@ class SteamIntegrationServiceTest {
     @InjectMocks
     private SteamIntegrationService service;
 
+    // ------------------------------------------------------------------ connect
+
+    /**
+     * Lo SteamID a 17 cifre si usa cosi' com'e': nessuna chiamata a
+     * ResolveVanityURL. La chiave viene salvata solo cifrata.
+     */
     @Test
-    void connectVerifiesAndLinksSteamId() {
+    void connectAcceptsSteamId64AndStoresEncryptedKey() {
         AppUser user = appUser(USER_ID, null);
-        when(steamClient.verifyOpenId(anyMap())).thenReturn(true);
+        when(steamClient.getPlayerSummary(API_KEY, STEAM_ID))
+                .thenReturn(Optional.of(new SteamProfile(STEAM_ID, PERSONA)));
         when(userRepository.findBySteamId(STEAM_ID)).thenReturn(Optional.empty());
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(cipher.encrypt(API_KEY)).thenReturn(API_KEY_ENC);
 
         SteamConnectResponse response = service.connect(USER_ID,
-                Map.of("openid.claimed_id", CLAIMED_ID, "openid.mode", "id_res"));
+                new SteamConnectRequest(STEAM_ID, API_KEY));
 
         assertThat(response.steamId()).isEqualTo(STEAM_ID);
+        assertThat(response.personaName()).isEqualTo(PERSONA);
         assertThat(user.getSteamId()).isEqualTo(STEAM_ID);
+        assertThat(user.getSteamApiKey()).isEqualTo(API_KEY_ENC); // mai in chiaro
+        verify(steamClient, never()).resolveVanityUrl(anyString(), anyString());
     }
 
+    /** L'URL del profilo con l'ID numerico dentro viene normalizzato a SteamID64. */
     @Test
-    void connectFailsWhenSteamRejectsAssertion() {
-        when(steamClient.verifyOpenId(anyMap())).thenReturn(false);
+    void connectAcceptsProfileUrl() {
+        when(steamClient.getPlayerSummary(API_KEY, STEAM_ID))
+                .thenReturn(Optional.of(new SteamProfile(STEAM_ID, PERSONA)));
+        when(userRepository.findBySteamId(STEAM_ID)).thenReturn(Optional.empty());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, null)));
+        when(cipher.encrypt(API_KEY)).thenReturn(API_KEY_ENC);
 
-        assertThatThrownBy(() -> service.connect(USER_ID, Map.of("openid.claimed_id", CLAIMED_ID)))
+        SteamConnectResponse response = service.connect(USER_ID, new SteamConnectRequest(
+                "https://steamcommunity.com/profiles/" + STEAM_ID + "/", API_KEY));
+
+        assertThat(response.steamId()).isEqualTo(STEAM_ID);
+    }
+
+    /** Il nome personalizzato viene risolto da Steam in SteamID64. */
+    @Test
+    void connectResolvesVanityName() {
+        when(steamClient.resolveVanityUrl(API_KEY, "gamerace5")).thenReturn(Optional.of(STEAM_ID));
+        when(steamClient.getPlayerSummary(API_KEY, STEAM_ID))
+                .thenReturn(Optional.of(new SteamProfile(STEAM_ID, PERSONA)));
+        when(userRepository.findBySteamId(STEAM_ID)).thenReturn(Optional.empty());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, null)));
+        when(cipher.encrypt(API_KEY)).thenReturn(API_KEY_ENC);
+
+        SteamConnectResponse response = service.connect(USER_ID, new SteamConnectRequest(
+                "https://steamcommunity.com/id/gamerace5", API_KEY));
+
+        assertThat(response.steamId()).isEqualTo(STEAM_ID);
+    }
+
+    /**
+     * Chiave malformata: si scarta prima di spendere una chiamata di rete, cosi'
+     * l'errore e' immediato anche se Steam e' lento o irraggiungibile.
+     */
+    @Test
+    void connectRejectsMalformedApiKeyWithoutCallingSteam() {
+        assertThatThrownBy(() -> service.connect(USER_ID,
+                new SteamConnectRequest(STEAM_ID, "chiave-troppo-corta")))
                 .isInstanceOfSatisfying(ApiException.class, ex -> {
                     assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-                    assertThat(ex.getMessageKey()).isEqualTo("error.steam.verificationFailed");
+                    assertThat(ex.getMessageKey()).isEqualTo("error.steam.invalidKey");
+                });
+
+        verifyNoInteractions(steamClient);
+    }
+
+    /** Profilo in una forma che non sappiamo interpretare: 400 parlante. */
+    @Test
+    void connectRejectsUnrecognisedProfile() {
+        assertThatThrownBy(() -> service.connect(USER_ID,
+                new SteamConnectRequest("non e' un profilo", API_KEY)))
+                .isInstanceOfSatisfying(ApiException.class, ex -> {
+                    assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    assertThat(ex.getMessageKey()).isEqualTo("error.steam.invalidProfile");
                 });
     }
 
+    /** Chiave valida ma SteamID inesistente: Steam torna nessun profilo. */
+    @Test
+    void connectFailsWhenSteamProfileDoesNotExist() {
+        when(steamClient.getPlayerSummary(API_KEY, STEAM_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.connect(USER_ID, new SteamConnectRequest(STEAM_ID, API_KEY)))
+                .isInstanceOfSatisfying(ApiException.class, ex -> {
+                    assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    assertThat(ex.getMessageKey()).isEqualTo("error.steam.profileNotFound");
+                });
+    }
+
+    /** Un account Steam appartiene a un solo utente Arcadium. */
     @Test
     void connectRejectsSteamIdAlreadyLinkedToAnotherUser() {
-        when(steamClient.verifyOpenId(anyMap())).thenReturn(true);
+        when(steamClient.getPlayerSummary(API_KEY, STEAM_ID))
+                .thenReturn(Optional.of(new SteamProfile(STEAM_ID, PERSONA)));
         when(userRepository.findBySteamId(STEAM_ID)).thenReturn(Optional.of(appUser(99L, STEAM_ID)));
 
-        assertThatThrownBy(() -> service.connect(USER_ID, Map.of("openid.claimed_id", CLAIMED_ID)))
+        assertThatThrownBy(() -> service.connect(USER_ID, new SteamConnectRequest(STEAM_ID, API_KEY)))
                 .isInstanceOfSatisfying(ApiException.class, ex -> {
                     assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
                     assertThat(ex.getMessageKey()).isEqualTo("error.steam.alreadyLinked");
                 });
+
+        verify(cipher, never()).encrypt(anyString());
     }
 
-    @Test
-    void syncFailsWhenIntegrationNotConfigured() {
-        when(properties.isConfigured()).thenReturn(false);
+    // --------------------------------------------------------------------- sync
 
-        assertThatThrownBy(() -> service.sync(USER_ID))
-                .isInstanceOfSatisfying(ApiException.class, ex ->
-                        assertThat(ex.getMessageKey()).isEqualTo("error.steam.notConfigured"));
-    }
-
+    /** Senza chiave salvata non c'e' collegamento, anche se lo SteamID c'e'. */
     @Test
     void syncFailsWhenNoSteamAccountLinked() {
-        when(properties.isConfigured()).thenReturn(true);
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, null)));
 
         assertThatThrownBy(() -> service.sync(USER_ID))
@@ -122,16 +202,15 @@ class SteamIntegrationServiceTest {
     }
 
     /**
-     * M6-T4: profilo Steam privato. Steam risponde 200 con un involucro vuoto e il
-     * client lo segnala con visible=false. Prima diventava un successo con zero
-     * giochi; ora deve essere un 422 parlante, cosi' il frontend puo' mostrare
-     * l'avviso con il link alla privacy di Steam.
+     * Profilo Steam privato. Steam risponde 200 con un involucro vuoto e il client
+     * lo segnala con visible=false: dev'essere un 422 parlante, non un successo
+     * con zero giochi indistinguibile da una libreria vuota.
      */
     @Test
     void syncFailsWhenSteamProfileIsPrivate() {
-        when(properties.isConfigured()).thenReturn(true);
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, STEAM_ID)));
-        when(steamClient.getOwnedLibrary(STEAM_ID)).thenReturn(new OwnedLibrary(false, List.of()));
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(collegato()));
+        when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
+        when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID)).thenReturn(new OwnedLibrary(false, List.of()));
 
         assertThatThrownBy(() -> service.sync(USER_ID))
                 .isInstanceOfSatisfying(ApiException.class, ex -> {
@@ -145,9 +224,9 @@ class SteamIntegrationServiceTest {
     /** Profilo pubblico ma libreria vuota: e' un successo, con zero giochi. */
     @Test
     void syncSucceedsWithZeroGamesWhenPublicLibraryIsEmpty() {
-        when(properties.isConfigured()).thenReturn(true);
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(appUser(USER_ID, STEAM_ID)));
-        when(steamClient.getOwnedLibrary(STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of()));
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(collegato()));
+        when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
+        when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of()));
         when(backlogStatusRepository.findByCode("mai_giocato"))
                 .thenReturn(Optional.of(status("mai_giocato")));
 
@@ -162,14 +241,14 @@ class SteamIntegrationServiceTest {
 
     @Test
     void syncAddsNewUpdatesExistingAndSkipsGamesOutOfCatalog() {
-        AppUser user = appUser(USER_ID, STEAM_ID);
+        AppUser user = collegato();
         BacklogStatus status = status("mai_giocato");
         Backlog existing = new Backlog(user, game(10L), status); // gioco gia' nel backlog
 
-        when(properties.isConfigured()).thenReturn(true);
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(cipher.decrypt(API_KEY_ENC)).thenReturn(API_KEY);
         when(backlogStatusRepository.findByCode("mai_giocato")).thenReturn(Optional.of(status));
-        when(steamClient.getOwnedLibrary(STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of(
+        when(steamClient.getOwnedLibrary(API_KEY, STEAM_ID)).thenReturn(new OwnedLibrary(true, List.of(
                 new OwnedGame(10L, 120),   // in catalogo, gia' presente -> update
                 new OwnedGame(20L, 300),   // in catalogo, nuovo         -> add
                 new OwnedGame(99L, 5))));  // fuori catalogo             -> skip
@@ -192,7 +271,28 @@ class SteamIntegrationServiceTest {
         verify(backlogRepository, never()).delete(any());              // niente cancellazioni
     }
 
-    // ------------------------------------------------------------- helpers
+    // ------------------------------------------------------------------- unlink
+
+    /** Scollegare cancella anche la chiave: non deve sopravvivere al collegamento. */
+    @Test
+    void unlinkClearsSteamIdAndApiKey() {
+        AppUser user = collegato();
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+        service.unlink(USER_ID);
+
+        assertThat(user.getSteamId()).isNull();
+        assertThat(user.getSteamApiKey()).isNull();
+    }
+
+    // ------------------------------------------------------------------ helpers
+
+    /** Utente con Steam collegato: SteamID + chiave cifrata. */
+    private static AppUser collegato() {
+        AppUser user = appUser(USER_ID, STEAM_ID);
+        user.setSteamApiKey(API_KEY_ENC);
+        return user;
+    }
 
     private static com.ace5.arcadium.entity.BacklogId argThatAppId(long appId) {
         return new com.ace5.arcadium.entity.BacklogId(USER_ID, appId);

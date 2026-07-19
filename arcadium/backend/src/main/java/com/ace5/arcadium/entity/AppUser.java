@@ -26,6 +26,12 @@ import jakarta.persistence.Table;
  * <p>I campi di integrazione ({@code steam_id}, {@code discord_url},
  * {@code twitch_url}) e {@code preferred_language} arrivano dalla migrazione V2
  * (M2-T7): sono già colonne di app_user, quindi mappati qui.
+ *
+ * <p>{@code steam_api_key} (V17) segue la stessa logica di {@code password_hash}
+ * — un segreto che non deve mai uscire da qui — ma con una differenza: una
+ * password si confronta soltanto, quindi basta l'hash, mentre una chiave API va
+ * riusata a ogni chiamata verso Steam e quindi si conserva cifrata
+ * (AES-256-GCM, {@code security/SecretCipher}). Nessun DTO la espone.
  */
 @Entity
 @Table(name = "app_user")
@@ -67,6 +73,8 @@ public class AppUser {
 
     @Column(unique = true)
     private String steamId;                   // TEXT, nullable e UNIQUE (connect Steam, M4-T16)
+
+    private String steamApiKey;               // TEXT, nullable (V17) — chiave Steam Web API dell'utente, CIFRATA (SecretCipher); mai in chiaro ne' esposta dall'API
 
     private String discordUrl;                // TEXT, nullable (link social, M4-T15)
     private String twitchUrl;                 // TEXT, nullable (link social, M4-T15)
@@ -115,6 +123,9 @@ public class AppUser {
 
     public String getSteamId() { return steamId; }
     public void setSteamId(String steamId) { this.steamId = steamId; }
+
+    public String getSteamApiKey() { return steamApiKey; }
+    public void setSteamApiKey(String steamApiKey) { this.steamApiKey = steamApiKey; }
 
     public String getDiscordUrl() { return discordUrl; }
     public void setDiscordUrl(String discordUrl) { this.discordUrl = discordUrl; }
