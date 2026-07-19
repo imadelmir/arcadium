@@ -44,7 +44,11 @@
   display: inline-flex;
   flex-shrink: 0;
   color: var(--color-text-faint);
+  cursor: grab;               /* la maniglia è l'appiglio per trascinare */
   transition: color var(--transition);
+}
+.grip:active {
+  cursor: grabbing;
 }
 .row:hover .grip { color: var(--color-text-muted); }
 
