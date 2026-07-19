@@ -8,6 +8,12 @@
    The palette comes from the Arcadium mockups: a dark navy background
    with a violet brand colour.
 
+   Palette "Indaco morbido": il fondo non e' piu' nero-navy ma un indaco
+   violaceo piu' morbido, coerente con l'aurora della sidebar (fedele al
+   logo). Superfici, bordi e testo salgono di tono insieme, restando
+   comunque in tema scuro. I colori di brand e semantici (violet, sconto,
+   stati, oro) NON cambiano.
+
    NOTE: we use the system font for now (nothing to download). If we
    want the "Inter" font like in the mockups, we can add it later with
    next/font during the design-system task (M5 - T2).
@@ -15,18 +21,18 @@
 
 :root {
   /* --- Background layers (darkest to lightest) --- */
- --color-bg: #0e1025;          /* main app background */
+ --color-bg: #14152e;          /* main app background (indaco morbido) */
  --gradient-bg:
-  radial-gradient(900px circle at 0% 0%, rgba(124, 92, 255, 0.16), transparent 70%),
-  radial-gradient(900px circle at 100% 0%, rgba(79, 123, 255, 0.14), transparent 70%);
-  --color-surface: #121829;     /* sidebar and cards */
-  --color-surface-2: #1a2138;   /* inputs and hovered rows */
-  --color-border: #232b44;      /* thin borders and dividers */
+  radial-gradient(900px circle at 0% 0%, rgba(148, 88, 248, 0.14), transparent 70%),
+  radial-gradient(900px circle at 100% 0%, rgba(120, 69, 243, 0.12), transparent 70%);
+  --color-surface: #1c1d3d;     /* sidebar and cards */
+  --color-surface-2: #26274c;   /* inputs and hovered rows */
+  --color-border: #33345e;      /* thin borders and dividers */
 
   /* --- Text --- */
-  --color-text: #e7e9f2;        /* main text */
-  --color-text-muted: #8b92a8;  /* secondary text */
-  --color-text-faint: #5b6178;  /* hints and disabled text */
+  --color-text: #eceaf6;        /* main text */
+  --color-text-muted: #a2a3c4;  /* secondary text */
+  --color-text-faint: #74759c;  /* hints and disabled text */
 
   /* --- Brand (violet / blue) --- */
   --color-primary: #7c5cff;        /* main brand violet */
@@ -52,6 +58,18 @@
 
   /* --- Brand gradient (logo and primary buttons) --- */
   --gradient-brand: linear-gradient(135deg, #7c5cff 0%, #4f7bff 100%);
+
+  /* --- Alias dei token con nome CORTO (compatibilita') ---
+     Alcuni componenti (GameImage, il bordo di un campo in Impostazioni, il
+     menu a tendina del profilo nell'header) usano i nomi corti --surface,
+     --surface-2 e --border invece di --color-*. Senza queste righe usavano i
+     loro fallback scuri "vecchi" e restavano fuori tema. Puntandoli ai token
+     --color-* seguono la palette come tutto il resto.
+     NB: --text e --text-muted NON sono aliasati di proposito: la sidebar li usa
+     e vogliamo lasciarne invariato l'aspetto (aurora). */
+  --surface: var(--color-surface);
+  --surface-2: var(--color-surface-2);
+  --border: var(--color-border);
 
   /* --- Corner radius --- */
   --radius-sm: 8px;

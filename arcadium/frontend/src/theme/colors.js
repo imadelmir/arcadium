@@ -1,15 +1,19 @@
 // Gli stessi colori di theme.css, ma come oggetto JavaScript.
 // Utili quando una libreria vuole i colori in JS invece che in CSS, per esempio
 // i grafici della pagina statistiche (M5-T12).
+//
+// Palette "Indaco morbido": fondo/superfici/bordi/testo allineati a theme.css.
+// I colori di brand e semantici (primary, status, success/danger/warning) NON
+// cambiano, cosi' i grafici mantengono gli stessi accenti.
 export const colors = {
-  bg: "#0a0e1a",
-  surface: "#121829",
-  surface2: "#1a2138",
-  border: "#232b44",
+  bg: "#14152e",
+  surface: "#1c1d3d",
+  surface2: "#26274c",
+  border: "#33345e",
 
-  text: "#e7e9f2",
-  textMuted: "#8b92a8",
-  textFaint: "#5b6178",
+  text: "#eceaf6",
+  textMuted: "#a2a3c4",
+  textFaint: "#74759c",
 
   primary: "#7c5cff",
   primaryStrong: "#6b46ff",
