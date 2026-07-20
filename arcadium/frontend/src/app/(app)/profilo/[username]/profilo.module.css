@@ -113,8 +113,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-width: 104px;
-  padding: 9px 14px;
+  width: 104px;
+  height: 36px;
+  padding: 0 14px;
+  white-space: nowrap;
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 600;

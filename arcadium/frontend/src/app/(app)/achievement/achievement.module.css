@@ -124,7 +124,7 @@
 
 .shareBtn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 136px; padding: 12px 20px;
+  width: 136px; height: 44px; padding: 0 20px; white-space: nowrap;
   border-radius: var(--radius-md); font-size: 15px; font-weight: 700; color: #fff;
   cursor: pointer; text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.18);
