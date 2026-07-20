@@ -123,7 +123,8 @@
 .shareIcon { color: var(--color-text-muted); }
 
 .shareBtn {
-  display: inline-flex; align-items: center; padding: 12px 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 136px; padding: 12px 20px;
   border-radius: var(--radius-md); font-size: 15px; font-weight: 700; color: #fff;
   cursor: pointer; text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.18);
