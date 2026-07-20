@@ -30,6 +30,12 @@ import java.util.List;
  * @param europeanOnly se {@code true}, limita ai titoli che iniziano con una
  *                     lettera europea (vetrina Negozio); assente/false = tutto
  *                     il catalogo. Il Negozio lo attiva solo a ricerca vuota.
+ * @param safeSearch   se {@code true}, esclude i contenuti per adulti (change
+ *                     request safe search, V18). A differenza degli altri filtri
+ *                     NON arriva dal client: il controller lo prende dalla
+ *                     colonna {@code app_user.safe_search} dell'utente
+ *                     autenticato, cosi' non e' aggirabile da una richiesta
+ *                     costruita a mano.
  */
 public record CatalogQuery(
         String q,
@@ -40,6 +46,7 @@ public record CatalogQuery(
         String status,
         BigDecimal minPrice,
         BigDecimal maxPrice,
-        Boolean europeanOnly
+        Boolean europeanOnly,
+        Boolean safeSearch
 ) {
 }

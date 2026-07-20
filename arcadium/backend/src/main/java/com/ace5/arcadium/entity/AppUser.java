@@ -61,6 +61,13 @@ public class AppUser {
 
     private Short abandonAfterMonths;         // SMALLINT, nullable (V9) — timeout auto-abbandono: NULL=off, 1/3/6 mesi
 
+    // BOOLEAN NOT NULL DEFAULT TRUE (V18) — filtro contenuti per adulti nel Negozio.
+    // Inizializzato a TRUE anche in Java: la colonna e' NOT NULL e Hibernate
+    // include comunque il campo nell'INSERT, quindi un nuovo utente registrato
+    // con il campo a null farebbe fallire la registrazione. Il default del DB
+    // copre le righe gia' esistenti, questo copre quelle nuove.
+    private Boolean safeSearch = Boolean.TRUE;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;          // TIMESTAMP NOT NULL DEFAULT now()
@@ -114,6 +121,15 @@ public class AppUser {
 
     public Short getAbandonAfterMonths() { return abandonAfterMonths; }
     public void setAbandonAfterMonths(Short abandonAfterMonths) { this.abandonAfterMonths = abandonAfterMonths; }
+
+    /**
+     * Safe search (V18): {@code TRUE} = i contenuti per adulti sono nascosti dal
+     * Negozio. La colonna e' NOT NULL DEFAULT TRUE, ma il getter puo' restituire
+     * null per un'istanza appena costruita e non ancora persistita: chi legge usa
+     * {@code !Boolean.FALSE.equals(...)} per trattare l'assenza come "attivo".
+     */
+    public Boolean getSafeSearch() { return safeSearch; }
+    public void setSafeSearch(Boolean safeSearch) { this.safeSearch = safeSearch; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

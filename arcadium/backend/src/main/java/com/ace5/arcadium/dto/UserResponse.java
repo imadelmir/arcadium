@@ -20,6 +20,12 @@ import com.ace5.arcadium.entity.AppUser;
  * <p><b>Auto-abbandono (feature M6).</b> {@code abandonAfterMonths} riflette la
  * scelta dell'utente: {@code null} = disattivato, 1/3/6 = mesi. Serve al selettore
  * in Impostazioni per mostrare il valore corrente dopo un refresh.
+ *
+ * <p><b>Safe search (V18).</b> {@code safeSearch} e' il filtro contenuti per
+ * adulti: true = i titoli espliciti restano fuori dal Negozio. Viaggia nella
+ * sessione perche' e' il frontend a doverne rispecchiare lo stato (interruttore
+ * in Impostazioni, indicatore nel Negozio); il filtro vero resta comunque lato
+ * server, che legge il valore dall'utente autenticato e non dal client.
  */
 public record UserResponse(
         Long id,
@@ -35,7 +41,8 @@ public record UserResponse(
         String twitchUrl,
         Integer abandonAfterMonths,
         String previousUsername,
-        Instant usernameChangeAllowedAt
+        Instant usernameChangeAllowedAt,
+        boolean safeSearch
 ) {
     /** Intervallo minimo tra due cambi di visibilita' del profilo (change request). */
     public static final Duration PROFILE_VISIBILITY_COOLDOWN = Duration.ofHours(48);
@@ -58,7 +65,11 @@ public record UserResponse(
                 user.getTwitchUrl(),
                 user.getAbandonAfterMonths() == null ? null : user.getAbandonAfterMonths().intValue(),
                 user.getPreviousUsername(),
-                usernameChangeAllowedAt(user));
+                usernameChangeAllowedAt(user),
+                // Colonna NOT NULL DEFAULT TRUE: un null qui puo' arrivare solo
+                // da un'istanza non ancora persistita, e in quel caso il default
+                // corretto e' "filtro attivo".
+                !Boolean.FALSE.equals(user.getSafeSearch()));
     }
 
     /**

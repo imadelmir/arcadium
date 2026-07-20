@@ -96,7 +96,8 @@ public class GameService {
 
         Specification<Game> spec = GameSpecifications.build(
                 filter.q(), filter.genre(), filter.language(), filter.category(),
-                platform, status, filter.minPrice(), filter.maxPrice(), filter.europeanOnly());
+                platform, status, filter.minPrice(), filter.maxPrice(),
+                filter.europeanOnly(), filter.safeSearch());
 
         Page<Game> page = gameRepository.findAll(spec, safePageable);
         List<GameSummaryResponse> content = page.getContent().stream()

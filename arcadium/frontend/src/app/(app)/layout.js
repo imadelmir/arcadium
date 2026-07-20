@@ -8,25 +8,16 @@
 // Change request layout: la finestra NON scorre più nel suo insieme. Il
 // contenitore occupa esattamente l'altezza della finestra e l'unica area che
 // scorre è <main>: così sidebar (navigazione) e header (utente, lingua, social)
-// restano sempre visibili. Le testate delle singole pagine si agganciano in alto
-// con `position: sticky`, che funziona proprio perché l'area di scorrimento è
-// <main>.
-import { Sidebar } from "@/layouts/Sidebar/Sidebar";
-import { Header } from "@/layouts/Header/Header";
-import { RequireAuth } from "@/layouts/RequireAuth/RequireAuth";
+// restano sempre visibili.
+//
+// Change request responsive: la struttura e gli stili si sono spostati in
+// AppShell, un componente CLIENT. Motivo: sotto i 768px la sidebar diventa un
+// pannello a scomparsa e serve dello stato (aperto/chiuso) condiviso fra
+// sidebar, header e velatura — cosa impossibile in un componente server come
+// questo. Qui resta solo il montaggio, così il layout non diventa client
+// inutilmente e le pagine figlie conservano il rendering server dove possibile.
+import { AppShell } from "@/layouts/AppShell/AppShell";
 
 export default function AppLayout({ children }) {
-  return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh" }}>
-        <Header />
-        {/* Nessun padding in alto: le testate sticky partono a filo, altrimenti
-            il contenuto scorrerebbe visibile nella striscia sopra di esse. */}
-        <main style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0 32px 24px" }}>
-          <RequireAuth>{children}</RequireAuth>
-        </main>
-      </div>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }

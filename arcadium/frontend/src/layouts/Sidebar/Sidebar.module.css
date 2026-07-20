@@ -86,6 +86,122 @@
 
 .icon { width: 20px; height: 20px; flex-shrink: 0; }
 
+/* Contenitore dell'icona: ancora per il pallino delle notifiche. Serve un box
+   proprio (e non la voce intera) perche' con la sidebar a sole icone
+   l'etichetta sparisce e il pallino deve restare attaccato all'icona. */
+.iconWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Pallino numerato delle notifiche (change request notifiche sidebar).
+   Sporge in alto a destra dell'icona; il bordo dello stesso colore del fondo
+   lo stacca dall'icona quando ci finisce sopra. */
+.badge {
+  position: absolute;
+  top: -6px;
+  left: 11px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-danger, #f06b6b);
+  border: 2px solid #191534;   /* tinta media del gradiente della sidebar */
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Testo per i soli lettori di schermo: nasconde visivamente ma resta leggibile
+   dalle tecnologie assistive (display:none o visibility:hidden lo toglierebbero
+   anche a loro). */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================================================
+   Change request responsive — due punti di rottura, allineati ad AppShell e
+   Header (1024px e 768px).
+   ============================================================================= */
+
+/* --- Tablet: sidebar stretta, sole icone --- */
+/* Il limite inferiore (min-width) e' necessario: sotto i 768px vale la regola
+   del pannello a scomparsa, che mostra di nuovo le etichette. */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar {
+    width: 76px;
+    padding: 8px 0;
+  }
+
+  .brand {
+    justify-content: center;
+    padding: 10px 0 20px;
+  }
+
+  /* Il lettering "ARCADIUM" non ci sta: resta il solo simbolo. */
+  .brand :global(span) {
+    display: none;
+  }
+
+  .nav { padding: 8px 12px; }
+
+  .navItem {
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+  }
+
+  .label { display: none; }
+
+  .pill { left: 12px; right: 12px; }
+}
+
+/* --- Telefono: pannello a scomparsa --- */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 70;              /* sopra la velatura di AppShell (60) */
+    width: min(268px, 82vw);  /* mai a filo del bordo: si vede che c'e' altro sotto */
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .sidebar[data-open="true"] {
+    transform: translateX(0);
+    box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Voci piu' alte: bersaglio comodo al tocco (44px e' il minimo consigliato,
+     qui si sale perche' il dito non ha la precisione del mouse). */
+  .nav { --item-height: 48px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pill { transition: none; }      /* stessa scelta dello StarField (T4) */
+  .sidebar { transition: none; }
 }

@@ -41,6 +41,13 @@ import com.ace5.arcadium.service.GameService;
  *       (change request Negozio): {@code price >= minPrice} e {@code price <= maxPrice}.</li>
  * </ul>
  *
+ * <p><b>Safe search (change request, V18).</b> Il filtro contenuti per adulti
+ * NON e' un query param: si legge dalla colonna {@code app_user.safe_search}
+ * dell'utente autenticato. Un parametro sarebbe aggirabile con una richiesta
+ * costruita a mano (curl, DevTools), e un filtro di questo tipo deve reggere
+ * anche quando il client non collabora. Conseguenza voluta: due utenti che
+ * chiedono la stessa identica URL possono ricevere cataloghi diversi.
+ *
  * <p>Paginazione/ordinamento standard di Spring Data: {@code page}, {@code size},
  * {@code sort} (es. {@code ?sort=name,desc} per la Z → A). Default: 20 elementi
  * ordinati per nome. Entrambi gli endpoint richiedono autenticazione
@@ -67,10 +74,16 @@ public class GameController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Boolean europeanOnly,
-            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
+            @AuthenticationPrincipal AppUserPrincipal principal) {
+
+        // Colonna NOT NULL DEFAULT TRUE: il null si puo' vedere solo su un'entita'
+        // non ancora persistita, e in quel caso il default corretto e' "attivo".
+        Boolean safeSearch = !Boolean.FALSE.equals(principal.getAppUser().getSafeSearch());
 
         CatalogQuery filter = new CatalogQuery(
-                q, genre, language, category, platform, status, minPrice, maxPrice, europeanOnly);
+                q, genre, language, category, platform, status, minPrice, maxPrice,
+                europeanOnly, safeSearch);
         return gameService.search(filter, pageable);
     }
 

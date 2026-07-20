@@ -374,3 +374,35 @@
   margin-right: calc(var(--space-4) * -1);
   padding-right: var(--space-4);
 }
+/* =============================================================================
+   Indicatore del safe search (change request, V18).
+   Sta nella barra dei filtri perche' e' a tutti gli effetti un filtro attivo,
+   anche se non modificabile da qui: senza, l'assenza di certi titoli
+   sembrerebbe una lacuna del catalogo. Tinta rossa tenue, coerente con
+   l'interruttore in Impostazioni.
+   ============================================================================= */
+.safeSearchTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(240, 107, 107, 0.35);
+  background: rgba(240, 107, 107, 0.08);
+  color: var(--color-danger, #f06b6b);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Su schermi stretti la barra dei filtri e' gia' affollata: resta il solo
+   simbolo, il testo lo dice il title. */
+@media (max-width: 768px) {
+  .safeSearchTag {
+    gap: 0;
+    padding: 0 10px;
+    font-size: 0;
+  }
+}

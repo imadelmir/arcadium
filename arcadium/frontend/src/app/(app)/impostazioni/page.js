@@ -2,8 +2,9 @@
 
 // =============================================================================
 // Pagina Impostazioni (/impostazioni) — M5-T15.
-// Sezioni: privacy del profilo (ProfilePanel), auto-abbandono (AutoAbandonPanel,
-// feature M6) e integrazione Steam (SteamPanel).
+// Sezioni: nome utente (UsernamePanel), immagine del profilo (AvatarPanel),
+// privacy del profilo (ProfilePanel), safe search (SafeSearchPanel),
+// auto-abbandono (AutoAbandonPanel, feature M6) e integrazione Steam (SteamPanel).
 //
 // M6: le card sono avvolte in un contenitore flex con gap uniforme, cosi' la
 // distanza tra i pannelli e' identica (prima dipendeva da margini per-pannello
@@ -15,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { ProfilePanel } from "./ProfilePanel";
 import { UsernamePanel } from "./UsernamePanel";
 import { AvatarPanel } from "./AvatarPanel";
+import { SafeSearchPanel } from "./SafeSearchPanel";
 import { AutoAbandonPanel } from "./AutoAbandonPanel";
 import { SteamPanel } from "./SteamPanel";
 import styles from "../placeholder.module.css";
@@ -50,6 +52,11 @@ export default function ImpostazioniPage() {
 
         {/* Privacy del profilo (change request privacy): pubblico / privato. */}
         <ProfilePanel />
+
+        {/* Safe search (change request, V18): filtro contenuti per adulti nel
+            Negozio. Accostato alla privacy perche' e' l'altra impostazione che
+            decide cosa si vede e cosa no. */}
+        <SafeSearchPanel />
 
         {/* Auto-abbandono (feature M6): timeout 1/3/6 mesi o spento. */}
         <AutoAbandonPanel />

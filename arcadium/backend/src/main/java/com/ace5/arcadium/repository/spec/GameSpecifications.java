@@ -13,10 +13,15 @@ import com.ace5.arcadium.entity.Category;
 import com.ace5.arcadium.entity.Game;
 import com.ace5.arcadium.entity.Genre;
 import com.ace5.arcadium.entity.Language;
+import com.ace5.arcadium.entity.Tag;
 
+import jakarta.persistence.criteria.CommonAbstractCriteria;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 /**
  * Fabbrica di {@link Specification} per il catalogo giochi (M4-T5).
@@ -36,6 +41,38 @@ import jakarta.persistence.criteria.Predicate;
  * JOIN M-a-M può duplicare la riga del gioco.
  */
 public final class GameSpecifications {
+
+    /**
+     * Etichette (generi e tag Steam) che identificano un titolo per adulti
+     * (change request safe search, V18). Sono i valori che il dataset usa
+     * davvero, gia' normalizzati in minuscolo per il confronto: il match e'
+     * esatto sul nome della lookup, non una LIKE, cosi' "Nudity" esclude ma
+     * "Nudity-Free" o un futuro genere che contenga la parola no.
+     *
+     * <p>Elenco unico per generi e tag: le due tabelle condividono gran parte
+     * del vocabolario Steam, e un titolo etichettato in un modo solo va escluso
+     * comunque. Per allargare o restringere il filtro basta intervenire qui.
+     */
+    private static final List<String> ADULT_LABELS = List.of(
+            "sexual content",
+            "nudity",
+            "nsfw",
+            "hentai",
+            "adult",
+            "adult content",
+            "mature",
+            "eroge",
+            "erotic",
+            "porn",
+            "sexual themes",
+            "lgbtq+ sexual content");
+
+    /**
+     * Eta' minima (games.required_age) oltre la quale un titolo e' considerato
+     * per adulti anche senza etichette esplicite. Terzo segnale del safe search:
+     * il dataset non e' sempre coerente nel taggare, ma un 18+ dichiarato lo e'.
+     */
+    private static final Short ADULT_MIN_AGE = 18;
 
     private GameSpecifications() {
         // Classe di utilità: nessuna istanza.
@@ -57,12 +94,16 @@ public final class GameSpecifications {
      * @param europeanOnly se {@code TRUE}, limita ai titoli che iniziano con una
      *                     lettera europea (colonna generata name_starts_latin,
      *                     V8); {@code null}/false non aggiunge alcun predicato
+     * @param safeSearch   se {@code TRUE} (change request safe search, V18),
+     *                     esclude i titoli per adulti: generi o tag in
+     *                     {@link #ADULT_LABELS}, oppure {@code required_age >= 18}.
+     *                     {@code null}/false non aggiunge alcun predicato
      */
     public static Specification<Game> build(String q, List<String> genre,
                                             List<String> language, List<String> category,
                                             GamePlatform platform, CatalogGameStatus status,
                                             BigDecimal minPrice, BigDecimal maxPrice,
-                                            Boolean europeanOnly) {
+                                            Boolean europeanOnly, Boolean safeSearch) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -143,11 +184,60 @@ public final class GameSpecifications {
                 predicates.add(cb.isTrue(root.<Boolean>get("nameStartsLatin")));
             }
 
+            // --- Safe search (change request, V18): fuori i contenuti per adulti ---
+            // Tre segnali in OR fra loro, negati tutti insieme: genere esplicito,
+            // tag esplicito, eta' richiesta >= 18.
+            //
+            // Perche' NOT IN (subquery) e non una JOIN negata: con una JOIN il
+            // predicato varrebbe "esiste ALMENO UNA riga di genere che non e'
+            // esplicita", che e' vero per qualunque gioco con due o piu' generi —
+            // il filtro non escluderebbe nulla. La sotto-query risolve prima
+            // l'insieme degli appId da scartare, poi lo si esclude in blocco.
+            //
+            // Trappola nota del NOT IN: se la sotto-query restituisse anche un
+            // solo NULL, l'intero predicato diventerebbe "sconosciuto" e la
+            // query non tornerebbe NESSUN gioco. Qui non puo' succedere perche'
+            // si seleziona games.app_id, che e' la chiave primaria e quindi NOT
+            // NULL — ma se un domani si cambiasse colonna, andrebbe rivisto.
+            if (Boolean.TRUE.equals(safeSearch) && query != null) {
+                predicates.add(cb.not(root.<Long>get("appId").in(adultByGenre(query, cb))));
+                predicates.add(cb.not(root.<Long>get("appId").in(adultByTag(query, cb))));
+                // required_age e' nullable: NULL significa "non dichiarata" e non
+                // deve escludere il gioco (in SQL, NULL >= 18 non e' falso, e'
+                // sconosciuto — senza il ramo isNull il predicato scarterebbe
+                // anche i titoli senza classificazione).
+                predicates.add(cb.or(
+                        cb.isNull(root.<Short>get("requiredAge")),
+                        cb.lessThan(root.<Short>get("requiredAge"), ADULT_MIN_AGE)));
+            }
+
             // Nessun filtro → congiunzione vuota (sempre vera): tutto il catalogo.
             return predicates.isEmpty()
                     ? cb.conjunction()
                     : cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * appId dei giochi che hanno almeno un GENERE nell'elenco per adulti
+     * (safe search, V18). Sotto-query non correlata: PostgreSQL la valuta una
+     * volta sola e il piano resta un anti-join sull'indice di game_genre.
+     */
+    private static Subquery<Long> adultByGenre(CommonAbstractCriteria query, CriteriaBuilder cb) {
+        Subquery<Long> sub = query.subquery(Long.class);
+        Root<Game> adult = sub.from(Game.class);
+        Join<Game, Genre> genreJoin = adult.join("genres", JoinType.INNER);
+        return sub.select(adult.<Long>get("appId"))
+                .where(cb.lower(genreJoin.<String>get("name")).in(ADULT_LABELS));
+    }
+
+    /** Come {@link #adultByGenre}, ma sui TAG: il dataset etichetta l'uno o l'altro in modo incoerente. */
+    private static Subquery<Long> adultByTag(CommonAbstractCriteria query, CriteriaBuilder cb) {
+        Subquery<Long> sub = query.subquery(Long.class);
+        Root<Game> adult = sub.from(Game.class);
+        Join<Game, Tag> tagJoin = adult.join("tags", JoinType.INNER);
+        return sub.select(adult.<Long>get("appId"))
+                .where(cb.lower(tagJoin.<String>get("name")).in(ADULT_LABELS));
     }
 
     /** Ripulisce una lista di selezioni: scarta null/vuoti, normalizza per il match case-insensitive. */

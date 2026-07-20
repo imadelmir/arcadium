@@ -58,6 +58,16 @@ public class FriendshipService {
                 .toList();
     }
 
+    /**
+     * Quante richieste di amicizia l'utente ha ricevuto e non ancora evaso
+     * (change request notifiche sidebar). Solo il numero: la sidebar mostra un
+     * pallino, i dettagli li carica la pagina Community quando serve.
+     */
+    @Transactional(readOnly = true)
+    public long countReceived(Long userId) {
+        return friendshipRepository.countPendingReceived(userId);
+    }
+
     /** Richieste inviate e ancora senza risposta. */
     @Transactional(readOnly = true)
     public List<FriendResponse> listSent(Long userId) {

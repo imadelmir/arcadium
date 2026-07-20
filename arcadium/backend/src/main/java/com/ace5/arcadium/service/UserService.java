@@ -181,14 +181,31 @@ public class UserService {
         }
 
         if (request.avatarUrl() != null) {
-            // Preset chiuso (change request avatar): non un upload, quindi basta un
-            // controllo di appartenenza all'elenco noto — niente storage, niente
-            // validazione di formato/dimensione file.
-            if (!ALLOWED_AVATAR_URLS.contains(request.avatarUrl())) {
-                throw new ApiException(HttpStatus.BAD_REQUEST,
-                        "error.user.avatar.invalid", request.avatarUrl());
+            if (request.avatarUrl().isBlank()) {
+                // Stringa vuota = RIMOZIONE (change request avatar predefinito):
+                // si azzera la colonna e il frontend torna da solo all'avatar
+                // generato dall'iniziale dello username, che e' esattamente il
+                // ramo "src assente" del componente Avatar. Nessun file da
+                // cancellare: i preset sono statici e condivisi.
+                user.setAvatarUrl(null);
+            } else {
+                // Preset chiuso (change request avatar): non un upload, quindi basta un
+                // controllo di appartenenza all'elenco noto — niente storage, niente
+                // validazione di formato/dimensione file.
+                if (!ALLOWED_AVATAR_URLS.contains(request.avatarUrl())) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST,
+                            "error.user.avatar.invalid", request.avatarUrl());
+                }
+                user.setAvatarUrl(request.avatarUrl());
             }
-            user.setAvatarUrl(request.avatarUrl());
+        }
+
+        if (request.safeSearch() != null) {
+            // Safe search (V18): nessun cooldown e nessuna validazione ulteriore,
+            // e' una preferenza di visualizzazione che l'utente puo' invertire
+            // quando vuole. Il filtro vero e' applicato dal catalogo leggendo
+            // questa colonna, non un parametro del client.
+            user.setSafeSearch(request.safeSearch());
         }
 
         return UserResponse.from(user);

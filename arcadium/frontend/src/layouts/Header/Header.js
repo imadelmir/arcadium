@@ -9,19 +9,28 @@
 // degli store/piattaforme moderni: un cluster di azioni a destra —
 // community (Discord/Twitch) + campanello notifiche, poi lingua, poi profilo.
 // Il campanello vive dentro SocialLinks, insieme ai social.
+//
+// Change request responsive: sotto i 768px compare a SINISTRA il pulsante che
+// apre la sidebar a scomparsa (l'header e' l'unico punto fermo a schermo quando
+// la sidebar e' fuori campo). Lo stato del pannello non sta qui ma in AppShell,
+// che lo condivide con sidebar e velatura: l'header riceve solo il valore e la
+// funzione per invertirlo.
 // =============================================================================
 
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { ChevronDown, LogOut, Menu, User as UserIcon, X } from "lucide-react";
 import { LanguageSwitcher, Avatar, SocialLinks } from "@/components";
 import { useAuth } from "@/context/AuthProvider";
 import styles from "./Header.module.css";
 
-export function Header() {
-  const { t, i18n } = useTranslation();
+// `sidebarAperta`/`onToggleSidebar` riguardano la SIDEBAR a scomparsa (mobile),
+// da non confondere con `menuAperto` qui sotto, che e' il menu a tendina del
+// profilo: due pannelli diversi, stato separato.
+export function Header({ sidebarAperta = false, onToggleSidebar }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user, logout } = useAuth();
 
@@ -41,12 +50,29 @@ export function Header() {
 
   return (
     <header className={styles.header}>
+      {/* Apertura della sidebar: visibile SOLO sotto i 768px (display:none
+          altrove). Sta per primo nel DOM oltre che a sinistra, cosi' e' anche
+          il primo elemento raggiunto da tastiera. */}
+      <button
+        type="button"
+        className={styles.menuButton}
+        onClick={onToggleSidebar}
+        aria-expanded={sidebarAperta}
+        aria-label={t(sidebarAperta ? "nav.closeMenu" : "nav.openMenu")}
+      >
+        {sidebarAperta ? <X size={22} /> : <Menu size={22} />}
+      </button>
+
       {/* Cluster di azioni allineato a destra. Ordine ispirato agli store
           moderni con sidebar di navigazione: community + notifiche, lingua,
           separatore, profilo. */}
       <div className={styles.actions}>
-        {/* Discord / Twitch / campanello notifiche */}
-        <SocialLinks />
+        {/* Discord / Twitch / campanello notifiche. Su schermi molto stretti
+            sparisce: sono scorciatoie esterne, mentre lingua e profilo servono
+            per usare l'app. */}
+        <span className={styles.socials}>
+          <SocialLinks />
+        </span>
 
         <LanguageSwitcher />
 
@@ -62,6 +88,8 @@ export function Header() {
             aria-expanded={menuAperto}
           >
             <Avatar name={nome} src={user?.avatarUrl} size="md" />
+            {/* Su telefono resta il solo avatar: il nome mangia larghezza e
+                l'identita' e' gia' chiara dall'immagine. */}
             <span className={styles.userName}>{nome}</span>
             <ChevronDown size={16} className={styles.chevron} />
           </button>

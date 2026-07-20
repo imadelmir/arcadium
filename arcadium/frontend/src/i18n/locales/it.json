@@ -8,7 +8,11 @@
     "statistiche": "Statistiche",
     "achievement": "Achievement",
     "community": "Community",
-    "impostazioni": "Impostazioni"
+    "impostazioni": "Impostazioni",
+    "pendingRequests_one": "{{count}} richiesta di amicizia in attesa",
+    "pendingRequests_other": "{{count}} richieste di amicizia in attesa",
+    "openMenu": "Apri il menu",
+    "closeMenu": "Chiudi il menu"
   },
   "common": {
     "underConstruction": "Pagina in costruzione",
@@ -121,6 +125,10 @@
       "previous": "Precedente",
       "next": "Successiva",
       "page": "Pagina"
+    },
+    "safeSearch": {
+      "active": "Safe search",
+      "hint": "Il safe search è attivo: i contenuti per adulti sono nascosti. Puoi disattivarlo dalle Impostazioni."
     }
   },
   "gameDetail": {
@@ -133,13 +141,13 @@
     "autoTranslated": "Tradotto automaticamente",
     "translateError": "Traduzione non riuscita, mostro l'originale",
     "media": "Immagini",
-  "lightbox": {
-    "title": "Visualizzatore immagini",
-    "previous": "Immagine precedente",
-    "next": "Immagine successiva",
-    "openAria": "Apri l'immagine {{current}} a schermo intero",
-    "imageAlt": "Screenshot {{current}} di {{total}}"
-  },
+    "lightbox": {
+      "title": "Visualizzatore immagini",
+      "previous": "Immagine precedente",
+      "next": "Immagine successiva",
+      "openAria": "Apri l'immagine {{current}} a schermo intero",
+      "imageAlt": "Screenshot {{current}} di {{total}}"
+    },
     "reviews": "Recensioni",
     "reviewOf": "su",
     "reviewWord": "recensioni",
@@ -467,7 +475,10 @@
         "lava": "Lava",
         "ghost-menta": "Ghost menta",
         "invader-pink": "Invader pink"
-      }
+      },
+      "default": "Predefinito",
+      "defaultHint": "Scegli “Predefinito” per rimuovere l’immagine e tornare all’iniziale del tuo nome utente.",
+      "removed": "Immagine del profilo rimossa"
     },
     "autoAbandon": {
       "title": "Auto-abbandono",
@@ -478,6 +489,17 @@
       "month6": "6 mesi",
       "saved": "Impostazione salvata",
       "error": "Impossibile salvare. Riprova."
+    },
+    "safeSearch": {
+      "title": "Safe search",
+      "description": "Nasconde dal Negozio i giochi con contenuti per adulti: contenuto sessuale esplicito, nudità e titoli classificati 18+.",
+      "enableAria": "Attiva o disattiva il safe search",
+      "on": "Safe search attivo",
+      "onHint": "I giochi per adulti non compaiono nel Negozio e i relativi generi sono esclusi dai filtri.",
+      "off": "Safe search disattivato",
+      "offHint": "Il Negozio mostra l’intero catalogo, contenuti per adulti compresi.",
+      "saved": "Impostazione salvata",
+      "error": "Non è stato possibile salvare l’impostazione"
     }
   },
   "header": {

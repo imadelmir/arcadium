@@ -8,7 +8,11 @@
     "statistiche": "Statistics",
     "achievement": "Achievements",
     "community": "Community",
-    "impostazioni": "Settings"
+    "impostazioni": "Settings",
+    "pendingRequests_one": "{{count}} pending friend request",
+    "pendingRequests_other": "{{count}} pending friend requests",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "common": {
     "underConstruction": "Page under construction",
@@ -121,6 +125,10 @@
       "previous": "Previous",
       "next": "Next",
       "page": "Page"
+    },
+    "safeSearch": {
+      "active": "Safe search",
+      "hint": "Safe search is on: adult content is hidden. You can turn it off in Settings."
     }
   },
   "gameDetail": {
@@ -133,13 +141,13 @@
     "autoTranslated": "Auto-translated",
     "translateError": "Translation failed, showing original",
     "media": "Screenshots",
-  "lightbox": {
-    "title": "Image viewer",
-    "previous": "Previous image",
-    "next": "Next image",
-    "openAria": "Open image {{current}} full screen",
-    "imageAlt": "Screenshot {{current}} of {{total}}"
-  },
+    "lightbox": {
+      "title": "Image viewer",
+      "previous": "Previous image",
+      "next": "Next image",
+      "openAria": "Open image {{current}} full screen",
+      "imageAlt": "Screenshot {{current}} of {{total}}"
+    },
     "reviews": "Reviews",
     "reviewOf": "of",
     "reviewWord": "reviews",
@@ -467,7 +475,10 @@
         "lava": "Lava",
         "ghost-menta": "Mint ghost",
         "invader-pink": "Pink invader"
-      }
+      },
+      "default": "Default",
+      "defaultHint": "Pick “Default” to remove the picture and go back to your username initial.",
+      "removed": "Profile picture removed"
     },
     "autoAbandon": {
       "title": "Auto-abandon",
@@ -478,6 +489,17 @@
       "month6": "6 months",
       "saved": "Setting saved",
       "error": "Couldn't save. Try again."
+    },
+    "safeSearch": {
+      "title": "Safe search",
+      "description": "Hides adult games from the Store: explicit sexual content, nudity and titles rated 18+.",
+      "enableAria": "Turn safe search on or off",
+      "on": "Safe search on",
+      "onHint": "Adult games are hidden from the Store and their genres are left out of the filters.",
+      "off": "Safe search off",
+      "offHint": "The Store shows the whole catalogue, adult content included.",
+      "saved": "Setting saved",
+      "error": "The setting could not be saved"
     }
   },
   "header": {
