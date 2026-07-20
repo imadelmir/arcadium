@@ -21,7 +21,11 @@ import java.util.List;
  *                 Join su game_language → language.name
  * @param category nomi di categoria selezionati, stessa semantica OR di {@code genre}.
  *                 Join su game_category → category.name
- * @param platform "windows" | "mac" | "linux" (case-insensitive)
+ * @param platform nomi piattaforma selezionati ("windows"/"mac"/"linux",
+ *                 case-insensitive): match ESATTO sul set, non OR come
+ *                 {@code genre} — un gioco entra solo se supporta esattamente
+ *                 le piattaforme elencate (le altre devono essere false).
+ *                 Lista vuota/assente = nessun filtro.
  * @param status   "free" | "paid" | "discounted" (case-insensitive)
  * @param minPrice prezzo minimo incluso, confrontato con il prezzo EFFETTIVO
  *                 scontato (V13), non il listino: games.effective_price &gt;= minPrice, nullable
@@ -42,7 +46,7 @@ public record CatalogQuery(
         List<String> genre,
         List<String> language,
         List<String> category,
-        String platform,
+        List<String> platform,
         String status,
         BigDecimal minPrice,
         BigDecimal maxPrice,

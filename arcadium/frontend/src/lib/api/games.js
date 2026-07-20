@@ -9,7 +9,10 @@
 //                        multi-select). Un gioco entra se ha ALMENO UNO dei
 //                        valori scelti per ciascun filtro (OR dentro il filtro,
 //                        AND fra filtri). Inviati come CSV: ["Action","Indie"] -> "Action,Indie".
-//   platform             "windows" | "mac" | "linux"
+//   platform             array di "windows"/"mac"/"linux" selezionati (change
+//                        request: multi-select come genre/language/category
+//                        nell'interazione, ma match ESATTO sul set lato
+//                        backend, non OR). Inviato come CSV.
 //   status               "free" | "paid" | "discounted"
 // NON esiste un parametro `safeSearch`: il filtro contenuti per adulti (V18) e'
 // applicato dal backend leggendo la preferenza dell'utente autenticato, proprio
