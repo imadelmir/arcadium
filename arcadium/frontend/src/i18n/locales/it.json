@@ -454,6 +454,21 @@
       "error": "Impossibile salvare l'impostazione. Riprova.",
       "locked": "Hai cambiato la visibilità di recente. Potrai modificarla di nuovo il {{time}}."
     },
+    "avatar": {
+      "title": "Immagine del profilo",
+      "description": "Scegli un'immagine tra quelle disponibili. Verrà mostrata sia nell'intestazione che sul tuo profilo pubblico.",
+      "optionLabel": "Avatar {{name}}",
+      "saved": "Avatar aggiornato.",
+      "error": "Impossibile salvare l'avatar. Riprova.",
+      "names": {
+        "synthwave": "Synthwave",
+        "alieno-acido": "Alieno acido",
+        "oni": "Oni",
+        "lava": "Lava",
+        "ghost-menta": "Ghost menta",
+        "invader-pink": "Invader pink"
+      }
+    },
     "autoAbandon": {
       "title": "Auto-abbandono",
       "description": "I giochi \"In corso\" rimasti inattivi passano automaticamente ad \"Abbandonato\" dopo il periodo scelto. Conta l'ultima attività: ore registrate, inizio o aggiunta del gioco.",

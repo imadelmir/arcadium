@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,6 +54,19 @@ public class UserService {
 
     /** Intervallo minimo tra due cambi di username (V16): una volta ogni 2 mesi. */
     private static final Period USERNAME_CHANGE_COOLDOWN = Period.ofMonths(2);
+
+    /**
+     * Avatar preset ammessi (change request avatar): NON e' un upload libero, l'utente
+     * sceglie tra 6 immagini servite come statiche dal frontend ({@code frontend/public/avatars}).
+     * Elenco chiuso qui per validare lato server: un client non puo' impostare un URL arbitrario.
+     */
+    private static final Set<String> ALLOWED_AVATAR_URLS = Set.of(
+            "/avatars/synthwave.svg",
+            "/avatars/alieno-acido.svg",
+            "/avatars/oni.svg",
+            "/avatars/lava.svg",
+            "/avatars/ghost-menta.svg",
+            "/avatars/invader-pink.svg");
 
     private final AppUserRepository userRepository;
     private final BacklogRepository backlogRepository;
@@ -164,6 +178,17 @@ public class UserService {
                 throw new ApiException(HttpStatus.BAD_REQUEST,
                         "error.user.abandonMonths.invalid", months);
             }
+        }
+
+        if (request.avatarUrl() != null) {
+            // Preset chiuso (change request avatar): non un upload, quindi basta un
+            // controllo di appartenenza all'elenco noto — niente storage, niente
+            // validazione di formato/dimensione file.
+            if (!ALLOWED_AVATAR_URLS.contains(request.avatarUrl())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "error.user.avatar.invalid", request.avatarUrl());
+            }
+            user.setAvatarUrl(request.avatarUrl());
         }
 
         return UserResponse.from(user);
