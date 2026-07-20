@@ -11,6 +11,10 @@
 //                        AND fra filtri). Inviati come CSV: ["Action","Indie"] -> "Action,Indie".
 //   platform             "windows" | "mac" | "linux"
 //   status               "free" | "paid" | "discounted"
+// NON esiste un parametro `safeSearch`: il filtro contenuti per adulti (V18) e'
+// applicato dal backend leggendo la preferenza dell'utente autenticato, proprio
+// perche' un query param sarebbe aggirabile dal client. Il frontend lo rispecchia
+// soltanto (indicatore nel Negozio, interruttore in Impostazioni).
 // Paginazione/ordinamento standard Spring Data:
 //   page (0-based), size, sort (es. "price,desc"). Default backend: 20, per nome.
 // =============================================================================

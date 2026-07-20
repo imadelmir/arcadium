@@ -104,3 +104,19 @@
   font-size: 0.9rem;
   color: var(--danger, #ef4444);
 }
+/* Anteprima della casella "Predefinito" (change request avatar predefinito):
+   e' il componente Avatar senza src, quindi mostra l'iniziale sul gradiente del
+   marchio. Le misure fisse di Avatar (48px in taglia lg) vanno annullate: qui
+   deve riempire la casella come le immagini dei preset. */
+.defaultThumb {
+  width: 100%;
+  height: 100%;
+  font-size: 1.15rem;
+}
+
+/* Riga di spiegazione sotto la griglia. */
+.hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary, var(--color-text-muted));
+}

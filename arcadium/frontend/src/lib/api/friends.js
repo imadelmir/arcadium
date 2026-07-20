@@ -14,6 +14,13 @@ export function listReceivedRequests() {
   return api.get("/api/friends/requests");
 }
 
+// Solo il NUMERO di richieste ricevute in attesa: alimenta il pallino sulla
+// voce Community della sidebar, che lo richiede a intervalli regolari.
+// Restituisce { count }.
+export function countReceivedRequests() {
+  return api.get("/api/friends/requests/count");
+}
+
 // Richieste che ho inviato e che attendono risposta.
 export function listSentRequests() {
   return api.get("/api/friends/requests/sent");

@@ -19,6 +19,7 @@ import Link from "next/link";
 import { Search, Lock, UserPlus, UserCheck, UserX, Check } from "lucide-react";
 
 import { Input, Avatar, Spinner, Button } from "@/components";
+import { useNotifications } from "@/context/NotificationsProvider";
 import { searchUsers } from "@/lib/api/users";
 import {
   listFriends, listReceivedRequests, listSentRequests,
@@ -29,6 +30,13 @@ import styles from "./community.module.css";
 
 export default function CommunityPage() {
   const { t } = useTranslation();
+
+  // Change request notifiche: il pallino sulla voce Community della sidebar
+  // conta le richieste ricevute. Accettandone o rifiutandone una da questa
+  // pagina il numero cambia, e va riallineato subito invece di aspettare il
+  // polling da 60s — altrimenti si resterebbe a guardare un pallino che dice
+  // "1" sopra una lista di richieste ormai vuota.
+  const { refreshNotifications } = useNotifications();
 
   const [q, setQ] = useState("");
   const [users, setUsers] = useState([]);
@@ -61,7 +69,8 @@ export default function CommunityPage() {
     setFriends(f);
     setReceived(r);
     setSent(s);
-  }, []);
+    refreshNotifications();
+  }, [refreshNotifications]);
 
   useEffect(() => { caricaRelazioni(); }, [caricaRelazioni]);
 

@@ -19,10 +19,12 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { Search, X } from "lucide-react";
+import { Search, ShieldCheck, X } from "lucide-react";
 
 import { StoreCard, FilterDropdown, PriceRangeSlider, Pagination } from "@/components";
+import { useAuth } from "@/context/AuthProvider";
 import { listGames, getGameFilters } from "@/lib/api/games";
+import { withoutAdultLabels } from "@/lib/adultContent";
 import {
   makeSteamLabelLocalizer,
   GENRE_LABELS_IT,
@@ -109,6 +111,13 @@ const parseList = (v) => (v ? v.split(",").filter(Boolean) : []);
 
 function NegozioContent() {
   const { t, i18n } = useTranslation();
+
+  // Safe search (change request, V18). Il filtro vero lo applica il backend
+  // leggendo la preferenza dell'utente autenticato: qui il valore serve solo a
+  // (a) mostrare l'indicatore e (b) togliere dalle tendine i generi/categorie
+  // che, con il filtro acceso, darebbero sempre zero risultati.
+  const { user } = useAuth();
+  const safeSearchAttivo = user?.safeSearch !== false;
 
   // Etichetta lingua localizzata nella lingua UI corrente (Intl.DisplayNames):
   // in italiano "Inglese", in inglese "English", ecc. Il VALORE del filtro resta
@@ -395,6 +404,10 @@ function NegozioContent() {
     debouncedQuery, platform,
     genreValues.join(","), languageValues.join(","), categoryValues.join(","),
     price, rangeActive, range.min, range.max, sort, page,
+    // Il safe search non viaggia come parametro (lo legge il backend
+    // dall'utente), ma cambiarlo cambia i risultati: senza questa dipendenza il
+    // Negozio resterebbe sulla lista vecchia fino al reload.
+    safeSearchAttivo,
   ]);
 
   return (
@@ -498,14 +511,28 @@ function NegozioContent() {
           ))}
         </FilterDropdown>
 
-        {/* Genere: multi-select con mini ricerca (valori dal backend) */}
-        {renderLookupFilter("genre", genreValues, genreSearch, setGenreSearch, genreOptions, toggleGenre, clearGenre, localizeGenre)}
+        {/* Genere: multi-select con mini ricerca (valori dal backend).
+            Con il safe search acceso le voci esplicite spariscono dall'elenco:
+            lasciarle selezionabili darebbe un filtro che non trova mai nulla,
+            e sembrerebbe un difetto invece del comportamento previsto. */}
+        {renderLookupFilter("genre", genreValues, genreSearch, setGenreSearch, withoutAdultLabels(genreOptions, safeSearchAttivo), toggleGenre, clearGenre, localizeGenre)}
 
         {/* Lingua: multi-select con mini ricerca (valori dal backend, solo quelle con giochi associati) */}
         {renderLookupFilter("language", languageValues, languageSearch, setLanguageSearch, languageOptions, toggleLanguage, clearLanguage, localizeLanguage)}
 
         {/* Categoria: multi-select con mini ricerca (valori dal backend) */}
-        {renderLookupFilter("category", categoryValues, categorySearch, setCategorySearch, categoryOptions, toggleCategory, clearCategory, localizeCategory)}
+        {renderLookupFilter("category", categoryValues, categorySearch, setCategorySearch, withoutAdultLabels(categoryOptions, safeSearchAttivo), toggleCategory, clearCategory, localizeCategory)}
+
+        {/* Indicatore del safe search: spiega perche' certi titoli non
+            compaiono, invece di lasciar credere che il catalogo sia incompleto.
+            Non e' cliccabile — si cambia da Impostazioni — quindi e' un <span>
+            con il link dentro, non un pulsante. */}
+        {safeSearchAttivo && (
+          <span className={styles.safeSearchTag} title={t("store.safeSearch.hint")}>
+            <ShieldCheck size={14} aria-hidden="true" />
+            {t("store.safeSearch.active")}
+          </span>
+        )}
 
         {/* Ordina: ancorato a destra */}
         <FilterDropdown

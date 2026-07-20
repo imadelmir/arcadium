@@ -36,8 +36,11 @@ export function getUserProfileStats(username) {
   return api.get(`/api/users/${encodeURIComponent(username)}/stats`);
 }
 
-// Aggiorna le impostazioni dell'utente autenticato (change request privacy).
-// `payload` = { profilePublic? }. Restituisce lo UserResponse aggiornato.
+// Aggiorna le impostazioni dell'utente autenticato (PATCH parziale).
+// `payload` = { profilePublic?, abandonAfterMonths?, avatarUrl?, safeSearch? }.
+// Solo i campi presenti vengono toccati. Per RIMUOVERE l'immagine del profilo si
+// passa avatarUrl: "" (stringa vuota): null significherebbe "non toccare".
+// Restituisce lo UserResponse aggiornato.
 export function updateMySettings(payload) {
   return api.patch("/api/users/me", payload);
 }

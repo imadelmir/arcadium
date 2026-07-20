@@ -51,6 +51,17 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
             + "order by f.createdAt desc")
     List<Friendship> findPendingReceived(@Param("userId") Long userId);
 
+    /**
+     * Quante richieste RICEVUTE sono ancora in attesa (change request notifiche).
+     * Serve al pallino sulla voce Community della sidebar, interrogato di
+     * frequente: si conta a DB invece di caricare le righe e gli utenti
+     * collegati come fa {@link #findPendingReceived}, che con la sua doppia
+     * fetch join sarebbe sproporzionata per ottenere un solo numero.
+     */
+    @Query("select count(f) from Friendship f "
+            + "where f.status = 'pending' and f.addressee.id = :userId")
+    long countPendingReceived(@Param("userId") Long userId);
+
     /** Richieste INVIATE e ancora in attesa di risposta. */
     @Query("select f from Friendship f "
             + "join fetch f.requester join fetch f.addressee "

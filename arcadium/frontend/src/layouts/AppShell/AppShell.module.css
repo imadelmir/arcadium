@@ -1,0 +1,93 @@
+/* =============================================================================
+   AppShell — impalcatura del gruppo autenticato (change request responsive).
+
+   Punti di rottura usati in tutta l'app:
+     1024px -> la sidebar perde le etichette e resta a sole icone;
+      768px -> la sidebar esce dal flusso e diventa un pannello a scomparsa.
+   Gli stessi due valori sono ripetuti in Sidebar.module.css e Header.module.css:
+   cambiarne uno senza gli altri disallinea i tre pezzi.
+   ============================================================================= */
+
+.shell {
+  display: flex;
+  height: 100vh;
+  /* dvh tiene conto delle barre del browser mobile che compaiono e scompaiono:
+     con 100vh la pagina risulterebbe piu' alta dello schermo e l'ultima riga
+     finirebbe sotto la barra degli indirizzi. Il vh resta come ripiego per i
+     browser che non conoscono dvh. */
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;   /* senza questo un contenuto largo (griglia Negozio) impedisce
+                     alla colonna di restringersi e sfonda la pagina in orizzontale */
+  height: 100%;
+}
+
+/* L'unica area che scorre: sidebar e header restano fermi. */
+.main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 32px 24px;
+}
+
+/* --- Velatura del pannello laterale (solo telefono) --- */
+/* E' un <button> e non un <div>: chiude il pannello, quindi deve essere
+   raggiungibile da tastiera e annunciato come comando, non come decorazione. */
+.overlay {
+  display: none;
+  border: none;
+  padding: 0;
+}
+
+/* =============================================================================
+   Tablet: meno margini laterali, il contenuto ha bisogno della larghezza.
+   ============================================================================= */
+@media (max-width: 1024px) {
+  .main {
+    padding: 0 20px 20px;
+  }
+}
+
+/* =============================================================================
+   Telefono: la sidebar diventa un pannello sovrapposto, quindi la colonna
+   occupa tutta la larghezza e la velatura entra in gioco.
+   ============================================================================= */
+@media (max-width: 768px) {
+  .main {
+    padding: 0 14px 16px;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 60;              /* sopra il contenuto, sotto la sidebar (70) */
+    background: rgba(6, 8, 20, 0.6);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    cursor: pointer;
+    /* Sempre montata ma inerte: animare l'opacita' e' fluido, mentre
+       comparire/sparire con display farebbe uno scatto. pointer-events la
+       rende non cliccabile quando il pannello e' chiuso. */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .shell[data-menu-open="true"] .overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    transition: none;
+  }
+}

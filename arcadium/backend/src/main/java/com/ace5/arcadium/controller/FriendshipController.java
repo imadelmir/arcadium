@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ace5.arcadium.dto.FriendRequestsCountResponse;
 import com.ace5.arcadium.dto.FriendResponse;
 import com.ace5.arcadium.security.AppUserPrincipal;
 import com.ace5.arcadium.service.FriendshipService;
@@ -22,6 +23,7 @@ import com.ace5.arcadium.service.FriendshipService;
  * <ul>
  *   <li>{@code GET    /api/friends}                    — i miei amici;</li>
  *   <li>{@code GET    /api/friends/requests}           — richieste ricevute da accettare;</li>
+ *   <li>{@code GET    /api/friends/requests/count}     — quante ne ho ricevute (pallino sidebar);</li>
  *   <li>{@code GET    /api/friends/requests/sent}      — richieste inviate in attesa;</li>
  *   <li>{@code POST   /api/friends/{username}}         — invia una richiesta;</li>
  *   <li>{@code POST   /api/friends/{username}/accept}  — accetta una richiesta ricevuta;</li>
@@ -49,6 +51,17 @@ public class FriendshipController {
     @GetMapping("/requests")
     public List<FriendResponse> received(@AuthenticationPrincipal AppUserPrincipal principal) {
         return friendshipService.listReceived(principal.getId());
+    }
+
+    /**
+     * Solo il CONTEGGIO delle richieste ricevute (change request notifiche): lo
+     * interroga la sidebar a intervalli regolari, quindi deve restare leggero.
+     * Path letterale piu' specifico di {@code /requests}: Spring lo risolve per
+     * primo, nessuna ambiguita' di mapping.
+     */
+    @GetMapping("/requests/count")
+    public FriendRequestsCountResponse receivedCount(@AuthenticationPrincipal AppUserPrincipal principal) {
+        return new FriendRequestsCountResponse(friendshipService.countReceived(principal.getId()));
     }
 
     @GetMapping("/requests/sent")

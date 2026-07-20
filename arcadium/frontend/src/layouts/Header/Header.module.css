@@ -18,6 +18,43 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  min-width: 0;   /* permette al cluster di comprimersi invece di sfondare */
+}
+
+/* Involucro dei social: esiste solo per poterli nascondere sugli schermi molto
+   stretti senza toccare SocialLinks (che ha un suo modulo CSS e appartiene al
+   frontend visivo). */
+.socials {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --- Apertura della sidebar (change request responsive) --- */
+/* Nascosto di default: serve solo dove la sidebar esce dal flusso (<= 768px). */
+.menuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(28, 29, 61, 0.34);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menuButton:hover {
+  border-color: rgba(124, 92, 255, 0.45);
+}
+
+.menuButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
 /* Separatore verticale sottile fra le azioni di sistema e il profilo. */
@@ -147,4 +184,55 @@
 .menuItemDanger:hover {
   background: rgba(240, 107, 107, 0.12);
   color: var(--color-danger);
+}
+
+/* =============================================================================
+   Change request responsive — stessi punti di rottura di AppShell e Sidebar.
+   ============================================================================= */
+
+/* Tablet: margini laterali ridotti, in linea con il padding di <main>. */
+@media (max-width: 1024px) {
+  .header {
+    padding: var(--space-1) var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .actions {
+    gap: var(--space-3);
+  }
+}
+
+/* Telefono: compare il pulsante del menu e si taglia il superfluo. */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .menuButton {
+    display: inline-flex;
+    /* Spinge il cluster delle azioni a destra: l'header torna
+       "menu a sinistra / azioni a destra" senza cambiare justify-content. */
+    margin-right: auto;
+  }
+
+  /* Il nome resta nel menu a tendina del profilo, qui basta l'avatar. */
+  .userName {
+    display: none;
+  }
+
+  .user {
+    padding: var(--space-1);
+  }
+
+  .divider {
+    display: none;
+  }
+}
+
+/* Schermi molto stretti: via anche Discord/Twitch/campanello, sono
+   scorciatoie esterne e non servono per usare l'app. */
+@media (max-width: 560px) {
+  .socials {
+    display: none;
+  }
 }
