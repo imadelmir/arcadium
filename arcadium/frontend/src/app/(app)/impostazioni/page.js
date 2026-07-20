@@ -14,6 +14,7 @@ import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { ProfilePanel } from "./ProfilePanel";
 import { UsernamePanel } from "./UsernamePanel";
+import { AvatarPanel } from "./AvatarPanel";
 import { AutoAbandonPanel } from "./AutoAbandonPanel";
 import { SteamPanel } from "./SteamPanel";
 import styles from "../placeholder.module.css";
@@ -43,6 +44,9 @@ export default function ImpostazioniPage() {
       >
         {/* Nome utente (V16): cambio username, una volta ogni 2 mesi. */}
         <UsernamePanel />
+
+        {/* Immagine del profilo (change request avatar): 6 preset, no upload. */}
+        <AvatarPanel />
 
         {/* Privacy del profilo (change request privacy): pubblico / privato. */}
         <ProfilePanel />

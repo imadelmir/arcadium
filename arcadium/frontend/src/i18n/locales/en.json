@@ -454,6 +454,21 @@
       "error": "Couldn't save the setting. Please try again.",
       "locked": "You changed your visibility recently. You can change it again on {{time}}."
     },
+    "avatar": {
+      "title": "Profile picture",
+      "description": "Choose a picture from the ones available. It will show up both in the header and on your public profile.",
+      "optionLabel": "Avatar {{name}}",
+      "saved": "Avatar updated.",
+      "error": "Couldn't save the avatar. Please try again.",
+      "names": {
+        "synthwave": "Synthwave",
+        "alieno-acido": "Acid alien",
+        "oni": "Oni",
+        "lava": "Lava",
+        "ghost-menta": "Mint ghost",
+        "invader-pink": "Pink invader"
+      }
+    },
     "autoAbandon": {
       "title": "Auto-abandon",
       "description": "\"Playing\" games left inactive are automatically moved to \"Abandoned\" after the chosen period. Last activity counts: logged hours, start, or when the game was added.",

@@ -12,13 +12,19 @@ package com.ace5.arcadium.dto;
  *       feature M6): <b>0 = disattivato</b>, 1/3/6 = mesi di inattivita' oltre i
  *       quali un gioco "In corso" passa ad "Abbandonato". A DB 0 diventa NULL
  *       (colonna V9, dominio {NULL,1,3,6}).</li>
+ *   <li>{@code avatarUrl} — foto profilo (change request avatar): un percorso
+ *       tra i 6 preset serviti da {@code /avatars/*.svg} (frontend, cartella
+ *       pubblica). Non e' un upload libero: il servizio valida che il valore
+ *       sia uno dei preset noti, altrimenti 400.</li>
  * </ul>
  *
  * @param profilePublic      nuova visibilita' del profilo; se null non viene toccata
  * @param abandonAfterMonths nuovo timeout auto-abbandono (0/1/3/6); se null non viene toccato
+ * @param avatarUrl          nuovo percorso avatar tra i preset; se null non viene toccato
  */
 public record UserSettingsRequest(
         Boolean profilePublic,
-        Integer abandonAfterMonths
+        Integer abandonAfterMonths,
+        String avatarUrl
 ) {
 }
