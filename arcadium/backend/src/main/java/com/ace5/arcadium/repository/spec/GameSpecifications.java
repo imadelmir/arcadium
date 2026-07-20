@@ -85,7 +85,9 @@ public final class GameSpecifications {
      * @param genre    nomi di genere selezionati (OR fra loro), nullable/vuoto = nessun filtro
      * @param language nomi di lingua selezionati (OR fra loro), nullable/vuoto = nessun filtro
      * @param category nomi di categoria selezionati (OR fra loro), nullable/vuoto = nessun filtro
-     * @param platform piattaforma richiesta, nullable
+     * @param platform piattaforme richieste: match ESATTO sul set (le
+     *                 selezionate devono essere true, le non selezionate
+     *                 false), nullable/vuota = nessun filtro
      * @param status   stato commerciale richiesto, nullable
      * @param minPrice prezzo minimo incluso, confrontato con il prezzo EFFETTIVO
      *                 (scontato, V13): effectivePrice &gt;= minPrice, nullable
@@ -101,7 +103,7 @@ public final class GameSpecifications {
      */
     public static Specification<Game> build(String q, List<String> genre,
                                             List<String> language, List<String> category,
-                                            GamePlatform platform, CatalogGameStatus status,
+                                            List<GamePlatform> platform, CatalogGameStatus status,
                                             BigDecimal minPrice, BigDecimal maxPrice,
                                             Boolean europeanOnly, Boolean safeSearch) {
         return (root, query, cb) -> {
@@ -149,9 +151,20 @@ public final class GameSpecifications {
                 query.distinct(true);
             }
 
-            // --- Filtro per piattaforma: colonna booleana = true ---
-            if (platform != null) {
-                predicates.add(cb.isTrue(root.<Boolean>get(platform.column())));
+            // --- Filtro per piattaforma: match ESATTO sul set di flag selezionato ---
+            // Cambiato da OR inclusivo (change request Vins, seconda iterazione):
+            // "solo Linux" deve escludere i giochi anche su Windows, non solo
+            // includere quelli anche su Linux. Ogni piattaforma SELEZIONATA
+            // deve essere true, ogni piattaforma NON selezionata deve essere
+            // false: Windows+Linux selezionati -> windows=true AND linux=true
+            // AND mac=false (esclude i giochi anche su Mac).
+            if (platform != null && !platform.isEmpty()) {
+                for (GamePlatform p : GamePlatform.values()) {
+                    boolean selected = platform.contains(p);
+                    predicates.add(selected
+                            ? cb.isTrue(root.<Boolean>get(p.column()))
+                            : cb.isFalse(root.<Boolean>get(p.column())));
+                }
             }
 
             // --- Filtro per stato commerciale (price/discount) ---

@@ -86,7 +86,7 @@ public class GameService {
      */
     @Transactional(readOnly = true)
     public PageResponse<GameSummaryResponse> search(CatalogQuery filter, Pageable pageable) {
-        GamePlatform platform = parsePlatform(filter.platform());
+        List<GamePlatform> platform = parsePlatform(filter.platform());
         CatalogGameStatus status = parseStatus(filter.status());
         validatePriceRange(filter.minPrice(), filter.maxPrice());
         boolean hasJoinFilter = notEmpty(filter.genre())
@@ -158,15 +158,21 @@ public class GameService {
         return values != null && !values.isEmpty();
     }
 
-    private GamePlatform parsePlatform(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
+    /** Converte i nomi piattaforma richiesti in enum, ignorando lista assente/vuota. */
+    private List<GamePlatform> parsePlatform(List<String> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return List.of();
         }
-        try {
-            return GamePlatform.valueOf(raw.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "error.catalog.platform.invalid", raw);
-        }
+        return raw.stream()
+                .filter(v -> v != null && !v.isBlank())
+                .map(v -> {
+                    try {
+                        return GamePlatform.valueOf(v.trim().toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiException(HttpStatus.BAD_REQUEST, "error.catalog.platform.invalid", v);
+                    }
+                })
+                .toList();
     }
 
     private CatalogGameStatus parseStatus(String raw) {

@@ -481,15 +481,14 @@
 .safeSearchTag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 40px; /* allineato all'altezza delle pillole-filtro accanto */
-  padding: 0 14px;
+  gap: var(--space-2);
+  padding: 10px 16px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(240, 107, 107, 0.35);
+  border: 2px solid rgba(240, 107, 107, 0.35);
   background: rgba(240, 107, 107, 0.08);
   color: var(--color-danger, #f06b6b);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: default;
   /* Transizione come le pillole-filtro, cosi' l'alone compare in dissolvenza. */
@@ -546,7 +545,7 @@
 @media (max-width: 768px) {
   .safeSearchTag {
     gap: 0;
-    padding: 0 12px;
+    padding: 10px 12px;
     font-size: 0;
   }
 }

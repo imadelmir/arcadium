@@ -35,7 +35,10 @@ import com.ace5.arcadium.service.GameService;
  *       multi-valore (change request Negozio): {@code ?genre=Action,Indie} include
  *       i giochi con almeno uno dei generi elencati (OR), combinato in AND con
  *       gli altri filtri;</li>
- *   <li>{@code platform} — {@code windows} | {@code mac} | {@code linux};</li>
+ *   <li>{@code platform} — {@code windows} | {@code mac} | {@code linux},
+ *       multi-valore: {@code ?platform=windows,linux} include SOLO i giochi
+ *       disponibili esattamente su Windows+Linux (non anche su Mac) — match
+ *       esatto sul set, non OR come {@code genre};</li>
  *   <li>{@code status} — {@code free} | {@code paid} | {@code discounted};</li>
  *   <li>{@code minPrice} / {@code maxPrice} — fascia di prezzo inclusiva
  *       (change request Negozio): {@code price >= minPrice} e {@code price <= maxPrice}.</li>
@@ -69,7 +72,7 @@ public class GameController {
             @RequestParam(required = false) List<String> genre,
             @RequestParam(required = false) List<String> language,
             @RequestParam(required = false) List<String> category,
-            @RequestParam(required = false) String platform,
+            @RequestParam(required = false) List<String> platform,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
