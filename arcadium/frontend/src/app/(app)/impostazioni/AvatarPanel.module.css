@@ -29,12 +29,20 @@
   color: var(--text-secondary);
 }
 
-/* Griglia dei 6 preset: si adatta alla larghezza, min 68px per riquadro. */
+/* Griglia delle caselle avatar (change request: tutte su UNA sola riga).
+   Prima usava auto-fill con minmax(68px,1fr): oltre una certa larghezza le 7
+   caselle (Predefinito + 6 preset) non entravano e l'ultima andava a capo,
+   lasciando la riga spaiata (es. 6+1 o 4+1 su finestre piu' strette).
+   Con grid-auto-flow: column tutte le caselle stanno in una riga sola, a
+   prescindere da quante sono (resta valido anche se in futuro si aggiungono o
+   tolgono preset), e grid-auto-columns: minmax(0,1fr) le rende uguali e le fa
+   restringere insieme quando lo spazio cala. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
-  gap: 0.75rem;
-  max-width: 480px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--space-2); /* 8px: un filo piu' compatto di 0.75rem per far respirare le 7 caselle in riga */
+  max-width: 540px;    /* ~66px a casella: stessa resa dei 68px di prima, ma su una riga */
 }
 
 /* Ogni preset e' un pulsante quadrato che ospita il cerchio dell'immagine +

@@ -66,7 +66,11 @@ export function SafeSearchPanel() {
       <div className={styles.header}>
         <div>
           <h2 className={styles.title}>{t("settings.safeSearch.title")}</h2>
+          {/* La dicitura e' su due righe: l'introduzione ("...contenuti per
+              adulti:") sulla prima e l'elenco esplicito sulla seconda. Prima
+              era un unico paragrafo che andava a capo a meta' elenco. */}
           <p className={styles.description}>{t("settings.safeSearch.description")}</p>
+          <p className={styles.descriptionNote}>{t("settings.safeSearch.descriptionNote")}</p>
         </div>
 
         <button

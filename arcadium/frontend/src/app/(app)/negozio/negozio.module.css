@@ -32,11 +32,20 @@
 /* --- Barra di ricerca DOMINANTE (change request Negozio) ---
    Elemento principale in cima alla pagina: grande, ad alto contrasto, con
    accento violet. Al focus si accende il bordo brand e l'anello di focus. */
+/* Contenitore che racchiude la barra e la tendina dei suggerimenti: e' il
+   riferimento per il posizionamento assoluto della tendina. Il margine sotto,
+   che prima stava sulla barra, si sposta qui cosi' la tendina si ancora subito
+   sotto la barra (100% = fondo barra, il margine resta fuori dal calcolo). */
+.searchBox {
+  position: relative;
+  margin-bottom: var(--space-5);
+  z-index: 30; /* la tendina deve stare sopra la barra dei filtri sottostante */
+}
+
 .searchBar {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: var(--space-5);
 }
 
 .searchIcon {
@@ -98,6 +107,87 @@
 .searchClear:hover {
   color: var(--color-text);
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Tendina dei suggerimenti di ricerca ---------------------------------- */
+/* Stessa resa "glass" dei pannelli dei filtri (superficie 2, bordo, sfocatura,
+   ombra profonda), ancorata sotto la barra e a tutta la sua larghezza. */
+.suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  overflow: hidden;
+}
+
+/* Una voce = miniatura + nome (che si allunga) + prezzo a destra. */
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+/* Evidenziazione (hover del mouse o voce attiva da tastiera): stessa tinta
+   dei pannelli filtro. */
+.suggestion:hover,
+.suggestionActive {
+  background: rgba(124, 92, 255, 0.14);
+}
+
+.suggestionThumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+/* La miniatura riusa GameImage: forziamo l'immagine a riempire il riquadro. */
+.suggestionThumb :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.suggestionName {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionPrice {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggestion {
+    transition: none;
+  }
 }
 
 /* --- Barra dei filtri (pillole glass, in fila) --- */
@@ -381,12 +471,19 @@
    sembrerebbe una lacuna del catalogo. Tinta rossa tenue, coerente con
    l'interruttore in Impostazioni.
    ============================================================================= */
+/* Contenitore che ancora il tooltip custom sotto il tag (come .item nei
+   pulsanti social). Serve la posizione relativa per il tooltip in assoluto. */
+.safeSearchWrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .safeSearchTag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 38px;
-  padding: 0 12px;
+  height: 40px; /* allineato all'altezza delle pillole-filtro accanto */
+  padding: 0 14px;
   border-radius: var(--radius-pill);
   border: 1px solid rgba(240, 107, 107, 0.35);
   background: rgba(240, 107, 107, 0.08);
@@ -395,14 +492,68 @@
   font-weight: 600;
   white-space: nowrap;
   cursor: default;
+  /* Transizione come le pillole-filtro, cosi' l'alone compare in dissolvenza. */
+  transition: border-color var(--transition), background var(--transition),
+    box-shadow var(--transition);
+}
+
+/* Glow al passaggio del mouse / focus da tastiera, come le pillole-filtro
+   (FilterDropdown). La forma dell'alone (0 2px 8px + riga interna) e' la stessa,
+   ma nella tinta ROSSA propria del safe search invece del viola del tema: il
+   rosso qui e' voluto ("filtro che sta bloccando qualcosa") ed e' lo stesso
+   dell'interruttore in Impostazioni. */
+.safeSearchWrap:hover .safeSearchTag,
+.safeSearchTag:focus-visible {
+  outline: none;
+  border-color: rgba(240, 107, 107, 0.55);
+  background: rgba(240, 107, 107, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 8px rgba(240, 107, 107, 0.35);
+}
+
+/* Tooltip custom coerente con l'app (stessa resa dei pulsanti social Discord/
+   Twitch): superficie solida, bordo nella tinta del tag, compare su hover e su
+   focus da tastiera. Sostituisce il tooltip nativo (title). */
+.safeSearchTooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  z-index: 60;
+  padding: 8px 12px;
+  white-space: nowrap;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  border: 1px solid rgba(240, 107, 107, 0.45);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.safeSearchWrap:hover .safeSearchTooltip,
+.safeSearchWrap:focus-within .safeSearchTooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* Su schermi stretti la barra dei filtri e' gia' affollata: resta il solo
-   simbolo, il testo lo dice il title. */
+   simbolo, il testo lo dice il tooltip. */
 @media (max-width: 768px) {
   .safeSearchTag {
     gap: 0;
-    padding: 0 10px;
+    padding: 0 12px;
     font-size: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .safeSearchTag,
+  .safeSearchTooltip {
+    transition: none;
   }
 }

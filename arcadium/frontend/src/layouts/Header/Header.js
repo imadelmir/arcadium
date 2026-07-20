@@ -17,7 +17,7 @@
 // funzione per invertirlo.
 // =============================================================================
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
@@ -37,14 +37,30 @@ export function Header({ sidebarAperta = false, onToggleSidebar }) {
   // Menu utente aperto/chiuso.
   const [menuAperto, setMenuAperto] = useState(false);
 
-  // Nome mostrato: SEMPRE lo username corrente (il nome visualizzato coincide
-  // con lo username e cambiando nome deve aggiornarsi ovunque); fallback neutro.
-  const nome = user?.username || "Utente";
+  // Uscita in corso: durante il logout "congeliamo" nome e avatar mostrati.
+  // Perche': l'header vive FUORI da RequireAuth (resta sempre a schermo mentre
+  // si e' nell'app), quindi appena logout() azzera la sessione l'header si
+  // ri-renderizza con user=null e mostrerebbe per un istante l'avatar di
+  // ripiego (le iniziali) prima che il redirect a /login lo smonti del tutto.
+  // Congelando l'ultimo valore noto, l'immagine scelta resta visibile fino
+  // all'uscita, invece del "lampo" dell'icona di ripiego.
+  const [uscendo, setUscendo] = useState(false);
+  const ultimoProfilo = useRef({ nome: "Utente", src: undefined });
+  if (user) {
+    ultimoProfilo.current = { nome: user.username || "Utente", src: user.avatarUrl };
+  }
 
-  // Logout: cancella sessione e torna al login.
+  // Nome e avatar mostrati: durante l'uscita si usa l'ultimo valore congelato,
+  // altrimenti lo username corrente (il nome visualizzato coincide con lo
+  // username e cambiando nome deve aggiornarsi ovunque); fallback neutro.
+  const nome = uscendo ? ultimoProfilo.current.nome : user?.username || "Utente";
+  const avatarSrc = uscendo ? ultimoProfilo.current.src : user?.avatarUrl;
+
+  // Logout: congela l'avatar, cancella sessione e torna al login.
   function esci() {
-    logout();
+    setUscendo(true);
     setMenuAperto(false);
+    logout();
     router.push("/login");
   }
 
@@ -87,7 +103,7 @@ export function Header({ sidebarAperta = false, onToggleSidebar }) {
             aria-haspopup="menu"
             aria-expanded={menuAperto}
           >
-            <Avatar name={nome} src={user?.avatarUrl} size="md" />
+            <Avatar name={nome} src={avatarSrc} size="md" />
             {/* Su telefono resta il solo avatar: il nome mangia larghezza e
                 l'identita' e' gia' chiara dall'immagine. */}
             <span className={styles.userName}>{nome}</span>
