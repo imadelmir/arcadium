@@ -34,6 +34,17 @@
   max-width: 62ch;
 }
 
+/* Seconda riga della dicitura: l'elenco dei contenuti nascosti. Attenuata
+   rispetto all'introduzione perche' e' la precisazione; l'a-capo ai due punti
+   evita che l'elenco vada a capo a meta' e resti spaiato. */
+.descriptionNote {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-text-faint, var(--color-text-muted));
+  max-width: 62ch;
+}
+
 /* --- Interruttore on/off --- */
 .switch {
   position: relative;

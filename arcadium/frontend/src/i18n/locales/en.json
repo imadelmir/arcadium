@@ -121,6 +121,9 @@
       "newest": "Newest"
     },
     "clearSearch": "Clear search",
+    "suggestions": {
+      "aria": "Search suggestions"
+    },
     "pagination": {
       "previous": "Previous",
       "next": "Next",
@@ -128,7 +131,7 @@
     },
     "safeSearch": {
       "active": "Safe search",
-      "hint": "Safe search is on: adult content is hidden. You can turn it off in Settings."
+      "hint": "Safe search is on, turn it off in settings"
     }
   },
   "gameDetail": {
@@ -482,7 +485,8 @@
     },
     "autoAbandon": {
       "title": "Auto-abandon",
-      "description": "\"Playing\" games left inactive are automatically moved to \"Abandoned\" after the chosen period. Last activity counts: logged hours, start, or when the game was added.",
+      "description": "\"Playing\" games left inactive are automatically moved to \"Abandoned\" after the chosen period.",
+      "descriptionNote": "Last activity counts: logged hours, start, or when the game was added.",
       "enableAria": "Turn auto-abandon on or off",
       "month1": "1 month",
       "month3": "3 months",
@@ -492,7 +496,8 @@
     },
     "safeSearch": {
       "title": "Safe search",
-      "description": "Hides adult games from the Store: explicit sexual content, nudity and titles rated 18+.",
+      "description": "Hides adult games from the Store:",
+      "descriptionNote": "explicit sexual content, nudity and titles rated 18+.",
       "enableAria": "Turn safe search on or off",
       "on": "Safe search on",
       "onHint": "Adult games are hidden from the Store and their genres are left out of the filters.",

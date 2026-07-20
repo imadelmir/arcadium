@@ -121,6 +121,9 @@
       "newest": "Più recenti"
     },
     "clearSearch": "Svuota la ricerca",
+    "suggestions": {
+      "aria": "Suggerimenti di ricerca"
+    },
     "pagination": {
       "previous": "Precedente",
       "next": "Successiva",
@@ -128,7 +131,7 @@
     },
     "safeSearch": {
       "active": "Safe search",
-      "hint": "Il safe search è attivo: i contenuti per adulti sono nascosti. Puoi disattivarlo dalle Impostazioni."
+      "hint": "Il safe search è attivo, disattivalo nelle impostazioni"
     }
   },
   "gameDetail": {
@@ -482,7 +485,8 @@
     },
     "autoAbandon": {
       "title": "Auto-abbandono",
-      "description": "I giochi \"In corso\" rimasti inattivi passano automaticamente ad \"Abbandonato\" dopo il periodo scelto. Conta l'ultima attività: ore registrate, inizio o aggiunta del gioco.",
+      "description": "I giochi \"In corso\" rimasti inattivi passano automaticamente ad \"Abbandonato\" dopo il periodo scelto.",
+      "descriptionNote": "Conta l'ultima attività: ore registrate, inizio o aggiunta del gioco.",
       "enableAria": "Attiva o disattiva l'auto-abbandono",
       "month1": "1 mese",
       "month3": "3 mesi",
@@ -492,7 +496,8 @@
     },
     "safeSearch": {
       "title": "Safe search",
-      "description": "Nasconde dal Negozio i giochi con contenuti per adulti: contenuto sessuale esplicito, nudità e titoli classificati 18+.",
+      "description": "Nasconde dal Negozio i giochi con contenuti per adulti:",
+      "descriptionNote": "contenuto sessuale esplicito, nudità e titoli classificati 18+.",
       "enableAria": "Attiva o disattiva il safe search",
       "on": "Safe search attivo",
       "onHint": "I giochi per adulti non compaiono nel Negozio e i relativi generi sono esclusi dai filtri.",

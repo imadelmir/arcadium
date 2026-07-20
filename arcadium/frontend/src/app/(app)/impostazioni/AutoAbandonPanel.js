@@ -69,7 +69,12 @@ export function AutoAbandonPanel() {
       <div className={styles.header}>
         <div>
           <h2 className={styles.title}>{t("settings.autoAbandon.title")}</h2>
+          {/* La dicitura e' su due righe: la regola principale ("...dopo il
+              periodo scelto.") sulla prima, il dettaglio su cosa conta come
+              ultima attivita' sulla seconda. Prima era un unico paragrafo che
+              andava a capo a meta' frase. */}
           <p className={styles.description}>{t("settings.autoAbandon.description")}</p>
+          <p className={styles.descriptionNote}>{t("settings.autoAbandon.descriptionNote")}</p>
         </div>
         <button
           type="button"

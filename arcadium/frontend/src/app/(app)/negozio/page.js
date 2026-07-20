@@ -16,14 +16,17 @@
 //   - PAGINAZIONE: 300 giochi per pagina, con barra "Pagina 1/2/…" e ritorno
 //     in alto al cambio pagina.
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Search, ShieldCheck, X } from "lucide-react";
 
 import { StoreCard, FilterDropdown, PriceRangeSlider, Pagination } from "@/components";
+import { GameImage } from "@/components/GameImage/GameImage";
 import { useAuth } from "@/context/AuthProvider";
 import { listGames, getGameFilters } from "@/lib/api/games";
+import { formatPrice } from "@/lib/format";
 import { withoutAdultLabels } from "@/lib/adultContent";
 import {
   makeSteamLabelLocalizer,
@@ -183,6 +186,19 @@ function NegozioContent() {
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery.trim());
 
+  // --- Suggerimenti di ricerca (autocomplete) --------------------------------
+  // Mentre l'utente scrive nella barra, mostriamo sotto un elenco di giochi che
+  // corrispondono al testo, ORDINATI PER POPOLARITA' (i piu' giocati in cima):
+  // usiamo lo stesso ordinamento di default del Negozio (peakCcu, picco di
+  // giocatori contemporanei). Cosi' digitando "spi" compare prima Spider-Man,
+  // "red" prima Red Dead Redemption, ecc. E' una comodita' visiva: la ricerca
+  // vera e propria resta quella con debounce piu' sotto.
+  const [suggestions, setSuggestions] = useState([]);      // giochi suggeriti (max 6)
+  const [suggestOpen, setSuggestOpen] = useState(false);   // tendina aperta?
+  const [activeSuggestion, setActiveSuggestion] = useState(-1); // voce evidenziata (tastiera)
+  const searchBoxRef = useRef(null);   // per chiudere la tendina al clic esterno
+  const suggestReqId = useRef(0);      // per scartare le risposte fuori ordine
+
   // Stato dei filtri supportati dal backend.
   const [platform, setPlatform] = useState(initialPlatform);   // "" = tutte
   // Genere/Lingua/Categoria: MULTI-SELECT (change request Negozio). Ogni stato
@@ -224,6 +240,74 @@ function NegozioContent() {
     }, 300);
     return () => clearTimeout(id);
   }, [query]);
+
+  // --- Fetch dei suggerimenti (debounce corto, 120ms) ------------------------
+  // Chiediamo al backend i primi 6 giochi che contengono il testo, ordinati per
+  // popolarita' (DEFAULT_SORT = peakCcu,desc). Suggeriamo GIA' DALLA PRIMA
+  // LETTERA (change request): sotto 1 carattere (campo vuoto) non cerchiamo.
+  // suggestReqId scarta le risposte arrivate in ritardo, cosi' vince sempre
+  // l'ultima digitazione e la tendina non "salta" a risultati vecchi.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 1) {
+      setSuggestions([]);
+      setActiveSuggestion(-1);
+      return undefined;
+    }
+    const id = setTimeout(() => {
+      const reqId = ++suggestReqId.current;
+      listGames({ q, sort: DEFAULT_SORT, size: 6, page: 0 })
+        .then((res) => {
+          if (reqId !== suggestReqId.current) return; // risposta superata
+          setSuggestions(res.content || []);
+          setActiveSuggestion(-1);
+        })
+        .catch(() => {
+          if (reqId !== suggestReqId.current) return;
+          setSuggestions([]); // in caso di errore, semplicemente nessun suggerimento
+        });
+    }, 120);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  // Chiusura della tendina dei suggerimenti al clic fuori dalla barra.
+  useEffect(() => {
+    if (!suggestOpen) return undefined;
+    const alClic = (e) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+        setSuggestOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", alClic);
+    return () => document.removeEventListener("mousedown", alClic);
+  }, [suggestOpen]);
+
+  // Apre il gioco scelto (dal clic o da Invio sulla voce evidenziata) e chiude.
+  const apriSuggerimento = (game) => {
+    setSuggestOpen(false);
+    setActiveSuggestion(-1);
+    router.push(`/gioco/${game.appId}`);
+  };
+
+  // Navigazione da tastiera nella tendina: frecce su/giu', Invio, Esc.
+  const onSearchKeyDown = (e) => {
+    if (!suggestOpen || suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveSuggestion((i) => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveSuggestion((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      if (activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+        e.preventDefault();
+        apriSuggerimento(suggestions[activeSuggestion]);
+      }
+    } else if (e.key === "Escape") {
+      setSuggestOpen(false);
+      setActiveSuggestion(-1);
+    }
+  };
 
   // --- Handler dei filtri: cambiano il valore e riportano SEMPRE a pagina 0 ---
   const changePlatform = (v) => { setPlatform(v); setPage(0); };
@@ -422,25 +506,70 @@ function NegozioContent() {
       </header>
 
       {/* --- Barra di ricerca DOMINANTE (change request Negozio) --- */}
-      <div className={styles.searchBar}>
-        <Search className={styles.searchIcon} size={22} aria-hidden="true" />
-        <input
-          type="search"
-          className={styles.searchInput}
-          placeholder={t("store.searchPlaceholder")}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label={t("store.searchPlaceholder")}
-        />
-        {query && (
-          <button
-            type="button"
-            className={styles.searchClear}
-            onClick={() => setQuery("")}
-            aria-label={t("store.clearSearch")}
+      <div className={styles.searchBox} ref={searchBoxRef}>
+        <div className={styles.searchBar}>
+          <Search className={styles.searchIcon} size={22} aria-hidden="true" />
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder={t("store.searchPlaceholder")}
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true); }}
+            onFocus={() => { if (query.trim().length >= 1) setSuggestOpen(true); }}
+            onKeyDown={onSearchKeyDown}
+            aria-label={t("store.searchPlaceholder")}
+            /* Attributi ARIA da combobox: collegano input e tendina e annunciano
+               la voce evidenziata agli screen reader. */
+            role="combobox"
+            aria-expanded={suggestOpen && suggestions.length > 0}
+            aria-controls="storeSuggestions"
+            aria-autocomplete="list"
+            aria-activedescendant={activeSuggestion >= 0 ? `suggestion-${activeSuggestion}` : undefined}
+            autoComplete="off"
+          />
+          {query && (
+            <button
+              type="button"
+              className={styles.searchClear}
+              onClick={() => { setQuery(""); setSuggestions([]); setSuggestOpen(false); }}
+              aria-label={t("store.clearSearch")}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
+        {/* Tendina dei suggerimenti: giochi corrispondenti, i piu' popolari in
+            cima. Ogni voce e' un link al dettaglio del gioco (/gioco/[appId]). */}
+        {suggestOpen && suggestions.length > 0 && (
+          <ul
+            className={styles.suggestions}
+            id="storeSuggestions"
+            role="listbox"
+            aria-label={t("store.suggestions.aria")}
           >
-            <X size={18} aria-hidden="true" />
-          </button>
+            {suggestions.map((g, i) => {
+              const p = formatPrice(g.price, g.discount, i18n.language);
+              return (
+                <li key={g.appId} id={`suggestion-${i}`} role="option" aria-selected={i === activeSuggestion}>
+                  <Link
+                    href={`/gioco/${g.appId}`}
+                    className={`${styles.suggestion} ${i === activeSuggestion ? styles.suggestionActive : ""}`}
+                    onClick={() => { setSuggestOpen(false); setActiveSuggestion(-1); }}
+                    onMouseEnter={() => setActiveSuggestion(i)}
+                  >
+                    <span className={styles.suggestionThumb}>
+                      <GameImage src={g.headerImage} alt="" />
+                    </span>
+                    <span className={styles.suggestionName}>{g.name}</span>
+                    <span className={styles.suggestionPrice}>
+                      {p.isFree ? t("store.free") : p.final}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
@@ -528,9 +657,27 @@ function NegozioContent() {
             Non e' cliccabile — si cambia da Impostazioni — quindi e' un <span>
             con il link dentro, non un pulsante. */}
         {safeSearchAttivo && (
-          <span className={styles.safeSearchTag} title={t("store.safeSearch.hint")}>
-            <ShieldCheck size={14} aria-hidden="true" />
-            {t("store.safeSearch.active")}
+          <span className={styles.safeSearchWrap}>
+            {/* Il tag non e' cliccabile (il safe search si cambia da
+                Impostazioni), ma e' focusabile da tastiera cosi' anche chi non
+                usa il mouse puo' leggere il messaggio del tooltip. */}
+            <span
+              className={styles.safeSearchTag}
+              tabIndex={0}
+              role="note"
+              aria-describedby="safeSearchTip"
+            >
+              <ShieldCheck size={14} aria-hidden="true" />
+              {t("store.safeSearch.active")}
+            </span>
+            {/* Tooltip custom in stile Discord/Twitch (come i pulsanti social
+                dell'header): sostituisce il tooltip nativo del browser (title),
+                che era lungo e con lo stile grezzo del sistema operativo. Il
+                testo ora e' corto: "Il safe search e' attivo, disattivalo nelle
+                impostazioni". */}
+            <span id="safeSearchTip" className={styles.safeSearchTooltip} role="tooltip">
+              {t("store.safeSearch.hint")}
+            </span>
           </span>
         )}
 
