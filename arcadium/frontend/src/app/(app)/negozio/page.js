@@ -166,7 +166,7 @@ function NegozioContent() {
   const pathname = usePathname();
 
   const initialQuery = searchParams.get("q") ?? "";
-  const initialPlatforms = parseList(searchParams.get("platform"));
+  const initialPlatform = searchParams.get("platform") ?? "";
   const initialGenres = parseList(searchParams.get("genre"));
   const initialLanguages = parseList(searchParams.get("language"));
   const initialCategories = parseList(searchParams.get("category"));
@@ -200,11 +200,7 @@ function NegozioContent() {
   const suggestReqId = useRef(0);      // per scartare le risposte fuori ordine
 
   // Stato dei filtri supportati dal backend.
-  // Piattaforma: MULTI-SELECT (change request, come Genere/Lingua/Categoria
-  // nell'interazione, ma con match ESATTO sul set lato backend: un gioco
-  // entra solo se supporta esattamente le piattaforme selezionate).
-  // Array vuoto = nessun filtro (tutte incluse).
-  const [platformValues, setPlatformValues] = useState(initialPlatforms);
+  const [platform, setPlatform] = useState(initialPlatform);   // "" = tutte
   // Genere/Lingua/Categoria: MULTI-SELECT (change request Negozio). Ogni stato
   // è un array di nomi selezionati; array vuoto = nessun filtro (tutti inclusi).
   const [genreValues, setGenreValues] = useState(initialGenres);
@@ -314,6 +310,7 @@ function NegozioContent() {
   };
 
   // --- Handler dei filtri: cambiano il valore e riportano SEMPRE a pagina 0 ---
+  const changePlatform = (v) => { setPlatform(v); setPage(0); };
   const changePrice = (v) => { setPrice(v); setPage(0); };
   const changeSort = (v) => { setSort(v); setPage(0); };
   // Trascinare la fascia di prezzo ordina automaticamente per prezzo crescente
@@ -322,18 +319,16 @@ function NegozioContent() {
   const changeRange = (next) => { setRange(next); setSort("price,asc"); setPage(0); };
   const resetRange = () => { setRange({ min: PRICE_MIN, max: PRICE_MAX }); setSort(DEFAULT_SORT); setPage(0); };
 
-  // Piattaforma/Genere/Lingua/Categoria (multi-select): spunta/togli un valore dall'array.
+  // Genere/Lingua/Categoria (multi-select): spunta/togli un valore dall'array.
   const toggleValue = (setValues) => (opt) => {
     setValues((prev) => (
       prev.includes(opt) ? prev.filter((v) => v !== opt) : [...prev, opt]
     ));
     setPage(0);
   };
-  const togglePlatform = toggleValue(setPlatformValues);
   const toggleGenre = toggleValue(setGenreValues);
   const toggleLanguage = toggleValue(setLanguageValues);
   const toggleCategory = toggleValue(setCategoryValues);
-  const clearPlatform = () => { setPlatformValues([]); setPage(0); };
   const clearGenre = () => { setGenreValues([]); setPage(0); };
   const clearLanguage = () => { setLanguageValues([]); setPage(0); };
   const clearCategory = () => { setCategoryValues([]); setPage(0); };
@@ -433,7 +428,7 @@ function NegozioContent() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (debouncedQuery) params.set("q", debouncedQuery);
-    if (platformValues.length) params.set("platform", platformValues.join(","));
+    if (platform) params.set("platform", platform);
     if (genreValues.length) params.set("genre", genreValues.join(","));
     if (languageValues.length) params.set("language", languageValues.join(","));
     if (categoryValues.length) params.set("category", categoryValues.join(","));
@@ -444,7 +439,7 @@ function NegozioContent() {
     if (page > 0) params.set("page", String(page));
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [debouncedQuery, platformValues, genreValues, languageValues, categoryValues, price, range, sort, page, pathname, router]);
+  }, [debouncedQuery, platform, genreValues, languageValues, categoryValues, price, range, sort, page, pathname, router]);
 
   // --- Ricarica dal backend a ogni variazione di ricerca, filtri o pagina ---
   useEffect(() => {
@@ -459,7 +454,7 @@ function NegozioContent() {
       try {
         const res = await listGames({
           q: debouncedQuery || undefined,
-          platform: platformValues.length ? platformValues : undefined,
+          platform: platform || undefined,
           genre: genreValues.length ? genreValues : undefined,
           language: languageValues.length ? languageValues : undefined,
           category: categoryValues.length ? categoryValues : undefined,
@@ -490,7 +485,7 @@ function NegozioContent() {
       attivo = false;
     };
   }, [
-    debouncedQuery, platformValues.join(","),
+    debouncedQuery, platform,
     genreValues.join(","), languageValues.join(","), categoryValues.join(","),
     price, rangeActive, range.min, range.max, sort, page,
     // Il safe search non viaggia come parametro (lo legge il backend
@@ -618,35 +613,31 @@ function NegozioContent() {
           </div>
         </FilterDropdown>
 
-        {/* Piattaforma: multi-select (change request Vins) — match ESATTO sul
-            set scelto (non OR come Genere/Lingua/Categoria): selezionando
-            "Linux" da solo escludi i giochi anche su Windows; selezionando
-            Windows+Linux ottieni i giochi disponibili esattamente su quella
-            coppia, non anche su Mac. Nessuna mini-ricerca: sono solo 3
-            opzioni fisse. */}
-        <FilterDropdown
-          label={platformValues.length > 0 ? `${t("store.filters.platform")} (${platformValues.length})` : t("store.filters.platform")}
-          active={platformValues.length > 0}
-        >
+        {/* Piattaforma: scelta singola */}
+        <FilterDropdown label={t("store.filters.platform")} active={platform !== ""}>
           <p className={styles.panelTitle}>{t("store.filters.platform")}</p>
-          {platformValues.length > 0 && (
-            <button type="button" className={styles.resetBtn} onClick={clearPlatform}>
-              {t("store.filters.clearSelection")}
-            </button>
-          )}
-          <div className={styles.optionsList}>
-            {PLATFORMS.map((pf) => (
-              <label key={pf} className={styles.option}>
-                <input
-                  type="checkbox"
-                  className={styles.optionInput}
-                  checked={platformValues.includes(pf)}
-                  onChange={() => togglePlatform(pf)}
-                />
-                <span>{PLATFORM_LABELS[pf]}</span>
-              </label>
-            ))}
-          </div>
+          <label className={styles.option}>
+            <input
+              type="radio"
+              name="platform"
+              className={styles.optionInput}
+              checked={platform === ""}
+              onChange={() => changePlatform("")}
+            />
+            <span>{t("common.all")}</span>
+          </label>
+          {PLATFORMS.map((pf) => (
+            <label key={pf} className={styles.option}>
+              <input
+                type="radio"
+                name="platform"
+                className={styles.optionInput}
+                checked={platform === pf}
+                onChange={() => changePlatform(pf)}
+              />
+              <span>{PLATFORM_LABELS[pf]}</span>
+            </label>
+          ))}
         </FilterDropdown>
 
         {/* Genere: multi-select con mini ricerca (valori dal backend).
@@ -727,8 +718,16 @@ function NegozioContent() {
       ) : games.length > 0 ? (
         <>
           <div className={styles.grid}>
-            {games.map((game) => (
-              <StoreCard key={game.appId} game={game} />
+            {games.map((game, i) => (
+              // className + --i: entrata "a cascata" delle card (vedi CSS
+              // .cardReveal). L'indice e' limitato a 14 cosi' l'ultimo ritardo
+              // resta contenuto anche con molte card in pagina.
+              <StoreCard
+                key={game.appId}
+                game={game}
+                className={styles.cardReveal}
+                style={{ "--i": Math.min(i, 14) }}
+              />
             ))}
           </div>
 

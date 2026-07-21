@@ -481,14 +481,15 @@
 .safeSearchTag {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: 10px 16px;
+  gap: 6px;
+  height: 40px; /* allineato all'altezza delle pillole-filtro accanto */
+  padding: 0 14px;
   border-radius: var(--radius-pill);
-  border: 2px solid rgba(240, 107, 107, 0.35);
+  border: 1px solid rgba(240, 107, 107, 0.35);
   background: rgba(240, 107, 107, 0.08);
   color: var(--color-danger, #f06b6b);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: default;
   /* Transizione come le pillole-filtro, cosi' l'alone compare in dissolvenza. */
@@ -545,7 +546,7 @@
 @media (max-width: 768px) {
   .safeSearchTag {
     gap: 0;
-    padding: 10px 12px;
+    padding: 0 12px;
     font-size: 0;
   }
 }
@@ -554,5 +555,109 @@
   .safeSearchTag,
   .safeSearchTooltip {
     transition: none;
+  }
+}
+
+/* =============================================================================
+   ANIMAZIONE DI ENTRATA — VARIANTE B (pagina Negozio).
+   - Titolo: rivelato con una "tendina" da sinistra a destra (clip-path).
+   - Barra di ricerca: scende dall'alto con un micro-rimbalzo.
+   - Filtri: ogni pillola SPUNTA una alla volta (pop con leggero overshoot),
+     scaglionate da sinistra a destra via nth-child (niente modifiche al JSX).
+   - Card: entrano con un leggero "ribaltamento" 3D verso l'alto, a cascata.
+   fill-mode "backwards": nessun lampo prima dell'avvio e ritorno allo stato
+   normale a fine animazione (l'hover di card e pillole resta funzionante).
+   ============================================================================= */
+
+/* --- Testata ------------------------------------------------------------- */
+@keyframes storeTitleWipe {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes storeSearchDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.title {
+  animation: storeTitleWipe 700ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.searchBox {
+  /* curva con leggero overshoot: la barra "atterra" con un micro-rimbalzo */
+  animation: storeSearchDrop 620ms cubic-bezier(0.34, 1.4, 0.64, 1) 120ms backwards;
+}
+
+/* --- Filtri: pop scaglionato, una pillola alla volta --------------------- */
+@keyframes storeFilterPop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.8);
+  }
+  70% {
+    transform: translateY(0) scale(1.06); /* micro overshoot: effetto "spunta" */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.filters > * {
+  animation: storeFilterPop 460ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.filters > *:nth-child(1) { animation-delay: 260ms; }
+.filters > *:nth-child(2) { animation-delay: 320ms; }
+.filters > *:nth-child(3) { animation-delay: 380ms; }
+.filters > *:nth-child(4) { animation-delay: 440ms; }
+.filters > *:nth-child(5) { animation-delay: 500ms; }
+.filters > *:nth-child(6) { animation-delay: 560ms; }
+.filters > *:nth-child(7) { animation-delay: 620ms; }
+
+/* --- Card: leggero ribaltamento 3D verso l'alto, a cascata --------------- */
+@keyframes storeCardFlipIn {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateX(14deg) translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateX(0) translateY(0);
+  }
+}
+
+.cardReveal {
+  animation: storeCardFlipIn 560ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(80ms + var(--i, 0) * 50ms);
+}
+
+/* Accessibilita': con "meno animazioni" resta solo una breve dissolvenza. */
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .searchBox,
+  .filters > *,
+  .cardReveal {
+    animation: storeFade 220ms ease backwards;
+    animation-delay: 0ms;
+  }
+
+  @keyframes storeFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 }
