@@ -124,3 +124,70 @@
   margin-right: calc(var(--space-4) * -1);
   padding-right: var(--space-4);
 }
+
+/* =============================================================================
+   ANIMAZIONE DI ENTRATA (Libreria) — stessa resa fluida del Negozio.
+   -----------------------------------------------------------------------------
+   Ordine: titolo -> tab (Tutti / In corso / Finito...) -> card, a cascata.
+   PRESTAZIONI: si animano SOLO "transform" e "opacity", le uniche due proprieta'
+   che il browser compone sulla GPU senza ridisegnare ad ogni fotogramma (niente
+   sfocature o maschere animate, belle ma causano scatti). translate3d forza il layer GPU.
+   fill-mode "backwards": nessun lampo prima dell'avvio e ritorno allo stato
+   normale a fine animazione, cosi' l'hover delle card resta funzionante.
+   Lo scaglionamento e' fatto via nth-child: nessuna modifica ai file JS.
+   ============================================================================= */
+@keyframes libChromeUp {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes libCardUp {
+  from { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.96); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.title {
+  animation: libChromeUp 560ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.tabs {
+  animation: libChromeUp 560ms cubic-bezier(0.22, 1, 0.36, 1) 90ms backwards;
+}
+
+/* Card della libreria: entrano una dopo l'altra. I ritardi sono elencati per
+   le prime 16; dalla 17esima in poi vale il ritardo massimo (nessuna attesa
+   lunghissima quando la libreria e' molto piena). */
+.grid > * {
+  animation: libCardUp 520ms cubic-bezier(0.22, 1, 0.36, 1) 780ms backwards;
+}
+.grid > *:nth-child(1)  { animation-delay: 180ms; }
+.grid > *:nth-child(2)  { animation-delay: 225ms; }
+.grid > *:nth-child(3)  { animation-delay: 270ms; }
+.grid > *:nth-child(4)  { animation-delay: 315ms; }
+.grid > *:nth-child(5)  { animation-delay: 360ms; }
+.grid > *:nth-child(6)  { animation-delay: 405ms; }
+.grid > *:nth-child(7)  { animation-delay: 450ms; }
+.grid > *:nth-child(8)  { animation-delay: 495ms; }
+.grid > *:nth-child(9)  { animation-delay: 540ms; }
+.grid > *:nth-child(10) { animation-delay: 585ms; }
+.grid > *:nth-child(11) { animation-delay: 630ms; }
+.grid > *:nth-child(12) { animation-delay: 675ms; }
+.grid > *:nth-child(13) { animation-delay: 700ms; }
+.grid > *:nth-child(14) { animation-delay: 725ms; }
+.grid > *:nth-child(15) { animation-delay: 750ms; }
+.grid > *:nth-child(16) { animation-delay: 775ms; }
+
+/* Accessibilita': con "meno animazioni" resta solo una breve dissolvenza. */
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .tabs,
+  .grid > * {
+    animation: libFade 200ms ease backwards;
+    animation-delay: 0ms;
+  }
+
+  @keyframes libFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
