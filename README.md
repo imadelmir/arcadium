@@ -20,6 +20,20 @@
 
 ---
 
+## In breve
+
+| | |
+|---|---|
+| **Problema** | La libreria di Steam dice cosa possiedi, non a che punto sei |
+| **Il mio ruolo** | Progetto di gruppo ITS, 5 persone. Mio il **frontend Next.js** — 14 pagine su 16 — piu la documentazione tecnica e un intervento sul backend ([dettaglio con i commit](#il-mio-contributo)) |
+| **Risultato** | 122.479 giochi caricati da un dataset di 460 MB, 25 tabelle, ETL idempotente, 53 test |
+| **Stack** | Python · Java · Spring Boot · PostgreSQL · Next.js · React · Docker |
+| **Demo** | [Video 1:30](https://portfolio-imad-el-mir.vercel.app/videos/projects/arcadium/demo.mp4) · [case study completo](https://portfolio-imad-el-mir.vercel.app/it/projects/arcadium) |
+| **Avvio** | Docker Desktop, poi ETL e `docker compose up -d --build` — [istruzioni](#avviare-il-progetto) |
+| **Stato** | Consegnato (giugno-luglio 2026) |
+
+---
+
 ## Il problema
 
 Chi gioca su PC accumula giochi molto piu in fretta di quanto riesca a giocarli. La libreria di Steam dice **cosa possiedi**, non **a che punto sei**: quali hai iniziato, quali hai lasciato dopo due ore, quali aspettano da un anno.
@@ -210,6 +224,40 @@ Arcadium e un **progetto di gruppo**: cinque persone, 253 commit.
 [@Ghosty977](https://github.com/Ghosty977) · [@imadelmir](https://github.com/imadelmir) · [@VincenzoAnge](https://github.com/VincenzoAnge) · [@Yassin-En](https://github.com/Yassin-En) · [@stratmichele-lead](https://github.com/stratmichele-lead)
 
 Chi ha scritto cosa e pubblico e verificabile: [grafico dei contributi](https://github.com/imadelmir/arcadium/graphs/contributors).
+
+---
+
+## Il mio contributo
+
+I miei commit sono **79 su 253**. Sul grafico dei contributi ne compaiono 61:
+gli altri 18 sono firmati con l'indirizzo della scuola
+(`imad.elmir@edu-its.it`), che GitHub tratta come un'identita separata.
+
+**Il frontend Next.js e la parte mia.** Quattordici delle sedici pagine
+dell'applicazione portano il mio primo commit — le due che non sono mie sono
+il recupero e il reimposta password, di [@VincenzoAnge](https://github.com/VincenzoAnge).
+
+| Cosa | Commit |
+|---|---|
+| Impianto Next.js: App Router, struttura delle rotte, tema | [`496db6a`](https://github.com/imadelmir/arcadium/commit/496db6a) |
+| Design system e componenti di base | [`1c386a6`](https://github.com/imadelmir/arcadium/commit/1c386a6) |
+| Bilinguismo IT/EN con react-i18next e selettore di lingua | [`57ae0be`](https://github.com/imadelmir/arcadium/commit/57ae0be) |
+| Pagina Negozio: catalogo, filtri, ricerca, paginazione | [`c5950fd`](https://github.com/imadelmir/arcadium/commit/c5950fd) |
+| Pagina Gioco: hero, dati dello store, galleria | [`7f87c45`](https://github.com/imadelmir/arcadium/commit/7f87c45) |
+| Pagina Backlog: stati, trascinamento, barra di avanzamento | [`5a8dbef`](https://github.com/imadelmir/arcadium/commit/5a8dbef) |
+| Pagina Statistiche con i grafici Recharts | [`4171207`](https://github.com/imadelmir/arcadium/commit/4171207) |
+| Integrazione frontend-backend e responsive | [`ece71b7`](https://github.com/imadelmir/arcadium/commit/ece71b7) |
+| Documentazione tecnica: architettura, database, API REST | [`04317f7`](https://github.com/imadelmir/arcadium/commit/04317f7) |
+
+**Anche un pezzo di backend.** I filtri del negozio avevano bisogno di
+parametri che l'API non esponeva, quindi la modifica e scesa fino a Spring
+Boot: `GameController`, il DTO `CatalogQuery`, le `GameSpecifications` che
+compongono la query JPA, `GameService` e i due bundle di messaggi IT/EN
+([`a3278c2`](https://github.com/imadelmir/arcadium/commit/a3278c2)).
+
+Quello che **non** e mio: la pipeline ETL in Python, lo schema PostgreSQL e le
+migrazioni Flyway, l'autenticazione JWT e la maggior parte del backend Spring
+Boot. Quelli sono lavoro degli altri quattro.
 
 ---
 
